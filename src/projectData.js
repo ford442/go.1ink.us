@@ -1,51 +1,30 @@
 const projectData = [
   {
     id: 1,
-    title: "Project Alpha",
-    description: "A cutting-edge web application built with modern technologies for seamless user experience.",
-    url: "https://project-alpha.example.com",
-    icon: "🚀",
-    tags: ["React", "Node.js", "MongoDB"]
+    title: "Cave Crystals",
+    description: "An immersive web-based exploration game.",
+    url: "/cave-crystals/index.html",
+    image: "https://placehold.co/600x400?text=Cave+Crystals",
+    icon: "💎",
+    tags: ["Game", "Web", "Adventure"]
   },
   {
     id: 2,
-    title: "Project Beta",
-    description: "An innovative mobile-first platform designed to revolutionize digital interactions.",
-    url: "https://project-beta.example.com",
-    icon: "📱",
-    tags: ["Flutter", "Firebase", "API"]
+    title: "Tronic",
+    description: "A professional web-based Digital Audio Workstation (DAW).",
+    url: "/tronic/index.html",
+    image: "https://placehold.co/600x400?text=Tronic",
+    icon: "🎹",
+    tags: ["Audio", "DAW", "Music"]
   },
   {
     id: 3,
-    title: "Project Gamma",
-    description: "A powerful data analytics dashboard for real-time insights and visualization.",
-    url: "https://project-gamma.example.com",
-    icon: "📊",
-    tags: ["Python", "Django", "D3.js"]
-  },
-  {
-    id: 4,
-    title: "Project Delta",
-    description: "An e-commerce solution with advanced features and seamless payment integration.",
-    url: "https://project-delta.example.com",
-    icon: "🛒",
-    tags: ["Vue.js", "Stripe", "PostgreSQL"]
-  },
-  {
-    id: 5,
-    title: "Project Epsilon",
-    description: "A social networking platform connecting communities through shared interests.",
-    url: "https://project-epsilon.example.com",
-    icon: "🌐",
-    tags: ["Next.js", "GraphQL", "Redis"]
-  },
-  {
-    id: 6,
-    title: "Project Zeta",
-    description: "An AI-powered content generation tool for creative professionals and marketers.",
-    url: "https://project-zeta.example.com",
-    icon: "🤖",
-    tags: ["AI/ML", "TensorFlow", "React"]
+    title: "Pixelocity",
+    description: "Real-time image, video, and webcam shader booth.",
+    url: "/pixelocity/index.html",
+    image: "https://placehold.co/600x400?text=Pixelocity",
+    icon: "🌈",
+    tags: ["Graphics", "Shaders", "Video"]
   }
 ];
 
