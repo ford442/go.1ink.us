@@ -39,3 +39,25 @@ A React application showcasing various web projects built with Vite and styled w
 
 To add your own projects, edit `src/projectData.js` and update the project objects with your own information (id, title, description, url, icon, tags).
 
+## Verification ✅
+
+You can run a simple verification script that checks the site for the projects listed in `src/projectData.js` and saves screenshots.
+
+1. Start the dev server (the verification script targets http://localhost:4173):
+   ```bash
+   npm run dev
+   ```
+
+2. Install Playwright (Python) if not already installed and install browsers:
+   ```bash
+   pip install playwright
+   playwright install
+   ```
+
+3. Run the verification script:
+   ```bash
+   python verification/verify_script.py
+   ```
+
+The script reads `src/projectData.js`, verifies each project title and image on the page, saves per-project screenshots into the `verification/` folder, and writes a full-page screenshot at `verification/verification.png`.
+
