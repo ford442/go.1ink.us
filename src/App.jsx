@@ -14,9 +14,9 @@ function App() {
       <div className="container mx-auto px-4 py-12 relative z-10">
         <header className="text-center mb-16 flex justify-center">
           <img
-            src="/title.png"
+            src="./title.png"
             alt="Web apps from 1ink.us"
-            className="max-w-full h-auto max-h-32 object-contain animate-fade-in drop-shadow-2xl filter"
+            className="max-w-lg md:max-w-2xl h-auto max-h-48 md:max-h-64 object-contain animate-fade-in drop-shadow-2xl filter"
           />
         </header>
         
@@ -28,9 +28,9 @@ function App() {
         
         <footer className="mt-20 mb-8 flex justify-center items-center">
           <img
-            src="/go1ink.us.png"
+            src="./go1inkus.png"
             alt="go1ink.us"
-            className="h-12 w-auto opacity-80 hover:opacity-100 transition-opacity duration-300"
+            className="h-16 md:h-20 lg:h-24 w-auto opacity-80 hover:opacity-100 transition-opacity duration-300"
           />
         </footer>
       </div>
