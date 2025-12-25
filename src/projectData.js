@@ -10,10 +10,10 @@ const projectData = [
   },
   {
     id: 2,
-    title: "Tronic",
+    title: "Hyphon",
     description: "A professional web-based Digital Audio Workstation (DAW).",
-    url: "/tronic/index.html",
-    image: "https://placehold.co/600x400?text=Tronic",
+    url: "https://go.1ink.us/hyphon",
+    image: "https://placehold.co/600x400?text=Hyphon",
     icon: "🎹",
     tags: ["Audio", "DAW", "Music"]
   },
