@@ -106,6 +106,33 @@ const projectData = [
     image: "/fluid-2.png",
     icon: "🌊",
     tags: ["Graphics", "Fluid", "Experiment"]
+  },
+  {
+    id: 13,
+    title: "Project M",
+    description: "A linked project listed by the user.",
+    url: "https://www.noahcohn.com/projectm.1ink",
+    image: "https://placehold.co/600x400?text=Project+M",
+    icon: "🎯",
+    tags: ["External", "Project"]
+  },
+  {
+    id: 14,
+    title: "12iiiiiiiiiiiiiiiii",
+    description: "User-specified entry with long name.",
+    url: "#",
+    image: "https://placehold.co/600x400?text=12iiii",
+    icon: "🔤",
+    tags: ["Misc"]
+  },
+  {
+    id: 15,
+    title: "noahcohn.com",
+    description: "Personal site of Noah Cohn.",
+    url: "https://www.noahcohn.com",
+    image: "https://placehold.co/600x400?text=noahcohn.com",
+    icon: "🌐",
+    tags: ["External", "Portfolio"]
   }
 ];
 
