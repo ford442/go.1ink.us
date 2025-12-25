@@ -88,6 +88,24 @@ const projectData = [
     image: "/ui.png",
     icon: "🧩",
     tags: ["UI", "Components", "Design"]
+  },
+  {
+    id: 11,
+    title: "Fluid Experiment",
+    description: "Interactive fluid dynamics and GLSL experiments.",
+    url: "https://go.1ink.us/fluid-experiment",
+    image: "/fluid-1.png",
+    icon: "💧",
+    tags: ["Graphics", "Fluid", "Experiment"]
+  },
+  {
+    id: 12,
+    title: "Fluid Experiment 2",
+    description: "A second variation of the fluid experiment.",
+    url: "https://go.1ink.us/fluid-experiment-2",
+    image: "/fluid-2.png",
+    icon: "🌊",
+    tags: ["Graphics", "Fluid", "Experiment"]
   }
 ];
 
