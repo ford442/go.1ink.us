@@ -64,16 +64,6 @@
   animation: fadeIn 0.8s ease-out 0.2s forwards;
 }
 
-/* Floating Animation */
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
 .logo {
   height: 6em;
   padding: 1.5em;
