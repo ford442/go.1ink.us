@@ -27,7 +27,7 @@ def verify_app():
         page = browser.new_page()
         try:
             # Visit the local preview URL
-            page.goto("http://localhost:4173")
+            page.goto("http://127.0.0.1:5173")
 
             # Wait for content to load
             page.wait_for_selector("text=My Web Projects")

@@ -13,7 +13,7 @@ const projectData = [
     title: "Hyphon",
     description: "A professional web-based Digital Audio Workstation (DAW).",
     url: "https://go.1ink.us/hyphon",
-    image: "https://placehold.co/600x400?text=Hyphon",
+    image: "/hyphon.png",
     icon: "🎹",
     tags: ["Audio", "DAW", "Music"]
   },
@@ -112,7 +112,7 @@ const projectData = [
     title: "Project M",
     description: "A linked project listed by the user.",
     url: "https://www.noahcohn.com/projectm.1ink",
-    image: "https://placehold.co/600x400?text=Project+M",
+    image: "/projectm.png",
     icon: "🎯",
     tags: ["External", "Project"]
   },
@@ -121,7 +121,7 @@ const projectData = [
     title: "noahcohn.com",
     description: "Personal site of Noah Cohn.",
     url: "https://www.noahcohn.com",
-    image: "https://placehold.co/600x400?text=noahcohn.com",
+    image: "/noahcohn.png",
     icon: "🌐",
     tags: ["External", "Portfolio"]
   }
