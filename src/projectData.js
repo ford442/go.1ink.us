@@ -3,8 +3,8 @@ const projectData = [
     id: 1,
     title: "Cave Crystals",
     description: "An immersive web-based exploration game.",
-    url: "/cave-crystals/index.html",
-    image: "https://placehold.co/600x400?text=Cave+Crystals",
+    url: "https://go.1ink.us/cave-crystals/index.html",
+    image: "/crystalcave.png",
     icon: "💎",
     tags: ["Game", "Web", "Adventure"]
   },
@@ -21,8 +21,8 @@ const projectData = [
     id: 3,
     title: "Pixelocity",
     description: "Real-time image, video, and webcam shader booth.",
-    url: "/pixelocity/index.html",
-    image: "https://placehold.co/600x400?text=Pixelocity",
+    url: "https://go.1ink.us/pixelocity/index.html",
+    image: "/pixel.png",
     icon: "🌈",
     tags: ["Graphics", "Shaders", "Video"]
   },
@@ -30,8 +30,8 @@ const projectData = [
     id: 4,
     title: "Lite Brite",
     description: "A playful interactive light toy in web form.",
-    url: "https://go.1ink.us/litebrite",
-    image: "https://placehold.co/600x400?text=Lite+Brite",
+    url: "https://go.1ink.us/litebrite/index.html",
+    image: "/litebrite.png",
     icon: "✨",
     tags: ["Interactive", "Art", "Toy"]
   },
@@ -40,7 +40,7 @@ const projectData = [
     title: "Brain Viz",
     description: "Visualizations for brain data and networks.",
     url: "https://go.1ink.us/brain-viz",
-    image: "https://placehold.co/600x400?text=Brain+Viz",
+    image: "/brain-viz.png",
     icon: "🧠",
     tags: ["Visualization", "Data", "Science"]
   },
@@ -49,7 +49,7 @@ const projectData = [
     title: "Rain Chime",
     description: "Ambient rain chime soundscapes and visuals.",
     url: "https://go.1ink.us/rain-chime",
-    image: "https://placehold.co/600x400?text=Rain+Chime",
+    image: "/rain-chime.png",
     icon: "🔔",
     tags: ["Sound", "Ambient", "Relaxation"]
   },
@@ -58,7 +58,7 @@ const projectData = [
     title: "Weather Clock",
     description: "A clock that visualizes current weather.",
     url: "https://go.1ink.us/weather-clock",
-    image: "https://placehold.co/600x400?text=Weather+Clock",
+    image: "/weather-clock.png",
     icon: "⏰",
     tags: ["Utility", "Weather", "Clock"]
   },
@@ -67,7 +67,7 @@ const projectData = [
     title: "Streetview",
     description: "A 360° street-level exploration tool.",
     url: "https://go.1ink.us/streetview",
-    image: "https://placehold.co/600x400?text=Streetview",
+    image: "/streetview.png",
     icon: "🗺️",
     tags: ["Maps", "360", "Exploration"]
   },
@@ -76,9 +76,18 @@ const projectData = [
     title: "Candy World",
     description: "A sugary, colorful game world.",
     url: "https://go.1ink.us/candy-world/v0.9/index.html",
-    image: "https://placehold.co/600x400?text=Candy+World",
+    image: "/candy-world.png",
     icon: "🍬",
     tags: ["Game", "Fun", "Candy"]
+  },
+  {
+    id: 10,
+    title: "UI Components",
+    description: "Reusable UI component library and demos.",
+    url: "https://go.1ink.us/ui/index.html",
+    image: "/ui.png",
+    icon: "🧩",
+    tags: ["UI", "Components", "Design"]
   }
 ];
 
