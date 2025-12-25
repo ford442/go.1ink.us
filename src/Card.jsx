@@ -4,6 +4,8 @@ const Card = ({ project }) => {
   return (
     <a
       href={project.url}
+      target="_blank"
+      rel="noopener noreferrer"
       className="block bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/50 flex flex-col h-full"
     >
       {/* Image Area */}
