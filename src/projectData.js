@@ -117,15 +117,6 @@ const projectData = [
     tags: ["External", "Project"]
   },
   {
-    id: 14,
-    title: "12iiiiiiiiiiiiiiiii",
-    description: "User-specified entry with long name.",
-    url: "#",
-    image: "https://placehold.co/600x400?text=12iiii",
-    icon: "🔤",
-    tags: ["Misc"]
-  },
-  {
     id: 15,
     title: "noahcohn.com",
     description: "Personal site of Noah Cohn.",
