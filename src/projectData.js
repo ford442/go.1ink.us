@@ -117,9 +117,19 @@ const projectData = [
     tags: ["External", "Project"]
   },
   {
+    id: 14,
+    title: "Tetris",
+    description: "Classic Tetris playable in the browser.",
+    url: "https://go.1ink.us/tetris/index.html",
+    image: "/tetris.png",
+    icon: "🎮",
+    tags: ["Game", "Tetris"]
+  },
+  {
     id: 15,
     title: "noahcohn.com",
     description: "Personal site of Noah Cohn.",
+    
     url: "https://www.noahcohn.com",
     image: "/noahcohn.png",
     icon: "🌐",
