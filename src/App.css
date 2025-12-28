@@ -12,20 +12,31 @@
   animation: slideInUp 0.6s ease-out backwards;
 }
 
+/* Glassmorphism Card Style */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
 /* 3D Card Effects */
 .card-3d {
   transform-style: preserve-3d;
   transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), 
-              box-shadow 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+              box-shadow 0.6s cubic-bezier(0.23, 1, 0.32, 1),
+              background 0.3s ease, border-color 0.3s ease;
 }
 
 .card-3d:hover {
-  transform: translateY(-15px) rotateX(5deg) rotateY(-5deg) scale(1.02);
+  transform: translateY(-10px) rotateX(2deg) rotateY(-2deg) scale(1.02);
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.2);
   box-shadow: 
-    0 25px 50px -12px rgba(0, 0, 0, 0.25),
-    0 0 40px rgba(59, 130, 246, 0.3),
-    0 0 60px rgba(147, 51, 234, 0.2);
+    0 20px 40px -12px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(59, 130, 246, 0.2),
+    0 0 40px rgba(147, 51, 234, 0.15);
 }
 
 /* Shine Effect Animation */
@@ -43,7 +54,26 @@
   }
 }
 
-/* Fade In Animations for Header */
+/* Grid Background Pattern */
+.bg-grid-pattern {
+  background-size: 60px 60px;
+  background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
+}
+
+/* Floating Animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Fade In Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -59,48 +89,7 @@
   animation: fadeIn 0.8s ease-out forwards;
 }
 
-.animate-fade-in-delay {
-  opacity: 0;
-  animation: fadeIn 0.8s ease-out 0.2s forwards;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
-/* Enhanced Grid with Stagger Effect */
+/* Stagger Delays */
 @keyframes slideInUp {
   from {
     opacity: 0;
@@ -113,19 +102,18 @@
 }
 
 .perspective-container:nth-child(1) { animation-delay: 0.1s; }
-.perspective-container:nth-child(2) { animation-delay: 0.2s; }
-.perspective-container:nth-child(3) { animation-delay: 0.3s; }
-.perspective-container:nth-child(4) { animation-delay: 0.4s; }
-.perspective-container:nth-child(5) { animation-delay: 0.5s; }
-.perspective-container:nth-child(6) { animation-delay: 0.6s; }
-.perspective-container:nth-child(7) { animation-delay: 0.7s; }
-.perspective-container:nth-child(8) { animation-delay: 0.8s; }
-.perspective-container:nth-child(9) { animation-delay: 0.9s; }
-.perspective-container:nth-child(10) { animation-delay: 1.0s; }
-.perspective-container:nth-child(11) { animation-delay: 1.1s; }
-.perspective-container:nth-child(12) { animation-delay: 1.2s; }
+.perspective-container:nth-child(2) { animation-delay: 0.15s; }
+.perspective-container:nth-child(3) { animation-delay: 0.2s; }
+.perspective-container:nth-child(4) { animation-delay: 0.25s; }
+.perspective-container:nth-child(5) { animation-delay: 0.3s; }
+.perspective-container:nth-child(6) { animation-delay: 0.35s; }
+.perspective-container:nth-child(7) { animation-delay: 0.4s; }
+.perspective-container:nth-child(8) { animation-delay: 0.45s; }
+.perspective-container:nth-child(9) { animation-delay: 0.5s; }
+.perspective-container:nth-child(10) { animation-delay: 0.55s; }
+.perspective-container:nth-child(11) { animation-delay: 0.6s; }
+.perspective-container:nth-child(12) { animation-delay: 0.65s; }
 
-/* Background animation delay */
 .animate-pulse-delay {
   animation-delay: 1s;
 }
