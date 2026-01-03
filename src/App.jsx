@@ -1,9 +1,33 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import Card from './Card';
 import projectData from './projectData';
 import './App.css';
 
 function App() {
+  const [selectedTag, setSelectedTag] = useState('All');
+
+  // Compute unique tags sorted by frequency
+  const uniqueTags = useMemo(() => {
+    const tagCounts = {};
+    projectData.forEach(p => {
+      p.tags.forEach(t => {
+        tagCounts[t] = (tagCounts[t] || 0) + 1;
+      });
+    });
+
+    // Sort by count desc, then alpha
+    const sortedTags = Object.keys(tagCounts).sort((a, b) => {
+        if (tagCounts[b] !== tagCounts[a]) return tagCounts[b] - tagCounts[a];
+        return a.localeCompare(b);
+    });
+
+    return ['All', ...sortedTags];
+  }, []);
+
+  const filteredProjects = selectedTag === 'All'
+    ? projectData
+    : projectData.filter(p => p.tags.includes(selectedTag));
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-indigo-950 to-slate-950 relative overflow-hidden">
       
@@ -18,7 +42,7 @@ function App() {
       </div>
       
       <div className="container mx-auto px-4 py-12 relative z-10">
-        <header className="text-center mb-20 flex justify-center">
+        <header className="text-center mb-10 flex justify-center">
           <div className="relative">
             {/* Glow behind title */}
             <div className="absolute inset-0 bg-indigo-500/30 blur-3xl rounded-full transform scale-75"></div>
@@ -30,11 +54,52 @@ function App() {
           </div>
         </header>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-2">
-          {projectData.map((project) => (
-            <Card key={project.id} project={project} />
-          ))}
+        {/* Filter Bar */}
+        <div className="flex justify-center mb-12">
+          <div className="relative w-full max-w-4xl">
+            {/* Fade masks for scrolling */}
+            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-gray-950 to-transparent z-20 pointer-events-none md:hidden"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-gray-950 to-transparent z-20 pointer-events-none md:hidden"></div>
+
+            <div className="flex overflow-x-auto gap-3 py-2 px-4 scrollbar-hide snap-x mx-auto md:flex-wrap md:justify-center">
+              {uniqueTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => setSelectedTag(tag)}
+                  className={`
+                    px-4 py-2 rounded-full text-sm font-medium tracking-wide transition-all duration-300 snap-center whitespace-nowrap border
+                    ${selectedTag === tag
+                      ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.3)] scale-105'
+                      : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white'
+                    }
+                  `}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
+
+        {/* Projects Grid */}
+        {filteredProjects.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-2">
+            {filteredProjects.map((project) => (
+              <Card key={project.id} project={project} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 animate-fade-in">
+             <div className="text-6xl mb-4 opacity-50">🔭</div>
+             <p className="text-xl text-gray-400">No projects found for this tag.</p>
+             <button
+               onClick={() => setSelectedTag('All')}
+               className="mt-4 text-cyan-400 hover:text-cyan-300 underline underline-offset-4"
+             >
+               View all projects
+             </button>
+          </div>
+        )}
         
         <footer className="mt-24 mb-8 flex flex-col justify-center items-center gap-4">
           <img
