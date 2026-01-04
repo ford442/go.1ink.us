@@ -5,6 +5,7 @@ import './App.css';
 
 function App() {
   const [selectedTag, setSelectedTag] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Compute unique tags sorted by frequency
   const uniqueTags = useMemo(() => {
@@ -24,9 +25,12 @@ function App() {
     return ['All', ...sortedTags];
   }, []);
 
-  const filteredProjects = selectedTag === 'All'
-    ? projectData
-    : projectData.filter(p => p.tags.includes(selectedTag));
+  const filteredProjects = projectData.filter(project => {
+    const matchesTag = selectedTag === 'All' || project.tags.includes(selectedTag);
+    const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          project.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesTag && matchesSearch;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-indigo-950 to-slate-950 relative overflow-hidden">
@@ -54,8 +58,24 @@ function App() {
           </div>
         </header>
         
+        {/* Search Bar */}
+        <div className="flex justify-center mb-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <div className="relative w-full max-w-md group px-4">
+             <div className="absolute inset-y-0 left-0 pl-8 flex items-center pointer-events-none">
+                <span className="text-gray-400 group-focus-within:text-cyan-400 transition-colors text-lg">🔍</span>
+             </div>
+             <input
+                type="text"
+                placeholder="Search portal..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-6 py-3 bg-white/5 border border-white/10 rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 focus:shadow-[0_0_15px_rgba(34,211,238,0.2)] transition-all duration-300 backdrop-blur-sm"
+             />
+          </div>
+        </div>
+
         {/* Filter Bar */}
-        <div className="flex justify-center mb-12">
+        <div className="flex justify-center mb-12 animate-fade-in" style={{ animationDelay: '0.3s' }}>
           <div className="relative w-full max-w-4xl">
             {/* Fade masks for scrolling */}
             <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-gray-950 to-transparent z-20 pointer-events-none md:hidden"></div>
@@ -90,13 +110,15 @@ function App() {
           </div>
         ) : (
           <div className="text-center py-20 animate-fade-in">
-             <div className="text-6xl mb-4 opacity-50">🔭</div>
-             <p className="text-xl text-gray-400">No projects found for this tag.</p>
+             <div className="text-6xl mb-4 opacity-50">👻</div>
+             <p className="text-xl text-gray-400">
+               {searchQuery ? `No projects found matching "${searchQuery}"` : 'No projects found for this tag.'}
+             </p>
              <button
-               onClick={() => setSelectedTag('All')}
+               onClick={() => { setSelectedTag('All'); setSearchQuery(''); }}
                className="mt-4 text-cyan-400 hover:text-cyan-300 underline underline-offset-4"
              >
-               View all projects
+               Reset filters
              </button>
           </div>
         )}
