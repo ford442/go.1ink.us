@@ -7,15 +7,6 @@ function App() {
   const [selectedTag, setSelectedTag] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Compute unique tags sorted by frequency
-  const uniqueTags = useMemo(() => {
-    const tagCounts = {};
-    projectData.forEach(p => {
-      p.tags.forEach(t => {
-        tagCounts[t] = (tagCounts[t] || 0) + 1;
-      });
-    });
-
     // Sort by count desc, then alpha
     const sortedTags = Object.keys(tagCounts).sort((a, b) => {
         if (tagCounts[b] !== tagCounts[a]) return tagCounts[b] - tagCounts[a];
