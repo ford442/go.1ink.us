@@ -8,6 +8,8 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
 
 
+  const allTags = useMemo(() => ['All', ...new Set(projectData.flatMap(p => p.tags))], []);
+
   const filteredProjects = projectData.filter(project => {
     const matchesTag = selectedTag === 'All' || project.tags.includes(selectedTag);
     const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -16,7 +18,7 @@ function App() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-indigo-950 to-slate-950 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-indigo-950 to-slate-950 relative overflow-hidden font-sans">
       
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -42,7 +44,7 @@ function App() {
         </header>
         
         {/* Search Bar */}
-        <div className="flex justify-center mb-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+        <div className="flex justify-center mb-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
           <div className="relative w-full max-w-md group px-4">
              <div className="absolute inset-y-0 left-0 pl-8 flex items-center pointer-events-none">
                 <span className="text-gray-400 group-focus-within:text-cyan-400 transition-colors text-lg">🔍</span>
@@ -54,6 +56,26 @@ function App() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-6 py-3 bg-white/5 border border-white/10 rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 focus:shadow-[0_0_15px_rgba(34,211,238,0.2)] transition-all duration-300 backdrop-blur-sm"
              />
+          </div>
+        </div>
+
+        {/* Tag Filter Bar */}
+        <div className="mb-10 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <div className="flex flex-wrap justify-center gap-2 px-4 max-w-4xl mx-auto">
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setSelectedTag(tag)}
+                className={`
+                  px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 backdrop-blur-sm border
+                  ${selectedTag === tag
+                    ? 'bg-cyan-600/30 border-cyan-400 text-white shadow-[0_0_15px_rgba(34,211,238,0.3)] scale-105'
+                    : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white'}
+                `}
+              >
+                {tag}
+              </button>
+            ))}
           </div>
         </div>
 
