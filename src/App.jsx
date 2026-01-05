@@ -7,14 +7,6 @@ function App() {
   const [selectedTag, setSelectedTag] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-    // Sort by count desc, then alpha
-    const sortedTags = Object.keys(tagCounts).sort((a, b) => {
-        if (tagCounts[b] !== tagCounts[a]) return tagCounts[b] - tagCounts[a];
-        return a.localeCompare(b);
-    });
-
-    return ['All', ...sortedTags];
-  }, []);
 
   const filteredProjects = projectData.filter(project => {
     const matchesTag = selectedTag === 'All' || project.tags.includes(selectedTag);
