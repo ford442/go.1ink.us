@@ -65,33 +65,6 @@ function App() {
           </div>
         </div>
 
-        {/* Filter Bar */}
-        <div className="flex justify-center mb-12 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <div className="relative w-full max-w-4xl">
-            {/* Fade masks for scrolling */}
-            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-gray-950 to-transparent z-20 pointer-events-none md:hidden"></div>
-            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-gray-950 to-transparent z-20 pointer-events-none md:hidden"></div>
-
-            <div className="flex overflow-x-auto gap-3 py-2 px-4 scrollbar-hide snap-x mx-auto md:flex-wrap md:justify-center">
-              {uniqueTags.map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() => setSelectedTag(tag)}
-                  className={`
-                    px-4 py-2 rounded-full text-sm font-medium tracking-wide transition-all duration-300 snap-center whitespace-nowrap border
-                    ${selectedTag === tag
-                      ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.3)] scale-105'
-                      : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white'
-                    }
-                  `}
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
         {/* Projects Grid */}
         {filteredProjects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-2">
