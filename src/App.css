@@ -30,7 +30,8 @@
 }
 
 .card-3d:hover {
-  transform: translateY(-10px) rotateX(2deg) rotateY(-2deg) scale(1.02);
+  /* JS handles transform rotation, but we keep the initial lift/scale for non-JS or initial state */
+  transform: translateY(-10px) scale(1.02);
   background: rgba(255, 255, 255, 0.07);
   border-color: rgba(255, 255, 255, 0.2);
   box-shadow: 
