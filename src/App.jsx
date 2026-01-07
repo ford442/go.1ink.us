@@ -22,12 +22,13 @@ function App() {
       
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Animated Blobs */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-blue-600/20 rounded-full blur-[100px] animate-blob"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] bg-purple-600/20 rounded-full blur-[100px] animate-blob" style={{ animationDelay: "2s" }}></div>
+        <div className="absolute top-[40%] left-[30%] w-[30rem] h-[30rem] bg-pink-600/10 rounded-full blur-[80px] animate-blob" style={{ animationDelay: "4s" }}></div>
+
         {/* Grid Pattern Overlay */}
         <div className="absolute inset-0 bg-grid-pattern opacity-50"></div>
-        
-        {/* Animated Blobs */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-blue-600/20 rounded-full blur-[100px] animate-pulse"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] bg-purple-600/20 rounded-full blur-[100px] animate-pulse animate-pulse-delay"></div>
       </div>
       
       <div className="container mx-auto px-4 py-12 relative z-10">
