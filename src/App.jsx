@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Card from './Card';
 import projectData from './projectData';
 import './App.css';
@@ -7,6 +7,10 @@ function App() {
   const [selectedTag, setSelectedTag] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Refs for background blobs to implement parallax
+  const blob1Ref = useRef(null);
+  const blob2Ref = useRef(null);
+  const blob3Ref = useRef(null);
 
   const allTags = useMemo(() => ['All', ...new Set(projectData.flatMap(p => p.tags))], []);
 
@@ -17,15 +21,44 @@ function App() {
     return matchesTag && matchesSearch;
   });
 
+  // Parallax effect on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+
+      // Move blobs at different speeds relative to scroll
+      if (blob1Ref.current) {
+        blob1Ref.current.style.transform = `translateY(${scrollY * 0.2}px)`;
+      }
+      if (blob2Ref.current) {
+        blob2Ref.current.style.transform = `translateY(${scrollY * -0.15}px)`;
+      }
+      if (blob3Ref.current) {
+        blob3Ref.current.style.transform = `translateY(${scrollY * 0.1}px)`;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-indigo-950 to-slate-950 relative overflow-hidden font-sans">
       
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Animated Blobs */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-blue-600/20 rounded-full blur-[100px] animate-blob"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] bg-purple-600/20 rounded-full blur-[100px] animate-blob" style={{ animationDelay: "2s" }}></div>
-        <div className="absolute top-[40%] left-[30%] w-[30rem] h-[30rem] bg-pink-600/10 rounded-full blur-[80px] animate-blob" style={{ animationDelay: "4s" }}></div>
+        {/* Animated Blobs with Parallax Wrapper */}
+        <div ref={blob1Ref} className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] will-change-transform transition-transform duration-75 linear">
+            <div className="w-full h-full bg-blue-600/30 rounded-full blur-[100px] animate-blob mix-blend-screen"></div>
+        </div>
+
+        <div ref={blob2Ref} className="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] will-change-transform transition-transform duration-75 linear">
+            <div className="w-full h-full bg-purple-600/30 rounded-full blur-[100px] animate-blob mix-blend-screen" style={{ animationDelay: "2s" }}></div>
+        </div>
+
+        <div ref={blob3Ref} className="absolute top-[40%] left-[30%] w-[30rem] h-[30rem] will-change-transform transition-transform duration-75 linear">
+            <div className="w-full h-full bg-pink-600/20 rounded-full blur-[80px] animate-blob mix-blend-screen" style={{ animationDelay: "4s" }}></div>
+        </div>
 
         {/* Grid Pattern Overlay */}
         <div className="absolute inset-0 bg-grid-pattern opacity-50"></div>
