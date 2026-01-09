@@ -21,25 +21,52 @@ function App() {
     return matchesTag && matchesSearch;
   });
 
-  // Parallax effect on scroll
+  // Dynamic Background: Parallax (Scroll) + Interactive (Mouse)
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
+    let scrollY = window.scrollY;
+    let mouseX = 0;
+    let mouseY = 0;
+    let animationFrameId;
 
-      // Move blobs at different speeds relative to scroll
+    const updateTransforms = () => {
+      // Calculate smooth blob positions based on scroll AND mouse
+      // Blob 1: Moves with scroll (0.2), Retreats from mouse (-0.02)
       if (blob1Ref.current) {
-        blob1Ref.current.style.transform = `translateY(${scrollY * 0.2}px)`;
+        blob1Ref.current.style.transform = `translate3d(${mouseX * -0.02}px, ${scrollY * 0.2 + mouseY * -0.02}px, 0)`;
       }
+      // Blob 2: Moves with scroll (-0.15), Attracted to mouse (0.03)
       if (blob2Ref.current) {
-        blob2Ref.current.style.transform = `translateY(${scrollY * -0.15}px)`;
+        blob2Ref.current.style.transform = `translate3d(${mouseX * 0.03}px, ${scrollY * -0.15 + mouseY * 0.03}px, 0)`;
       }
+      // Blob 3: Moves with scroll (0.1), Slight drift with mouse (0.01)
       if (blob3Ref.current) {
-        blob3Ref.current.style.transform = `translateY(${scrollY * 0.1}px)`;
+        blob3Ref.current.style.transform = `translate3d(${mouseX * 0.01}px, ${scrollY * 0.1 + mouseY * 0.01}px, 0)`;
       }
+
+      animationFrameId = requestAnimationFrame(updateTransforms);
+    };
+
+    const handleScroll = () => {
+      scrollY = window.scrollY;
+    };
+
+    const handleMouseMove = (e) => {
+      // Center the coordinate system for mouse
+      mouseX = e.clientX - window.innerWidth / 2;
+      mouseY = e.clientY - window.innerHeight / 2;
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('mousemove', handleMouseMove);
+
+    // Start animation loop
+    updateTransforms();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(animationFrameId);
+    };
   }, []);
 
   return (
@@ -61,7 +88,15 @@ function App() {
         </div>
 
         {/* Grid Pattern Overlay */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-50"></div>
+        <div
+          className="absolute inset-0 opacity-50"
+          style={{
+            backgroundSize: '60px 60px',
+            backgroundImage: 'linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
+            maskImage: 'radial-gradient(ellipse at center, black 20%, transparent 70%)',
+            WebkitMaskImage: 'radial-gradient(ellipse at center, black 20%, transparent 70%)'
+          }}
+        ></div>
       </div>
       
       <div className="container mx-auto px-4 py-12 relative z-10">
@@ -88,8 +123,17 @@ function App() {
                 placeholder="Search portal..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-6 py-3 bg-white/5 border border-white/10 rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 focus:shadow-[0_0_15px_rgba(34,211,238,0.2)] transition-all duration-300 backdrop-blur-sm"
+                className="w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 focus:shadow-[0_0_15px_rgba(34,211,238,0.2)] transition-all duration-300 backdrop-blur-sm"
              />
+             {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute inset-y-0 right-0 pr-8 flex items-center text-gray-500 hover:text-cyan-400 transition-colors"
+                  aria-label="Clear search"
+                >
+                  ✕
+                </button>
+             )}
           </div>
         </div>
 
