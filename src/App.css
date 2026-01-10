@@ -106,6 +106,14 @@
 .perspective-container:nth-child(10) { animation-delay: 0.55s; }
 .perspective-container:nth-child(11) { animation-delay: 0.6s; }
 .perspective-container:nth-child(12) { animation-delay: 0.65s; }
+.perspective-container:nth-child(13) { animation-delay: 0.7s; }
+.perspective-container:nth-child(14) { animation-delay: 0.75s; }
+.perspective-container:nth-child(15) { animation-delay: 0.8s; }
+.perspective-container:nth-child(16) { animation-delay: 0.85s; }
+.perspective-container:nth-child(17) { animation-delay: 0.9s; }
+.perspective-container:nth-child(18) { animation-delay: 0.95s; }
+.perspective-container:nth-child(19) { animation-delay: 1.0s; }
+.perspective-container:nth-child(20) { animation-delay: 1.05s; }
 
 .animate-pulse-delay {
   animation-delay: 1s;
