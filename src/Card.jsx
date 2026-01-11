@@ -35,6 +35,10 @@ const Card = ({ project, onTagClick }) => {
     // Includes the lift (translateY) and scale that matches the CSS hover state intention
     card.style.transform = `translateY(-10px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
 
+    // Set CSS variables for the spotlight effect
+    card.style.setProperty('--mouse-x', `${x}px`);
+    card.style.setProperty('--mouse-y', `${y}px`);
+
     // Speed up transform transition for responsiveness, but keep others smooth
     // Matches CSS: transition: transform 0.6s ..., box-shadow 0.6s ..., background 0.3s ..., border-color 0.3s ...
     card.style.transition = 'transform 0.1s ease-out, box-shadow 0.6s cubic-bezier(0.23, 1, 0.32, 1), background 0.3s ease, border-color 0.3s ease';
@@ -47,6 +51,10 @@ const Card = ({ project, onTagClick }) => {
     cardRef.current.style.transform = '';
     // Reset transition to allow the smooth CSS return animation
     cardRef.current.style.transition = '';
+
+    // Clear spotlight variables (optional, but good practice)
+    cardRef.current.style.removeProperty('--mouse-x');
+    cardRef.current.style.removeProperty('--mouse-y');
   };
 
   return (
@@ -116,6 +124,15 @@ const Card = ({ project, onTagClick }) => {
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent shine-effect"></div>
         </div>
+
+        {/* Dynamic Holographic Spotlight */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          style={{
+            background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.08), transparent 40%)`,
+            zIndex: 5 // Ensure it sits nicely in the stack
+          }}
+        />
       </div>
     </div>
   );
