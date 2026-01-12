@@ -3,8 +3,17 @@ import Card from './Card';
 import projectData from './projectData';
 import './App.css';
 
+// Define high-level categories to organize the clutter of tags
+const CATEGORIES = {
+  'Games': ['Game', 'Fun', 'Candy', 'Tetris', 'Toy', 'Adventure'],
+  'Audio/Visual': ['Audio', 'DAW', 'Music', 'Sound', 'Ambient', 'Relaxation', 'Graphics', 'Shaders', 'Video', 'Art', 'Visualization', 'Fluid'],
+  'Tools': ['Utility', 'Weather', 'Clock', 'Maps', '360', 'Exploration', 'UI', 'Components', 'Design', 'Data', 'Science'],
+  'Experiments': ['Web', 'Interactive', 'Experiment', 'External', 'Project', 'Portfolio']
+};
+
 function App() {
-  const [selectedTag, setSelectedTag] = useState('All');
+  // activeFilter can be 'All', a Category Key (e.g., 'Games'), or a specific Tag (e.g., 'Fluid')
+  const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Refs for background blobs to implement parallax
@@ -12,13 +21,26 @@ function App() {
   const blob2Ref = useRef(null);
   const blob3Ref = useRef(null);
 
-  const allTags = useMemo(() => ['All', ...new Set(projectData.flatMap(p => p.tags))], []);
+  // We don't need allTags list for the main filter bar anymore, but keeping it if needed for debug
+  // const allTags = useMemo(() => ['All', ...new Set(projectData.flatMap(p => p.tags))], []);
 
   const filteredProjects = projectData.filter(project => {
-    const matchesTag = selectedTag === 'All' || project.tags.includes(selectedTag);
+    let matchesFilter = false;
+
+    if (activeFilter === 'All') {
+      matchesFilter = true;
+    } else if (CATEGORIES[activeFilter]) {
+      // It's a Category: Match if project has ANY tag in this category
+      const categoryTags = CATEGORIES[activeFilter];
+      matchesFilter = project.tags.some(tag => categoryTags.includes(tag));
+    } else {
+      // It's a specific Tag
+      matchesFilter = project.tags.includes(activeFilter);
+    }
+
     const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           project.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesTag && matchesSearch;
+    return matchesFilter && matchesSearch;
   });
 
   // Dynamic Background: Parallax (Scroll) + Interactive (Mouse)
@@ -68,6 +90,8 @@ function App() {
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
+
+  const isCustomTag = activeFilter !== 'All' && !CATEGORIES[activeFilter];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-indigo-950 to-slate-950 relative overflow-hidden font-sans">
@@ -137,23 +161,51 @@ function App() {
           </div>
         </div>
 
-        {/* Tag Filter Bar */}
+        {/* Category Filter Bar */}
         <div className="mb-10 animate-fade-in" style={{ animationDelay: '0.3s' }}>
           <div className="flex flex-wrap justify-center gap-2 px-4 max-w-4xl mx-auto">
-            {allTags.map((tag) => (
+            {/* 'All' Button */}
+            <button
+              onClick={() => setActiveFilter('All')}
+              className={`
+                px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 backdrop-blur-sm border
+                ${activeFilter === 'All'
+                  ? 'bg-cyan-600/30 border-cyan-400 text-white shadow-[0_0_15px_rgba(34,211,238,0.3)] scale-105'
+                  : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white'}
+              `}
+            >
+              All
+            </button>
+
+            {/* Category Buttons */}
+            {Object.keys(CATEGORIES).map((category) => (
               <button
-                key={tag}
-                onClick={() => setSelectedTag(tag)}
+                key={category}
+                onClick={() => setActiveFilter(category)}
                 className={`
-                  px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 backdrop-blur-sm border
-                  ${selectedTag === tag
+                  px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 backdrop-blur-sm border
+                  ${activeFilter === category
                     ? 'bg-cyan-600/30 border-cyan-400 text-white shadow-[0_0_15px_rgba(34,211,238,0.3)] scale-105'
                     : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white'}
                 `}
               >
-                {tag}
+                {category}
               </button>
             ))}
+
+            {/* Custom Tag Button (Only shows if a specific non-category tag is active) */}
+            {isCustomTag && (
+              <div className="flex items-center ml-2 pl-4 border-l border-white/20">
+                <span className="text-gray-500 text-xs mr-2 uppercase tracking-wider">Tag:</span>
+                <button
+                  onClick={() => setActiveFilter('All')} // Clicking it resets to All, or we could keep it active
+                  className="px-4 py-2 rounded-full text-sm font-medium bg-purple-600/30 border border-purple-400 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)] flex items-center gap-2 animate-fade-in"
+                >
+                  {activeFilter}
+                  <span className="text-purple-300 text-xs hover:text-white">✕</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -164,7 +216,7 @@ function App() {
               <Card
                 key={project.id}
                 project={project}
-                onTagClick={setSelectedTag}
+                onTagClick={setActiveFilter} // Passing setActiveFilter allows clicking tags on cards to switch filter
               />
             ))}
           </div>
@@ -172,10 +224,10 @@ function App() {
           <div className="text-center py-20 animate-fade-in">
              <div className="text-6xl mb-4 opacity-50">👻</div>
              <p className="text-xl text-gray-400">
-               {searchQuery ? `No projects found matching "${searchQuery}"` : 'No projects found for this tag.'}
+               {searchQuery ? `No projects found matching "${searchQuery}"` : 'No projects found for this filter.'}
              </p>
              <button
-               onClick={() => { setSelectedTag('All'); setSearchQuery(''); }}
+               onClick={() => { setActiveFilter('All'); setSearchQuery(''); }}
                className="mt-4 text-cyan-400 hover:text-cyan-300 underline underline-offset-4"
              >
                Reset filters
