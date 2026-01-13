@@ -11,6 +11,11 @@ const CATEGORIES = {
   'Experiments': ['Web', 'Interactive', 'Experiment', 'External', 'Project', 'Portfolio']
 };
 
+// Helper to find which category a tag belongs to
+const getCategoryForTag = (tag) => {
+  return Object.keys(CATEGORIES).find(cat => CATEGORIES[cat].includes(tag));
+};
+
 function App() {
   // activeFilter can be 'All', a Category Key (e.g., 'Games'), or a specific Tag (e.g., 'Fluid')
   const [activeFilter, setActiveFilter] = useState('All');
@@ -21,8 +26,13 @@ function App() {
   const blob2Ref = useRef(null);
   const blob3Ref = useRef(null);
 
-  // We don't need allTags list for the main filter bar anymore, but keeping it if needed for debug
-  // const allTags = useMemo(() => ['All', ...new Set(projectData.flatMap(p => p.tags))], []);
+  // Calculate the current parent category based on the active filter
+  // This allows us to show the relevant sub-tags even when a specific tag is selected
+  const currentCategory = useMemo(() => {
+    if (activeFilter === 'All') return null;
+    if (CATEGORIES[activeFilter]) return activeFilter;
+    return getCategoryForTag(activeFilter);
+  }, [activeFilter]);
 
   const filteredProjects = projectData.filter(project => {
     let matchesFilter = false;
@@ -90,8 +100,6 @@ function App() {
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
-
-  const isCustomTag = activeFilter !== 'All' && !CATEGORIES[activeFilter];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-indigo-950 to-slate-950 relative overflow-hidden font-sans">
@@ -161,8 +169,8 @@ function App() {
           </div>
         </div>
 
-        {/* Category Filter Bar */}
-        <div className="mb-10 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+        {/* Main Category Filter Bar */}
+        <div className="mb-4 animate-fade-in" style={{ animationDelay: '0.3s' }}>
           <div className="flex flex-wrap justify-center gap-2 px-4 max-w-4xl mx-auto">
             {/* 'All' Button */}
             <button
@@ -178,35 +186,62 @@ function App() {
             </button>
 
             {/* Category Buttons */}
-            {Object.keys(CATEGORIES).map((category) => (
-              <button
-                key={category}
-                onClick={() => setActiveFilter(category)}
-                className={`
-                  px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 backdrop-blur-sm border
-                  ${activeFilter === category
-                    ? 'bg-cyan-600/30 border-cyan-400 text-white shadow-[0_0_15px_rgba(34,211,238,0.3)] scale-105'
-                    : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white'}
-                `}
-              >
-                {category}
-              </button>
-            ))}
-
-            {/* Custom Tag Button (Only shows if a specific non-category tag is active) */}
-            {isCustomTag && (
-              <div className="flex items-center ml-2 pl-4 border-l border-white/20">
-                <span className="text-gray-500 text-xs mr-2 uppercase tracking-wider">Tag:</span>
+            {Object.keys(CATEGORIES).map((category) => {
+              // Highlight if this category is selected OR if a tag within this category is selected
+              const isActive = activeFilter === category || currentCategory === category;
+              return (
                 <button
-                  onClick={() => setActiveFilter('All')} // Clicking it resets to All, or we could keep it active
-                  className="px-4 py-2 rounded-full text-sm font-medium bg-purple-600/30 border border-purple-400 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)] flex items-center gap-2 animate-fade-in"
+                  key={category}
+                  onClick={() => setActiveFilter(category)}
+                  className={`
+                    px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 backdrop-blur-sm border
+                    ${isActive
+                      ? 'bg-cyan-600/30 border-cyan-400 text-white shadow-[0_0_15px_rgba(34,211,238,0.3)] scale-105'
+                      : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white'}
+                  `}
                 >
-                  {activeFilter}
-                  <span className="text-purple-300 text-xs hover:text-white">✕</span>
+                  {category}
                 </button>
-              </div>
-            )}
+              );
+            })}
           </div>
+        </div>
+
+        {/* Sub-Category Tag Filter Bar */}
+        {/* Only visible when a category (or a tag within it) is active */}
+        <div className={`mb-10 transition-all duration-500 ease-in-out overflow-hidden ${currentCategory ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
+          {currentCategory && (
+             <div className="flex flex-wrap justify-center gap-2 px-4 max-w-3xl mx-auto py-2">
+               {/* Option to view all in this category */}
+               <button
+                 onClick={() => setActiveFilter(currentCategory)}
+                 className={`
+                    px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 border
+                    ${activeFilter === currentCategory
+                      ? 'bg-white/20 text-white border-white/30 cursor-default'
+                      : 'bg-transparent text-gray-400 border-transparent hover:text-gray-200'}
+                 `}
+               >
+                 All {currentCategory}
+               </button>
+
+               {/* Specific Tags in this Category */}
+               {CATEGORIES[currentCategory].map(tag => (
+                 <button
+                   key={tag}
+                   onClick={() => setActiveFilter(tag)}
+                   className={`
+                      px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 border
+                      ${activeFilter === tag
+                        ? 'bg-purple-600/40 border-purple-400 text-purple-100 shadow-[0_0_10px_rgba(168,85,247,0.3)] scale-105'
+                        : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10 hover:text-white hover:border-white/10'}
+                   `}
+                 >
+                   {tag}
+                 </button>
+               ))}
+             </div>
+          )}
         </div>
 
         {/* Projects Grid */}
