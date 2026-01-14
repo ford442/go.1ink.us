@@ -20,6 +20,25 @@ function App() {
   // activeFilter can be 'All', a Category Key (e.g., 'Games'), or a specific Tag (e.g., 'Fluid')
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef(null);
+
+  // Keyboard shortcut to focus search
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Focus on '/' or 'Cmd+K' / 'Ctrl+K'
+      if ((e.key === '/' || ((e.metaKey || e.ctrlKey) && e.key === 'k')) && document.activeElement !== searchInputRef.current) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      // Blur on Escape
+      if (e.key === 'Escape' && document.activeElement === searchInputRef.current) {
+        searchInputRef.current?.blur();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Refs for background blobs to implement parallax
   const blob1Ref = useRef(null);
@@ -49,7 +68,8 @@ function App() {
     }
 
     const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          project.description.toLowerCase().includes(searchQuery.toLowerCase());
+                          project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          project.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesFilter && matchesSearch;
   });
 
@@ -151,8 +171,9 @@ function App() {
                 <span className="text-gray-400 group-focus-within:text-cyan-400 transition-colors text-lg">🔍</span>
              </div>
              <input
+                ref={searchInputRef}
                 type="text"
-                placeholder="Search portal..."
+                placeholder="Search portal... (Press /)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 focus:shadow-[0_0_15px_rgba(34,211,238,0.2)] transition-all duration-300 backdrop-blur-sm"
@@ -257,7 +278,7 @@ function App() {
           </div>
         ) : (
           <div className="text-center py-20 animate-fade-in">
-             <div className="text-6xl mb-4 opacity-50">👻</div>
+             <div className="text-6xl mb-4 opacity-50 animate-float">👻</div>
              <p className="text-xl text-gray-400">
                {searchQuery ? `No projects found matching "${searchQuery}"` : 'No projects found for this filter.'}
              </p>
