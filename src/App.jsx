@@ -45,6 +45,9 @@ function App() {
   const blob2Ref = useRef(null);
   const blob3Ref = useRef(null);
 
+  // Ref for the spotlight grid
+  const gridSpotlightRef = useRef(null);
+
   // Calculate the current parent category based on the active filter
   // This allows us to show the relevant sub-tags even when a specific tag is selected
   const currentCategory = useMemo(() => {
@@ -78,6 +81,8 @@ function App() {
     let scrollY = window.scrollY;
     let mouseX = 0;
     let mouseY = 0;
+    let pageMouseX = 0;
+    let pageMouseY = 0;
     let animationFrameId;
 
     const updateTransforms = () => {
@@ -95,6 +100,15 @@ function App() {
         blob3Ref.current.style.transform = `translate3d(${mouseX * 0.01}px, ${scrollY * 0.1 + mouseY * 0.01}px, 0)`;
       }
 
+      // Update the Grid Spotlight
+      if (gridSpotlightRef.current) {
+        // Use a radial gradient mask to reveal the cyan grid at the mouse position
+        // We use pageX/Y because the grid covers the whole document
+        const mask = `radial-gradient(300px circle at ${pageMouseX}px ${pageMouseY}px, black, transparent)`;
+        gridSpotlightRef.current.style.maskImage = mask;
+        gridSpotlightRef.current.style.webkitMaskImage = mask;
+      }
+
       animationFrameId = requestAnimationFrame(updateTransforms);
     };
 
@@ -103,9 +117,12 @@ function App() {
     };
 
     const handleMouseMove = (e) => {
-      // Center the coordinate system for mouse
+      // Center the coordinate system for mouse (for parallax)
       mouseX = e.clientX - window.innerWidth / 2;
       mouseY = e.clientY - window.innerHeight / 2;
+      // Viewport coordinates (for spotlight fixed background)
+      pageMouseX = e.clientX;
+      pageMouseY = e.clientY;
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -125,7 +142,7 @@ function App() {
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-indigo-950 to-slate-950 relative overflow-hidden font-sans">
       
       {/* Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {/* Animated Blobs with Parallax Wrapper */}
         <div ref={blob1Ref} className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] will-change-transform transition-transform duration-75 linear">
             <div className="w-full h-full bg-blue-600/30 rounded-full blur-[100px] animate-blob mix-blend-screen"></div>
@@ -139,7 +156,7 @@ function App() {
             <div className="w-full h-full bg-pink-600/20 rounded-full blur-[80px] animate-blob mix-blend-screen" style={{ animationDelay: "4s" }}></div>
         </div>
 
-        {/* Grid Pattern Overlay */}
+        {/* Base Grid Pattern Overlay */}
         <div
           className="absolute inset-0 opacity-50"
           style={{
@@ -147,6 +164,18 @@ function App() {
             backgroundImage: 'linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
             maskImage: 'radial-gradient(ellipse at center, black 20%, transparent 70%)',
             WebkitMaskImage: 'radial-gradient(ellipse at center, black 20%, transparent 70%)'
+          }}
+        ></div>
+
+        {/* Spotlight Grid Overlay (Revealed by Mouse) */}
+        <div
+          ref={gridSpotlightRef}
+          className="absolute inset-0"
+          style={{
+            backgroundSize: '60px 60px',
+            backgroundImage: 'linear-gradient(to right, rgba(34, 211, 238, 0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(34, 211, 238, 0.15) 1px, transparent 1px)',
+            maskImage: 'transparent', // Initially invisible, updated by JS
+            WebkitMaskImage: 'transparent'
           }}
         ></div>
       </div>
