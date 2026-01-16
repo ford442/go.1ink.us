@@ -56,6 +56,18 @@ function App() {
     return getCategoryForTag(activeFilter);
   }, [activeFilter]);
 
+  // Helper to get count for a category
+  const getCategoryCount = (categoryKey) => {
+    const categoryTags = CATEGORIES[categoryKey];
+    // Count projects that have AT LEAST ONE tag from this category
+    return projectData.filter(p => p.tags.some(t => categoryTags.includes(t))).length;
+  };
+
+  // Helper to get count for a specific tag
+  const getTagCount = (tag) => {
+    return projectData.filter(p => p.tags.includes(tag)).length;
+  };
+
   const filteredProjects = projectData.filter(project => {
     let matchesFilter = false;
 
@@ -232,13 +244,14 @@ function App() {
                   : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white'}
               `}
             >
-              All
+              All <span className="text-xs opacity-60 ml-1">({projectData.length})</span>
             </button>
 
             {/* Category Buttons */}
             {Object.keys(CATEGORIES).map((category) => {
               // Highlight if this category is selected OR if a tag within this category is selected
               const isActive = activeFilter === category || currentCategory === category;
+              const count = getCategoryCount(category);
               return (
                 <button
                   key={category}
@@ -250,7 +263,7 @@ function App() {
                       : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white'}
                   `}
                 >
-                  {category}
+                  {category} <span className="text-xs opacity-60 ml-1">({count})</span>
                 </button>
               );
             })}
@@ -272,24 +285,27 @@ function App() {
                       : 'bg-transparent text-gray-400 border-transparent hover:text-gray-200'}
                  `}
                >
-                 All {currentCategory}
+                 All {currentCategory} <span className="opacity-60 ml-1">({getCategoryCount(currentCategory)})</span>
                </button>
 
                {/* Specific Tags in this Category */}
-               {CATEGORIES[currentCategory].map(tag => (
-                 <button
-                   key={tag}
-                   onClick={() => setActiveFilter(tag)}
-                   className={`
-                      px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 border
-                      ${activeFilter === tag
-                        ? 'bg-purple-600/40 border-purple-400 text-purple-100 shadow-[0_0_10px_rgba(168,85,247,0.3)] scale-105'
-                        : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10 hover:text-white hover:border-white/10'}
-                   `}
-                 >
-                   {tag}
-                 </button>
-               ))}
+               {CATEGORIES[currentCategory].map(tag => {
+                 const count = getTagCount(tag);
+                 return (
+                   <button
+                     key={tag}
+                     onClick={() => setActiveFilter(tag)}
+                     className={`
+                        px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 border
+                        ${activeFilter === tag
+                          ? 'bg-purple-600/40 border-purple-400 text-purple-100 shadow-[0_0_10px_rgba(168,85,247,0.3)] scale-105'
+                          : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10 hover:text-white hover:border-white/10'}
+                     `}
+                   >
+                     {tag} <span className="opacity-60 ml-1">({count})</span>
+                   </button>
+                 );
+               })}
              </div>
           )}
         </div>
