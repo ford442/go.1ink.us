@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 
-const Card = ({ project, onTagClick }) => {
+const Card = ({ project, onTagClick, searchQuery }) => {
   const cardRef = useRef(null);
 
   const handleMouseMove = (e) => {
@@ -57,6 +57,22 @@ const Card = ({ project, onTagClick }) => {
     cardRef.current.style.removeProperty('--mouse-y');
   };
 
+  // Helper to highlight matching text
+  const highlightMatch = (text, query) => {
+    if (!query || !text) return text;
+
+    // Escape special characters for regex
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Split by query (captured), case insensitive
+    const parts = text.split(new RegExp(`(${escapedQuery})`, 'gi'));
+    return parts.map((part, i) =>
+      part.toLowerCase() === query.toLowerCase() ? (
+        <span key={i} className="bg-cyan-500/30 text-cyan-200 rounded px-0.5 shadow-[0_0_8px_rgba(34,211,238,0.2)] font-semibold">{part}</span>
+      ) : part
+    );
+  };
+
   return (
     <div className="perspective-container">
       <div
@@ -80,6 +96,7 @@ const Card = ({ project, onTagClick }) => {
               <img
                 src={project.image}
                 alt={project.title}
+                loading="lazy"
                 className="w-full h-full object-cover transition-transform duration-700 delay-100 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300"></div>
@@ -94,12 +111,12 @@ const Card = ({ project, onTagClick }) => {
             <div className="flex items-center mb-3">
               {project.image && <div className="text-2xl mr-3 transform transition-transform duration-300 group-hover:rotate-12 filter drop-shadow">{project.icon}</div>}
               <h3 className="text-xl font-bold text-white tracking-wide group-hover:text-blue-300 transition-colors duration-300">
-                {project.title}
+                {highlightMatch(project.title, searchQuery)}
               </h3>
             </div>
 
             <p className="text-gray-300 mb-5 line-clamp-3 leading-relaxed flex-1">
-              {project.description}
+              {highlightMatch(project.description, searchQuery)}
             </p>
 
             <div className="flex flex-wrap gap-2 mt-auto pointer-events-auto">
@@ -113,7 +130,7 @@ const Card = ({ project, onTagClick }) => {
                   }}
                   className="px-3 py-1 text-xs font-semibold tracking-wider text-cyan-200 bg-cyan-900/30 border border-cyan-500/20 rounded-full transition-all duration-300 hover:bg-cyan-800/50 hover:text-white hover:border-cyan-400 hover:scale-105 group-hover:border-cyan-400/50 group-hover:shadow-[0_0_10px_rgba(34,211,238,0.2)] cursor-pointer z-20"
                 >
-                  {tag}
+                  {highlightMatch(tag, searchQuery)}
                 </button>
               ))}
             </div>
