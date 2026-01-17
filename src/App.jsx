@@ -318,6 +318,7 @@ function App() {
                 key={project.id}
                 project={project}
                 onTagClick={setActiveFilter} // Passing setActiveFilter allows clicking tags on cards to switch filter
+                searchQuery={searchQuery}
               />
             ))}
           </div>
