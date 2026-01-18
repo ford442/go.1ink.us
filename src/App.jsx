@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Card from './Card';
+import Starfield from './Starfield';
 import projectData from './projectData';
 import './App.css';
 
@@ -155,6 +156,8 @@ function App() {
       
       {/* Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <Starfield />
+
         {/* Animated Blobs with Parallax Wrapper */}
         <div ref={blob1Ref} className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] will-change-transform transition-transform duration-75 linear">
             <div className="w-full h-full bg-blue-600/30 rounded-full blur-[100px] animate-blob mix-blend-screen"></div>
