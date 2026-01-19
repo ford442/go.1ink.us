@@ -31,9 +31,13 @@ function App() {
         e.preventDefault();
         searchInputRef.current?.focus();
       }
-      // Blur on Escape
+      // Clear/Blur on Escape
       if (e.key === 'Escape' && document.activeElement === searchInputRef.current) {
-        searchInputRef.current?.blur();
+        if (searchInputRef.current.value) {
+          setSearchQuery('');
+        } else {
+          searchInputRef.current?.blur();
+        }
       }
     };
 
@@ -292,14 +296,15 @@ function App() {
                </button>
 
                {/* Specific Tags in this Category */}
-               {CATEGORIES[currentCategory].map(tag => {
+               {CATEGORIES[currentCategory].map((tag, index) => {
                  const count = getTagCount(tag);
                  return (
                    <button
                      key={tag}
                      onClick={() => setActiveFilter(tag)}
+                     style={{ animationDelay: `${index * 0.05}s`, animationFillMode: 'both' }}
                      className={`
-                        px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 border
+                        px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 border animate-fade-in
                         ${activeFilter === tag
                           ? 'bg-purple-600/40 border-purple-400 text-purple-100 shadow-[0_0_10px_rgba(168,85,247,0.3)] scale-105'
                           : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10 hover:text-white hover:border-white/10'}
