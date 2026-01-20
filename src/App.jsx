@@ -49,6 +49,7 @@ function App() {
   const blob1Ref = useRef(null);
   const blob2Ref = useRef(null);
   const blob3Ref = useRef(null);
+  const blob4Ref = useRef(null);
 
   // Ref for the spotlight grid
   const gridSpotlightRef = useRef(null);
@@ -116,6 +117,10 @@ function App() {
       if (blob3Ref.current) {
         blob3Ref.current.style.transform = `translate3d(${mouseX * 0.01}px, ${scrollY * 0.1 + mouseY * 0.01}px, 0)`;
       }
+      // Blob 4: Moves with scroll (-0.1), Counter-drift with mouse (-0.03)
+      if (blob4Ref.current) {
+        blob4Ref.current.style.transform = `translate3d(${mouseX * -0.03}px, ${scrollY * -0.1 + mouseY * -0.03}px, 0)`;
+      }
 
       // Update the Grid Spotlight
       if (gridSpotlightRef.current) {
@@ -175,14 +180,18 @@ function App() {
             <div className="w-full h-full bg-pink-600/20 rounded-full blur-[80px] animate-blob mix-blend-screen" style={{ animationDelay: "4s" }}></div>
         </div>
 
+        <div ref={blob4Ref} className="absolute top-[10%] right-[20%] w-[35rem] h-[35rem] will-change-transform transition-transform duration-75 linear">
+            <div className="w-full h-full bg-cyan-600/20 rounded-full blur-[90px] animate-blob mix-blend-screen" style={{ animationDelay: "6s" }}></div>
+        </div>
+
         {/* Base Grid Pattern Overlay */}
         <div
           className="absolute inset-0 opacity-50"
           style={{
             backgroundSize: '60px 60px',
             backgroundImage: 'linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
-            maskImage: 'radial-gradient(ellipse at center, black 20%, transparent 70%)',
-            WebkitMaskImage: 'radial-gradient(ellipse at center, black 20%, transparent 70%)'
+            maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 80%)',
+            WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 80%)'
           }}
         ></div>
 
