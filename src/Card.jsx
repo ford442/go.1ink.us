@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 
-const Card = ({ project, onTagClick, searchQuery }) => {
+const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
   const cardRef = useRef(null);
 
   const handleMouseMove = (e) => {
@@ -120,19 +120,27 @@ const Card = ({ project, onTagClick, searchQuery }) => {
             </p>
 
             <div className="flex flex-wrap gap-2 mt-auto pointer-events-auto">
-              {project.tags.map((tag, index) => (
-                <button
-                  key={index}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (onTagClick) onTagClick(tag);
-                  }}
-                  className="px-3 py-1 text-xs font-semibold tracking-wider text-cyan-200 bg-cyan-900/30 border border-cyan-500/20 rounded-full transition-all duration-300 hover:bg-cyan-800/50 hover:text-white hover:border-cyan-400 hover:scale-105 group-hover:border-cyan-400/50 group-hover:shadow-[0_0_10px_rgba(34,211,238,0.2)] cursor-pointer z-20"
-                >
-                  {highlightMatch(tag, searchQuery)}
-                </button>
-              ))}
+              {project.tags.map((tag, index) => {
+                const isHighlighted = highlightedTags.includes(tag);
+                return (
+                  <button
+                    key={index}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (onTagClick) onTagClick(tag);
+                    }}
+                    className={`px-3 py-1 text-xs font-semibold tracking-wider border rounded-full transition-all duration-300 cursor-pointer z-20
+                      ${isHighlighted
+                        ? 'bg-cyan-500/80 text-white border-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.6)] scale-105 ring-1 ring-cyan-200'
+                        : 'text-cyan-200 bg-cyan-900/30 border-cyan-500/20 hover:bg-cyan-800/50 hover:text-white hover:border-cyan-400 hover:scale-105 group-hover:border-cyan-400/50 group-hover:shadow-[0_0_10px_rgba(34,211,238,0.2)]'
+                      }
+                    `}
+                  >
+                    {highlightMatch(tag, searchQuery)}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

@@ -330,14 +330,29 @@ function App() {
         {/* Projects Grid */}
         {filteredProjects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-2">
-            {filteredProjects.map((project) => (
-              <Card
-                key={project.id}
-                project={project}
-                onTagClick={setActiveFilter} // Passing setActiveFilter allows clicking tags on cards to switch filter
-                searchQuery={searchQuery}
-              />
-            ))}
+            {filteredProjects.map((project) => {
+              // Determine which tags to highlight based on active filter
+              let highlightedTags = [];
+              if (CATEGORIES[activeFilter]) {
+                // Active filter is a Category: Highlight all tags that belong to this category
+                highlightedTags = project.tags.filter(tag => CATEGORIES[activeFilter].includes(tag));
+              } else if (activeFilter !== 'All') {
+                // Active filter is a specific Tag: Highlight just that tag
+                if (project.tags.includes(activeFilter)) {
+                  highlightedTags = [activeFilter];
+                }
+              }
+
+              return (
+                <Card
+                  key={project.id}
+                  project={project}
+                  onTagClick={setActiveFilter}
+                  searchQuery={searchQuery}
+                  highlightedTags={highlightedTags}
+                />
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-20 animate-fade-in">
