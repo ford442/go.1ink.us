@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import Card from './Card';
 import Starfield from './Starfield';
 import projectData from './projectData';
@@ -19,8 +20,35 @@ const getCategoryForTag = (tag) => {
 
 function App() {
   // activeFilter can be 'All', a Category Key (e.g., 'Games'), or a specific Tag (e.g., 'Fluid')
-  const [activeFilter, setActiveFilter] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('filter') || 'All';
+    }
+    return 'All';
+  });
+
+  const [searchQuery, setSearchQuery] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('q') || '';
+    }
+    return '';
+  });
+
+  // Sync state to URL (Deep Linking)
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (activeFilter !== 'All') params.set('filter', activeFilter);
+    if (searchQuery) params.set('q', searchQuery);
+
+    const queryString = params.toString();
+    const newUrl = queryString ? `?${queryString}` : window.location.pathname;
+
+    // Use replaceState to update URL without cluttering history stack
+    window.history.replaceState(null, '', newUrl);
+  }, [activeFilter, searchQuery]);
+
   const searchInputRef = useRef(null);
 
   // Keyboard shortcut to focus search
@@ -72,6 +100,16 @@ function App() {
   // Helper to get count for a specific tag
   const getTagCount = (tag) => {
     return projectData.filter(p => p.tags.includes(tag)).length;
+  };
+
+  const handleTagClick = (tag) => {
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        flushSync(() => setActiveFilter(tag));
+      });
+    } else {
+      setActiveFilter(tag);
+    }
   };
 
   const filteredProjects = projectData.filter(project => {
@@ -252,7 +290,15 @@ function App() {
           <div className="flex flex-wrap justify-center gap-2 px-4 max-w-4xl mx-auto">
             {/* 'All' Button */}
             <button
-              onClick={() => setActiveFilter('All')}
+              onClick={() => {
+                if (document.startViewTransition) {
+                  document.startViewTransition(() => {
+                    flushSync(() => setActiveFilter('All'));
+                  });
+                } else {
+                  setActiveFilter('All');
+                }
+              }}
               className={`
                 px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 backdrop-blur-sm border
                 ${activeFilter === 'All'
@@ -271,7 +317,15 @@ function App() {
               return (
                 <button
                   key={category}
-                  onClick={() => setActiveFilter(category)}
+                  onClick={() => {
+                    if (document.startViewTransition) {
+                      document.startViewTransition(() => {
+                        flushSync(() => setActiveFilter(category));
+                      });
+                    } else {
+                      setActiveFilter(category);
+                    }
+                  }}
                   className={`
                     px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 backdrop-blur-sm border
                     ${isActive
@@ -293,7 +347,15 @@ function App() {
              <div className="flex flex-nowrap overflow-x-auto justify-start md:flex-wrap md:justify-center gap-2 px-4 max-w-3xl mx-auto py-2 scrollbar-hide">
                {/* Option to view all in this category */}
                <button
-                 onClick={() => setActiveFilter(currentCategory)}
+                 onClick={() => {
+                   if (document.startViewTransition) {
+                     document.startViewTransition(() => {
+                       flushSync(() => setActiveFilter(currentCategory));
+                     });
+                   } else {
+                     setActiveFilter(currentCategory);
+                   }
+                 }}
                  className={`
                     px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 border whitespace-nowrap
                     ${activeFilter === currentCategory
@@ -310,7 +372,15 @@ function App() {
                  return (
                    <button
                      key={tag}
-                     onClick={() => setActiveFilter(tag)}
+                     onClick={() => {
+                       if (document.startViewTransition) {
+                         document.startViewTransition(() => {
+                           flushSync(() => setActiveFilter(tag));
+                         });
+                       } else {
+                         setActiveFilter(tag);
+                       }
+                     }}
                      style={{ animationDelay: `${index * 0.05}s`, animationFillMode: 'both' }}
                      className={`
                         px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 border animate-fade-in whitespace-nowrap
@@ -347,7 +417,7 @@ function App() {
                 <Card
                   key={project.id}
                   project={project}
-                  onTagClick={setActiveFilter}
+                  onTagClick={handleTagClick}
                   searchQuery={searchQuery}
                   highlightedTags={highlightedTags}
                 />
@@ -361,7 +431,19 @@ function App() {
                {searchQuery ? `No projects found matching "${searchQuery}"` : 'No projects found for this filter.'}
              </p>
              <button
-               onClick={() => { setActiveFilter('All'); setSearchQuery(''); }}
+               onClick={() => {
+                 if (document.startViewTransition) {
+                   document.startViewTransition(() => {
+                     flushSync(() => {
+                       setActiveFilter('All');
+                       setSearchQuery('');
+                     });
+                   });
+                 } else {
+                   setActiveFilter('All');
+                   setSearchQuery('');
+                 }
+               }}
                className="mt-4 text-cyan-400 hover:text-cyan-300 underline underline-offset-4"
              >
                Reset filters

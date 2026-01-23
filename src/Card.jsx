@@ -74,7 +74,7 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
   };
 
   return (
-    <div className="perspective-container">
+    <div className="perspective-container" style={{ viewTransitionName: `project-${project.id}` }}>
       <div
         ref={cardRef}
         className="glass-card card-3d block rounded-xl overflow-hidden flex flex-col h-full relative group"
