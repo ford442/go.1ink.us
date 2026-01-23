@@ -290,12 +290,12 @@ function App() {
         {/* Only visible when a category (or a tag within it) is active */}
         <div className={`mb-10 transition-all duration-500 ease-in-out overflow-hidden ${currentCategory ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
           {currentCategory && (
-             <div className="flex flex-wrap justify-center gap-2 px-4 max-w-3xl mx-auto py-2">
+             <div className="flex flex-nowrap overflow-x-auto justify-start md:flex-wrap md:justify-center gap-2 px-4 max-w-3xl mx-auto py-2 scrollbar-hide">
                {/* Option to view all in this category */}
                <button
                  onClick={() => setActiveFilter(currentCategory)}
                  className={`
-                    px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 border
+                    px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 border whitespace-nowrap
                     ${activeFilter === currentCategory
                       ? 'bg-white/20 text-white border-white/30 cursor-default'
                       : 'bg-transparent text-gray-400 border-transparent hover:text-gray-200'}
@@ -313,7 +313,7 @@ function App() {
                      onClick={() => setActiveFilter(tag)}
                      style={{ animationDelay: `${index * 0.05}s`, animationFillMode: 'both' }}
                      className={`
-                        px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 border animate-fade-in
+                        px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 border animate-fade-in whitespace-nowrap
                         ${activeFilter === tag
                           ? 'bg-purple-600/40 border-purple-400 text-purple-100 shadow-[0_0_10px_rgba(168,85,247,0.3)] scale-105'
                           : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10 hover:text-white hover:border-white/10'}
