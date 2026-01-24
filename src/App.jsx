@@ -13,6 +13,13 @@ const CATEGORIES = {
   'Experiments': ['Web', 'Interactive', 'Experiment', 'External', 'Project', 'Portfolio']
 };
 
+const CATEGORY_ICONS = {
+  'Games': '🎮',
+  'Audio/Visual': '🎧',
+  'Tools': '🛠️',
+  'Experiments': '🧪'
+};
+
 // Helper to find which category a tag belongs to
 const getCategoryForTag = (tag) => {
   return Object.keys(CATEGORIES).find(cat => CATEGORIES[cat].includes(tag));
@@ -271,16 +278,19 @@ function App() {
                 placeholder="Search portal... (Press /)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 focus:shadow-[0_0_15px_rgba(34,211,238,0.2)] transition-all duration-300 backdrop-blur-sm"
+                className={`w-full pl-12 py-3 bg-white/5 border border-white/10 rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 focus:shadow-[0_0_15px_rgba(34,211,238,0.2)] transition-all duration-300 backdrop-blur-sm ${searchQuery ? 'pr-32' : 'pr-12'}`}
              />
              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute inset-y-0 right-0 pr-8 flex items-center text-gray-500 hover:text-cyan-400 transition-colors"
-                  aria-label="Clear search"
-                >
-                  ✕
-                </button>
+                <div className="absolute inset-y-0 right-0 pr-4 flex items-center gap-2">
+                   <span className="text-xs text-gray-500 animate-fade-in">{filteredProjects.length} found</span>
+                   <button
+                     onClick={() => setSearchQuery('')}
+                     className="text-gray-500 hover:text-cyan-400 transition-colors px-2 py-1"
+                     aria-label="Clear search"
+                   >
+                     ✕
+                   </button>
+                </div>
              )}
           </div>
         </div>
@@ -333,6 +343,7 @@ function App() {
                       : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white'}
                   `}
                 >
+                  <span className="mr-2">{CATEGORY_ICONS[category]}</span>
                   {category} <span className="text-xs opacity-60 ml-1">({count})</span>
                 </button>
               );
