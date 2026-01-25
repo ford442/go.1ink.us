@@ -25,6 +25,17 @@ const getCategoryForTag = (tag) => {
   return Object.keys(CATEGORIES).find(cat => CATEGORIES[cat].includes(tag));
 };
 
+// Helper to check if a project matches the search query
+const isProjectMatchingQuery = (project, query) => {
+  if (!query) return true;
+  const lowerQuery = query.toLowerCase();
+  return (
+    project.title.toLowerCase().includes(lowerQuery) ||
+    project.description.toLowerCase().includes(lowerQuery) ||
+    project.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))
+  );
+};
+
 function App() {
   // activeFilter can be 'All', a Category Key (e.g., 'Games'), or a specific Tag (e.g., 'Fluid')
   const [activeFilter, setActiveFilter] = useState(() => {
@@ -97,16 +108,22 @@ function App() {
     return getCategoryForTag(activeFilter);
   }, [activeFilter]);
 
-  // Helper to get count for a category
+  // Helper to get count for a category (respecting search)
   const getCategoryCount = (categoryKey) => {
     const categoryTags = CATEGORIES[categoryKey];
-    // Count projects that have AT LEAST ONE tag from this category
-    return projectData.filter(p => p.tags.some(t => categoryTags.includes(t))).length;
+    // Count projects that have AT LEAST ONE tag from this category AND match search
+    return projectData.filter(p =>
+      p.tags.some(t => categoryTags.includes(t)) &&
+      isProjectMatchingQuery(p, searchQuery)
+    ).length;
   };
 
-  // Helper to get count for a specific tag
+  // Helper to get count for a specific tag (respecting search)
   const getTagCount = (tag) => {
-    return projectData.filter(p => p.tags.includes(tag)).length;
+    return projectData.filter(p =>
+      p.tags.includes(tag) &&
+      isProjectMatchingQuery(p, searchQuery)
+    ).length;
   };
 
   const handleTagClick = (tag) => {
@@ -133,9 +150,7 @@ function App() {
       matchesFilter = project.tags.includes(activeFilter);
     }
 
-    const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          project.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesSearch = isProjectMatchingQuery(project, searchQuery);
     return matchesFilter && matchesSearch;
   });
 
@@ -316,7 +331,7 @@ function App() {
                   : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white'}
               `}
             >
-              All <span className="text-xs opacity-60 ml-1">({projectData.length})</span>
+              All <span className="text-xs opacity-60 ml-1">({projectData.filter(p => isProjectMatchingQuery(p, searchQuery)).length})</span>
             </button>
 
             {/* Category Buttons */}
@@ -340,7 +355,9 @@ function App() {
                     px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 backdrop-blur-sm border
                     ${isActive
                       ? 'bg-cyan-600/30 border-cyan-400 text-white shadow-[0_0_15px_rgba(34,211,238,0.3)] scale-105'
-                      : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white'}
+                      : count === 0
+                        ? 'bg-white/5 border-white/5 text-gray-600 cursor-default opacity-50'
+                        : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white'}
                   `}
                 >
                   <span className="mr-2">{CATEGORY_ICONS[category]}</span>
@@ -397,7 +414,9 @@ function App() {
                         px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 border animate-fade-in whitespace-nowrap
                         ${activeFilter === tag
                           ? 'bg-purple-600/40 border-purple-400 text-purple-100 shadow-[0_0_10px_rgba(168,85,247,0.3)] scale-105'
-                          : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10 hover:text-white hover:border-white/10'}
+                          : count === 0
+                            ? 'bg-white/5 border-white/5 text-gray-600 cursor-default opacity-50'
+                            : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10 hover:text-white hover:border-white/10'}
                      `}
                    >
                      {tag} <span className="opacity-60 ml-1">({count})</span>
