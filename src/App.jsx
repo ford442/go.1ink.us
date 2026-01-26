@@ -299,7 +299,15 @@ function App() {
                 <div className="absolute inset-y-0 right-0 pr-4 flex items-center gap-2">
                    <span className="text-xs text-gray-500 animate-fade-in">{filteredProjects.length} found</span>
                    <button
-                     onClick={() => setSearchQuery('')}
+                     onClick={() => {
+                       if (document.startViewTransition) {
+                         document.startViewTransition(() => {
+                           flushSync(() => setSearchQuery(''));
+                         });
+                       } else {
+                         setSearchQuery('');
+                       }
+                     }}
                      className="text-gray-500 hover:text-cyan-400 transition-colors px-2 py-1"
                      aria-label="Clear search"
                    >
