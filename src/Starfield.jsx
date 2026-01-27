@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 
-const Starfield = ({ starCount = 75 }) => {
+const Starfield = forwardRef(({ starCount = 75 }, ref) => {
   const [stars] = useState(() => {
     return Array.from({ length: starCount }).map((_, i) => ({
       id: i,
@@ -14,7 +14,10 @@ const Starfield = ({ starCount = 75 }) => {
   });
 
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+    <div
+      ref={ref}
+      className="absolute -top-[10%] -left-[10%] w-[120%] h-[120%] pointer-events-none z-0"
+    >
       {stars.map((star) => (
         <div
           key={star.id}
@@ -38,6 +41,6 @@ const Starfield = ({ starCount = 75 }) => {
       </div>
     </div>
   );
-};
+});
 
 export default Starfield;

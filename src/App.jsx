@@ -99,6 +99,7 @@ function App() {
 
   // Ref for the spotlight grid
   const gridSpotlightRef = useRef(null);
+  const starfieldRef = useRef(null);
 
   // Calculate the current parent category based on the active filter
   // This allows us to show the relevant sub-tags even when a specific tag is selected
@@ -182,6 +183,11 @@ function App() {
         blob4Ref.current.style.transform = `translate3d(${mouseX * -0.03}px, ${scrollY * -0.1 + mouseY * -0.03}px, 0)`;
       }
 
+      // Starfield: Subtle parallax (very far away)
+      if (starfieldRef.current) {
+        starfieldRef.current.style.transform = `translate3d(${mouseX * -0.005}px, ${scrollY * 0.02 + mouseY * -0.005}px, 0)`;
+      }
+
       // Update the Grid Spotlight
       if (gridSpotlightRef.current) {
         // Use a radial gradient mask to reveal the cyan grid at the mouse position
@@ -225,7 +231,7 @@ function App() {
       
       {/* Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <Starfield />
+        <Starfield ref={starfieldRef} />
 
         {/* Animated Blobs with Parallax Wrapper */}
         <div ref={blob1Ref} className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] will-change-transform transition-transform duration-75 linear">
