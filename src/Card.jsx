@@ -18,18 +18,21 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
     // We want the card to "levitate" towards the mouse (the side under the mouse lifts up/comes forward)
 
     // RotateX:
-    // Mouse at Top (y < center) -> Top lifts UP (towards user).
-    // Top Up = Top Forward = RotateX Negative.
+    // Mouse at Top (y < center) -> We want the card to LOOK UP (Pivot Up).
+    // Pivot Up = Top Back = RotateX Positive.
     // (y - centerY) is Negative.
-    // Neg * K = Neg. So K is Positive (10).
-    const rotateX = ((y - centerY) / centerY) * 10;
+    // Neg * K = Pos. So K is Negative (-10).
+    const rotateX = ((y - centerY) / centerY) * -10;
 
     // RotateY:
-    // Mouse at Right (x > center) -> Right lifts UP (towards user).
-    // Right Up = Right Forward = RotateY Negative.
+    // Mouse at Right (x > center) -> We want the card to LOOK RIGHT (Pivot Right).
+    // Pivot Right = Right Back = RotateY Positive (around Y axis pointing down? No, standard CSS 3D: Y is down).
+    // Right Hand Rule on Y (Thumb Down): Fingers curl +Z to +X.
+    // So Positive Rotation moves Right side AWAY (Back).
+    // We want Right Back. So Positive.
     // (x - centerX) is Positive.
-    // Pos * K = Neg. So K is Negative (-10).
-    const rotateY = ((x - centerX) / centerX) * -10;
+    // Pos * K = Pos. So K is Positive (10).
+    const rotateY = ((x - centerX) / centerX) * 10;
 
     // Apply the transform
     // Includes the lift (translateY) and scale that matches the CSS hover state intention
@@ -77,7 +80,7 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
     <div className="perspective-container" style={{ viewTransitionName: `project-${project.id}` }}>
       <div
         ref={cardRef}
-        className="glass-card card-3d block rounded-xl overflow-hidden flex flex-col h-full relative group"
+        className="glass-card card-3d block rounded-xl flex flex-col h-full relative group"
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
@@ -90,9 +93,9 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
         ></a>
 
         {/* Image Area with overlay gradient */}
-        <div className="h-full flex flex-col pointer-events-none">
+        <div className="h-full flex flex-col pointer-events-none" style={{ transformStyle: 'preserve-3d' }}>
           {project.image ? (
-            <div className="h-48 overflow-hidden relative border-b border-white/5 shrink-0">
+            <div className="h-48 overflow-hidden rounded-t-xl relative border-b border-white/5 shrink-0" style={{ transform: 'translateZ(20px)' }}>
               <img
                 src={project.image}
                 alt={project.title}
@@ -102,12 +105,12 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300"></div>
             </div>
           ) : (
-            <div className="h-48 bg-gradient-to-br from-indigo-900/50 to-purple-900/50 flex items-center justify-center relative overflow-hidden border-b border-white/5 shrink-0">
+            <div className="h-48 bg-gradient-to-br from-indigo-900/50 to-purple-900/50 flex items-center justify-center relative overflow-hidden rounded-t-xl border-b border-white/5 shrink-0" style={{ transform: 'translateZ(20px)' }}>
                 <span className="text-6xl transform transition-transform duration-500 group-hover:scale-125 group-hover:rotate-12 drop-shadow-lg">{project.icon}</span>
             </div>
           )}
 
-          <div className="p-6 flex-1 flex flex-col relative z-10">
+          <div className="p-6 flex-1 flex flex-col relative z-10" style={{ transform: 'translateZ(30px)' }}>
             <div className="flex items-center mb-3">
               {project.image && <div className="text-2xl mr-3 transform transition-transform duration-300 group-hover:rotate-12 filter drop-shadow">{project.icon}</div>}
               <h3 className="text-xl font-bold text-white tracking-wide group-hover:text-blue-300 transition-colors duration-300">
