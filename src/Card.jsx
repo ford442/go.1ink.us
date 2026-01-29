@@ -18,21 +18,18 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
     // We want the card to "levitate" towards the mouse (the side under the mouse lifts up/comes forward)
 
     // RotateX:
-    // Mouse at Top (y < center) -> We want the card to LOOK UP (Pivot Up).
-    // Pivot Up = Top Back = RotateX Positive.
+    // Mouse at Top (y < center) -> We want the card to TILT TOWARDS the mouse (Magnet Effect).
+    // Tilt Towards = Top comes Forward = RotateX Negative.
     // (y - centerY) is Negative.
-    // Neg * K = Pos. So K is Negative (-10).
-    const rotateX = ((y - centerY) / centerY) * -10;
+    // Neg * K = Neg. So K is Positive (10).
+    const rotateX = ((y - centerY) / centerY) * 10;
 
     // RotateY:
-    // Mouse at Right (x > center) -> We want the card to LOOK RIGHT (Pivot Right).
-    // Pivot Right = Right Back = RotateY Positive (around Y axis pointing down? No, standard CSS 3D: Y is down).
-    // Right Hand Rule on Y (Thumb Down): Fingers curl +Z to +X.
-    // So Positive Rotation moves Right side AWAY (Back).
-    // We want Right Back. So Positive.
+    // Mouse at Right (x > center) -> We want the card to TILT TOWARDS the mouse.
+    // Tilt Towards = Right comes Forward = RotateY Negative.
     // (x - centerX) is Positive.
-    // Pos * K = Pos. So K is Positive (10).
-    const rotateY = ((x - centerX) / centerX) * 10;
+    // Pos * K = Neg. So K is Negative (-10).
+    const rotateY = ((x - centerX) / centerX) * -10;
 
     // Apply the transform
     // Includes the lift (translateY) and scale that matches the CSS hover state intention
