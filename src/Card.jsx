@@ -158,6 +158,20 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
             zIndex: 5 // Ensure it sits nicely in the stack
           }}
         />
+
+        {/* Neon Spotlight Border */}
+        <div
+          className="absolute inset-0 rounded-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          style={{
+            background: `radial-gradient(250px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(34, 211, 238, 0.4), transparent 40%)`,
+            zIndex: 50,
+            mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+            WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+            maskComposite: 'exclude',
+            WebkitMaskComposite: 'xor',
+            padding: '1px' // This defines the border width via the mask exclusion
+          }}
+        />
       </div>
     </div>
   );
