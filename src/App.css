@@ -40,22 +40,6 @@
     0 0 40px rgba(147, 51, 234, 0.15);
 }
 
-/* Shine Effect Animation */
-.shine-effect {
-  transform: translateX(-100%) rotate(45deg);
-  animation: shine 3s ease-in-out infinite;
-}
-
-@keyframes shine {
-  0%, 100% {
-    transform: translateX(-100%) translateY(-100%) rotate(45deg);
-  }
-  50% {
-    transform: translateX(100%) translateY(100%) rotate(45deg);
-  }
-}
-
-
 /* Floating Animation */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }

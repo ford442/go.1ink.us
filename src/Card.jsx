@@ -3,6 +3,13 @@ import React, { useRef } from 'react';
 const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
   const cardRef = useRef(null);
 
+  const handleMouseEnter = () => {
+    if (!cardRef.current) return;
+    // Set fast transition for tilt responsiveness on hover enter
+    // This avoids setting style on every mousemove event, improving performance
+    cardRef.current.style.transition = 'transform 0.15s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.6s cubic-bezier(0.23, 1, 0.32, 1), background 0.3s ease, border-color 0.3s ease';
+  };
+
   const handleMouseMove = (e) => {
     if (!cardRef.current) return;
 
@@ -38,10 +45,6 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
     // Set CSS variables for the spotlight effect
     card.style.setProperty('--mouse-x', `${x}px`);
     card.style.setProperty('--mouse-y', `${y}px`);
-
-    // Speed up transform transition for responsiveness, but keep others smooth
-    // Matches CSS: transition: transform 0.6s ..., box-shadow 0.6s ..., background 0.3s ..., border-color 0.3s ...
-    card.style.transition = 'transform 0.1s ease-out, box-shadow 0.6s cubic-bezier(0.23, 1, 0.32, 1), background 0.3s ease, border-color 0.3s ease';
   };
 
   const handleMouseLeave = () => {
@@ -78,6 +81,7 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
       <div
         ref={cardRef}
         className="glass-card card-3d block rounded-xl flex flex-col h-full relative group"
+        onMouseEnter={handleMouseEnter}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
@@ -145,17 +149,23 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
           </div>
         </div>
         
-        {/* 3D shine effect overlay */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent shine-effect"></div>
-        </div>
-
         {/* Dynamic Holographic Spotlight */}
         <div
           className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
           style={{
             background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(34, 211, 238, 0.15), transparent 40%)`,
-            zIndex: 5 // Ensure it sits nicely in the stack
+            zIndex: 5, // Ensure it sits nicely in the stack
+            mixBlendMode: 'screen' // Added for better blending
+          }}
+        />
+
+        {/* Specular Glare (New, replaces shine-effect) */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"
+          style={{
+            background: `radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.06), transparent 40%)`,
+            zIndex: 3,
+            mixBlendMode: 'overlay'
           }}
         />
 
@@ -170,7 +180,8 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
             maskImage: 'linear-gradient(#fff, #fff) content-box, linear-gradient(#fff, #fff)',
             WebkitMaskImage: 'linear-gradient(#fff, #fff) content-box, linear-gradient(#fff, #fff)',
             maskComposite: 'exclude',
-            WebkitMaskComposite: 'xor'
+            WebkitMaskComposite: 'xor',
+            mixBlendMode: 'screen' // Added for better blending
           }}
         />
       </div>
