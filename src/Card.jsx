@@ -154,22 +154,23 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
         <div
           className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
           style={{
-            background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.08), transparent 40%)`,
+            background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(34, 211, 238, 0.15), transparent 40%)`,
             zIndex: 5 // Ensure it sits nicely in the stack
           }}
         />
 
         {/* Neon Spotlight Border */}
         <div
-          className="absolute inset-0 rounded-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl"
           style={{
-            background: `radial-gradient(250px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(34, 211, 238, 0.4), transparent 40%)`,
-            zIndex: 50,
-            mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-            WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+            zIndex: 15,
+            transform: 'translateZ(40px)',
+            padding: '1px',
+            background: `radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(34, 211, 238, 0.6), transparent 60%)`,
+            maskImage: 'linear-gradient(#fff, #fff) content-box, linear-gradient(#fff, #fff)',
+            WebkitMaskImage: 'linear-gradient(#fff, #fff) content-box, linear-gradient(#fff, #fff)',
             maskComposite: 'exclude',
-            WebkitMaskComposite: 'xor',
-            padding: '1px' // This defines the border width via the mask exclusion
+            WebkitMaskComposite: 'xor'
           }}
         />
       </div>
