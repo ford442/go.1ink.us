@@ -77,12 +77,29 @@ function App() {
         e.preventDefault();
         searchInputRef.current?.focus();
       }
-      // Clear/Blur on Escape
-      if (e.key === 'Escape' && document.activeElement === searchInputRef.current) {
-        if (searchInputRef.current.value) {
-          setSearchQuery('');
+
+      // Global Escape Handler
+      if (e.key === 'Escape') {
+        if (document.activeElement === searchInputRef.current) {
+          // If in search input: Clear if text exists, otherwise Blur
+          if (searchInputRef.current.value) {
+            setSearchQuery('');
+          } else {
+            searchInputRef.current?.blur();
+          }
         } else {
-          searchInputRef.current?.blur();
+          // If anywhere else: Reset everything
+          if (document.startViewTransition) {
+            document.startViewTransition(() => {
+              flushSync(() => {
+                setActiveFilter('All');
+                setSearchQuery('');
+              });
+            });
+          } else {
+            setActiveFilter('All');
+            setSearchQuery('');
+          }
         }
       }
     };
@@ -341,7 +358,7 @@ function App() {
               className={`
                 px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 backdrop-blur-sm border
                 ${activeFilter === 'All'
-                  ? 'bg-cyan-600/30 border-cyan-400 text-white shadow-[0_0_15px_rgba(34,211,238,0.3)] scale-105'
+                  ? 'bg-cyan-500/80 border-cyan-300 text-white shadow-[0_0_15px_rgba(34,211,238,0.5)] scale-105'
                   : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white'}
               `}
             >
@@ -368,7 +385,7 @@ function App() {
                   className={`
                     px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 backdrop-blur-sm border
                     ${isActive
-                      ? 'bg-cyan-600/30 border-cyan-400 text-white shadow-[0_0_15px_rgba(34,211,238,0.3)] scale-105'
+                      ? 'bg-cyan-500/80 border-cyan-300 text-white shadow-[0_0_15px_rgba(34,211,238,0.5)] scale-105'
                       : count === 0
                         ? 'bg-white/5 border-white/5 text-gray-600 cursor-default opacity-50'
                         : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white'}
@@ -427,7 +444,7 @@ function App() {
                      className={`
                         px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 border animate-fade-in whitespace-nowrap
                         ${activeFilter === tag
-                          ? 'bg-purple-600/40 border-purple-400 text-purple-100 shadow-[0_0_10px_rgba(168,85,247,0.3)] scale-105'
+                          ? 'bg-cyan-500/80 border-cyan-300 text-white shadow-[0_0_12px_rgba(34,211,238,0.6)] scale-105 animate-pulse'
                           : count === 0
                             ? 'bg-white/5 border-white/5 text-gray-600 cursor-default opacity-50'
                             : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10 hover:text-white hover:border-white/10'}
