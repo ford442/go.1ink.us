@@ -403,7 +403,7 @@ function App() {
         {/* Only visible when a category (or a tag within it) is active */}
         <div className={`mb-10 transition-all duration-500 ease-in-out overflow-hidden ${currentCategory ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
           {currentCategory && (
-             <div className="flex flex-nowrap overflow-x-auto justify-start md:flex-wrap md:justify-center gap-2 px-4 max-w-3xl mx-auto py-2 scrollbar-hide">
+             <div className="flex flex-nowrap overflow-x-auto justify-start md:flex-wrap md:justify-center gap-2 px-4 max-w-3xl mx-auto py-2 scrollbar-hide mobile-scroll-mask">
                {/* Option to view all in this category */}
                <button
                  onClick={() => {
