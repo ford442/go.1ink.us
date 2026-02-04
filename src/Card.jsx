@@ -1,7 +1,30 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 
 const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
   const cardRef = useRef(null);
+  const [isInteractive, setIsInteractive] = useState(false);
+
+  useEffect(() => {
+    // Check if device supports hover and user doesn't prefer reduced motion
+    // This optimization prevents sticky tilt states on touch devices and respects accessibility settings
+    const hoverQuery = window.matchMedia('(hover: hover)');
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const updateInteractive = () => {
+      setIsInteractive(hoverQuery.matches && !motionQuery.matches);
+    };
+
+    updateInteractive();
+
+    // Listeners
+    hoverQuery.addEventListener('change', updateInteractive);
+    motionQuery.addEventListener('change', updateInteractive);
+
+    return () => {
+      hoverQuery.removeEventListener('change', updateInteractive);
+      motionQuery.removeEventListener('change', updateInteractive);
+    };
+  }, []);
 
   const handleMouseEnter = () => {
     if (!cardRef.current) return;
@@ -11,7 +34,7 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
   };
 
   const handleMouseMove = (e) => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || !isInteractive) return;
 
     const card = cardRef.current;
     const rect = card.getBoundingClientRect();
