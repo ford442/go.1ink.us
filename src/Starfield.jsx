@@ -1,6 +1,10 @@
-import React, { useState, forwardRef } from 'react';
+import React, { useState, forwardRef, memo } from 'react';
 
-const Starfield = forwardRef(({ starCount = 75 }, ref) => {
+const Starfield = memo(forwardRef(({ starCount = 75 }, ref) => {
+  // INSTRUMENTATION FOR PERF TESTING
+  if (typeof window !== 'undefined') {
+    window.__STARFIELD_RENDER_COUNT__ = (window.__STARFIELD_RENDER_COUNT__ || 0) + 1;
+  }
   const [stars] = useState(() => {
     return Array.from({ length: starCount }).map((_, i) => ({
       id: i,
@@ -41,6 +45,6 @@ const Starfield = forwardRef(({ starCount = 75 }, ref) => {
       </div>
     </div>
   );
-});
+}));
 
 export default Starfield;
