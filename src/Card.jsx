@@ -83,15 +83,19 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
     cardRef.current.style.removeProperty('--mouse-y');
   };
 
+  // Memoize the RegExp creation
+  const regex = useMemo(() => {
+    if (!searchQuery) return null;
+    const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(${escapedQuery})`, 'gi');
+  }, [searchQuery]);
+
   // Helper to highlight matching text
   const highlightMatch = (text, query) => {
-    if (!query || !text) return text;
+    if (!query || !text || !regex) return text;
 
-    // Escape special characters for regex
-    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-    // Split by query (captured), case insensitive
-    const parts = text.split(new RegExp(`(${escapedQuery})`, 'gi'));
+    // Use the memoized regex
+    const parts = text.split(regex);
     return parts.map((part, i) =>
       part.toLowerCase() === query.toLowerCase() ? (
         <span key={i} className="bg-cyan-500/30 text-cyan-200 rounded px-0.5 shadow-[0_0_8px_rgba(34,211,238,0.2)] font-semibold">{part}</span>
