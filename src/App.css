@@ -151,3 +151,11 @@
     opacity: 0;
   }
 }
+
+/* Mobile Scroll Mask */
+@media (max-width: 768px) {
+  .mobile-scroll-mask {
+    mask-image: linear-gradient(to right, black 85%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  }
+}
