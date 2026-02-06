@@ -175,34 +175,45 @@ function App() {
   // Dynamic Background: Parallax (Scroll) + Interactive (Mouse)
   useEffect(() => {
     let scrollY = window.scrollY;
-    let mouseX = 0;
-    let mouseY = 0;
+
+    // Target mouse position (where the cursor actually is)
+    let targetMouseX = 0;
+    let targetMouseY = 0;
+
+    // Current interpolated mouse position (for smooth animation)
+    let currentMouseX = 0;
+    let currentMouseY = 0;
+
     let pageMouseX = 0;
     let pageMouseY = 0;
     let animationFrameId;
 
     const updateTransforms = () => {
-      // Calculate smooth blob positions based on scroll AND mouse
+      // Lerp current towards target (0.05 factor for smooth inertia)
+      currentMouseX += (targetMouseX - currentMouseX) * 0.05;
+      currentMouseY += (targetMouseY - currentMouseY) * 0.05;
+
+      // Calculate smooth blob positions based on scroll AND interpolated mouse
       // Blob 1: Moves with scroll (0.2), Retreats from mouse (-0.02)
       if (blob1Ref.current) {
-        blob1Ref.current.style.transform = `translate3d(${mouseX * -0.02}px, ${scrollY * 0.2 + mouseY * -0.02}px, 0)`;
+        blob1Ref.current.style.transform = `translate3d(${currentMouseX * -0.02}px, ${scrollY * 0.2 + currentMouseY * -0.02}px, 0)`;
       }
       // Blob 2: Moves with scroll (-0.15), Attracted to mouse (0.03)
       if (blob2Ref.current) {
-        blob2Ref.current.style.transform = `translate3d(${mouseX * 0.03}px, ${scrollY * -0.15 + mouseY * 0.03}px, 0)`;
+        blob2Ref.current.style.transform = `translate3d(${currentMouseX * 0.03}px, ${scrollY * -0.15 + currentMouseY * 0.03}px, 0)`;
       }
       // Blob 3: Moves with scroll (0.1), Slight drift with mouse (0.01)
       if (blob3Ref.current) {
-        blob3Ref.current.style.transform = `translate3d(${mouseX * 0.01}px, ${scrollY * 0.1 + mouseY * 0.01}px, 0)`;
+        blob3Ref.current.style.transform = `translate3d(${currentMouseX * 0.01}px, ${scrollY * 0.1 + currentMouseY * 0.01}px, 0)`;
       }
       // Blob 4: Moves with scroll (-0.1), Counter-drift with mouse (-0.03)
       if (blob4Ref.current) {
-        blob4Ref.current.style.transform = `translate3d(${mouseX * -0.03}px, ${scrollY * -0.1 + mouseY * -0.03}px, 0)`;
+        blob4Ref.current.style.transform = `translate3d(${currentMouseX * -0.03}px, ${scrollY * -0.1 + currentMouseY * -0.03}px, 0)`;
       }
 
       // Starfield: Subtle parallax (very far away)
       if (starfieldRef.current) {
-        starfieldRef.current.style.transform = `translate3d(${mouseX * -0.005}px, ${scrollY * 0.02 + mouseY * -0.005}px, 0)`;
+        starfieldRef.current.style.transform = `translate3d(${currentMouseX * -0.005}px, ${scrollY * 0.02 + currentMouseY * -0.005}px, 0)`;
       }
 
       // Update the Grid Spotlight
@@ -223,8 +234,8 @@ function App() {
 
     const handleMouseMove = (e) => {
       // Center the coordinate system for mouse (for parallax)
-      mouseX = e.clientX - window.innerWidth / 2;
-      mouseY = e.clientY - window.innerHeight / 2;
+      targetMouseX = e.clientX - window.innerWidth / 2;
+      targetMouseY = e.clientY - window.innerHeight / 2;
       // Viewport coordinates (for spotlight fixed background)
       pageMouseX = e.clientX;
       pageMouseY = e.clientY;
@@ -251,19 +262,19 @@ function App() {
         <Starfield ref={starfieldRef} />
 
         {/* Animated Blobs with Parallax Wrapper */}
-        <div ref={blob1Ref} className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] will-change-transform transition-transform duration-75 linear">
+        <div ref={blob1Ref} className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] will-change-transform">
             <div className="w-full h-full bg-blue-600/30 rounded-full blur-[100px] animate-blob mix-blend-screen"></div>
         </div>
 
-        <div ref={blob2Ref} className="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] will-change-transform transition-transform duration-75 linear">
+        <div ref={blob2Ref} className="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] will-change-transform">
             <div className="w-full h-full bg-purple-600/30 rounded-full blur-[100px] animate-blob mix-blend-screen" style={{ animationDelay: "2s" }}></div>
         </div>
 
-        <div ref={blob3Ref} className="absolute top-[40%] left-[30%] w-[30rem] h-[30rem] will-change-transform transition-transform duration-75 linear">
+        <div ref={blob3Ref} className="absolute top-[40%] left-[30%] w-[30rem] h-[30rem] will-change-transform">
             <div className="w-full h-full bg-pink-600/20 rounded-full blur-[80px] animate-blob mix-blend-screen" style={{ animationDelay: "4s" }}></div>
         </div>
 
-        <div ref={blob4Ref} className="absolute top-[10%] right-[20%] w-[35rem] h-[35rem] will-change-transform transition-transform duration-75 linear">
+        <div ref={blob4Ref} className="absolute top-[10%] right-[20%] w-[35rem] h-[35rem] will-change-transform">
             <div className="w-full h-full bg-cyan-600/20 rounded-full blur-[90px] animate-blob mix-blend-screen" style={{ animationDelay: "6s" }}></div>
         </div>
 
