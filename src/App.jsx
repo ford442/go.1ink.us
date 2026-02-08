@@ -497,29 +497,39 @@ function App() {
             })}
           </div>
         ) : (
-          <div className="text-center py-20 animate-fade-in">
-             <div className="text-6xl mb-4 opacity-50 animate-float">👻</div>
-             <p className="text-xl text-gray-400">
-               {searchQuery ? `No projects found matching "${searchQuery}"` : 'No projects found for this filter.'}
-             </p>
-             <button
-               onClick={() => {
-                 if (document.startViewTransition) {
-                   document.startViewTransition(() => {
-                     flushSync(() => {
-                       setActiveFilter('All');
-                       setSearchQuery('');
-                     });
-                   });
-                 } else {
-                   setActiveFilter('All');
-                   setSearchQuery('');
-                 }
-               }}
-               className="mt-4 text-cyan-400 hover:text-cyan-300 underline underline-offset-4"
-             >
-               Reset filters
-             </button>
+          <div className="max-w-2xl mx-auto mt-10 animate-fade-in">
+             <div className="system-alert rounded-xl p-8 backdrop-blur-md">
+                <div className="scanline"></div>
+                <div className="flex flex-col items-center justify-center text-center space-y-4 relative z-10">
+                   <div className="text-6xl mb-2 opacity-80 glitch-text" data-text="⚠️">⚠️</div>
+                   <h3 className="text-2xl font-bold text-red-400 uppercase tracking-widest glitch-text" data-text="SYSTEM ALERT">
+                      SYSTEM ALERT
+                   </h3>
+                   <div className="text-red-300/80 font-mono text-sm bg-black/30 p-4 rounded border border-red-500/20 w-full">
+                      <p className="mb-2">{`> SEARCH_QUERY: "${searchQuery || activeFilter}"`}</p>
+                      <p className="mb-2">{`> STATUS: 0_MATCHES_FOUND`}</p>
+                      <p className="animate-pulse">{`> RECOMMENDATION: ADJUST_PARAMETERS`}</p>
+                   </div>
+                   <button
+                     onClick={() => {
+                       if (document.startViewTransition) {
+                         document.startViewTransition(() => {
+                           flushSync(() => {
+                             setActiveFilter('All');
+                             setSearchQuery('');
+                           });
+                         });
+                       } else {
+                         setActiveFilter('All');
+                         setSearchQuery('');
+                       }
+                     }}
+                     className="mt-4 px-6 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/50 text-red-400 rounded-full transition-all duration-300 hover:shadow-[0_0_15px_rgba(220,38,38,0.4)] uppercase text-sm font-bold tracking-wider"
+                   >
+                     Reset Protocol
+                   </button>
+                </div>
+             </div>
           </div>
         )}
         
