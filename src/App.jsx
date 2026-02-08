@@ -154,23 +154,25 @@ function App() {
     }
   };
 
-  const filteredProjects = projectData.filter(project => {
-    let matchesFilter = false;
+  const filteredProjects = useMemo(() => {
+    return projectData.filter(project => {
+      let matchesFilter = false;
 
-    if (activeFilter === 'All') {
-      matchesFilter = true;
-    } else if (CATEGORIES[activeFilter]) {
-      // It's a Category: Match if project has ANY tag in this category
-      const categoryTags = CATEGORIES[activeFilter];
-      matchesFilter = project.tags.some(tag => categoryTags.includes(tag));
-    } else {
-      // It's a specific Tag
-      matchesFilter = project.tags.includes(activeFilter);
-    }
+      if (activeFilter === 'All') {
+        matchesFilter = true;
+      } else if (CATEGORIES[activeFilter]) {
+        // It's a Category: Match if project has ANY tag in this category
+        const categoryTags = CATEGORIES[activeFilter];
+        matchesFilter = project.tags.some(tag => categoryTags.includes(tag));
+      } else {
+        // It's a specific Tag
+        matchesFilter = project.tags.includes(activeFilter);
+      }
 
-    const matchesSearch = isProjectMatchingQuery(project, searchQuery);
-    return matchesFilter && matchesSearch;
-  });
+      const matchesSearch = isProjectMatchingQuery(project, searchQuery);
+      return matchesFilter && matchesSearch;
+    });
+  }, [activeFilter, searchQuery, projectData]);
 
   // Dynamic Background: Parallax (Scroll) + Interactive (Mouse)
   useEffect(() => {
