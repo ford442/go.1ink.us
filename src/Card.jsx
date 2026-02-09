@@ -128,7 +128,7 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
                 src={project.image}
                 alt={project.title}
                 loading="lazy"
-                className="w-full h-full object-cover transition-transform duration-700 delay-100 group-hover:scale-110"
+                className="w-full h-full object-cover transition-transform duration-700 delay-700 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300"></div>
             </div>
@@ -183,6 +183,17 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
             background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(34, 211, 238, 0.15), transparent 40%)`,
             zIndex: 5, // Ensure it sits nicely in the stack
             mixBlendMode: 'screen' // Added for better blending
+          }}
+        />
+
+        {/* Holographic Sheen (Rainbow Glass Effect) */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-60 transition-opacity duration-500"
+          style={{
+            background: `conic-gradient(from 225deg at var(--mouse-x, 50%) var(--mouse-y, 50%), transparent 0deg, rgba(34, 211, 238, 0.2) 60deg, rgba(168, 85, 247, 0.2) 120deg, transparent 180deg)`,
+            zIndex: 4,
+            mixBlendMode: 'color-dodge',
+            filter: 'blur(10px)'
           }}
         />
 
