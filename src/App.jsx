@@ -317,7 +317,153 @@ function App() {
           </div>
         </header>
 
-        {/* Projects Grid -- Now at the top */}
+        {/* Command Center: Filter Bar & Search */}
+        <div className="max-w-7xl mx-auto mb-16 space-y-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          {/* Search Input Section */}
+          <div className="flex justify-center">
+            <div className="relative w-full max-w-lg group">
+              <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative flex items-center">
+                <div className="absolute left-4 text-cyan-500/50">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search protocols..."
+                  className="w-full bg-black/40 backdrop-blur-md border border-white/10 text-white pl-12 pr-32 py-4 rounded-full focus:outline-none focus:border-cyan-500/50 focus:bg-black/60 transition-all duration-300 shadow-lg placeholder-gray-500"
+                />
+
+                {/* Right Actions: Results Count or Shortcut Hint */}
+                <div className="absolute right-4 flex items-center space-x-3">
+                  {searchQuery ? (
+                    <>
+                      <span className="text-xs font-mono text-cyan-400 bg-cyan-900/30 px-2 py-1 rounded">
+                        {filteredProjects.length} found
+                      </span>
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="text-gray-400 hover:text-white transition-colors"
+                        aria-label="Clear search"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </>
+                  ) : (
+                    <div className="hidden md:flex items-center space-x-1 text-gray-500 text-xs border border-white/10 rounded px-2 py-1">
+                      <span className="text-xs">⌘</span>
+                      <span>K</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Category Filter Section */}
+          <div className="flex flex-wrap justify-center gap-4">
+            {/* 'All' Button */}
+            <button
+              onClick={() => {
+                if (document.startViewTransition) {
+                  document.startViewTransition(() => {
+                    flushSync(() => setActiveFilter('All'));
+                  });
+                } else {
+                  setActiveFilter('All');
+                }
+              }}
+              className={`
+                px-6 py-2 rounded-full font-medium transition-all duration-300 backdrop-blur-md border flex items-center gap-2
+                ${activeFilter === 'All'
+                  ? 'bg-cyan-500/80 text-white border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.5)] scale-105'
+                  : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/30'
+                }
+              `}
+            >
+              <span>🌌</span>
+              <span>All</span>
+              <span className={`text-xs ml-1 ${activeFilter === 'All' ? 'text-cyan-200' : 'text-gray-500'}`}>
+                ({projectData.filter(p => isProjectMatchingQuery(p, searchQuery)).length})
+              </span>
+            </button>
+
+            {/* Category Buttons */}
+            {Object.keys(CATEGORIES).map((category) => {
+              const isActive = activeFilter === category || (CATEGORIES[category] && CATEGORIES[category].includes(activeFilter));
+              const count = getCategoryCount(category);
+
+              // Hide category if search yields 0 results for it, unless it's active
+              if (count === 0 && !isActive) return null;
+
+              return (
+                <button
+                  key={category}
+                  onClick={() => {
+                    if (document.startViewTransition) {
+                      document.startViewTransition(() => {
+                        flushSync(() => setActiveFilter(category));
+                      });
+                    } else {
+                      setActiveFilter(category);
+                    }
+                  }}
+                  className={`
+                    px-5 py-2 rounded-full font-medium transition-all duration-300 backdrop-blur-md border flex items-center gap-2
+                    ${isActive
+                      ? 'bg-cyan-500/80 text-white border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.5)] scale-105'
+                      : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/30'
+                    }
+                  `}
+                >
+                  <span>{CATEGORY_ICONS[category]}</span>
+                  <span>{category}</span>
+                  <span className={`text-xs ml-1 ${isActive ? 'text-cyan-200' : 'text-gray-500'}`}>
+                    ({count})
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Sub-Category Tags Section */}
+          {currentCategory && (
+            <div className="flex flex-wrap justify-center gap-2 animate-fade-in">
+              {CATEGORIES[currentCategory].map((tag, index) => {
+                const isActive = activeFilter === tag;
+                const count = getTagCount(tag);
+
+                if (count === 0 && !isActive) return null;
+
+                return (
+                  <button
+                    key={tag}
+                    onClick={() => handleTagClick(tag)}
+                    style={{ animationDelay: `${index * 50}ms` }}
+                    className={`
+                      px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 border flex items-center gap-2 animate-fade-in
+                      ${isActive
+                        ? 'bg-cyan-500/20 text-cyan-200 border-cyan-500/50 shadow-[0_0_10px_rgba(34,211,238,0.3)]'
+                        : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:text-white hover:border-white/20'
+                      }
+                    `}
+                  >
+                    <span>{tag}</span>
+                    <span className="text-xs opacity-60">({count})</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Projects Grid */}
         {filteredProjects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-2">
             {filteredProjects.map((project) => {
