@@ -3,6 +3,7 @@ import React, { useRef, useState, useEffect, useMemo } from 'react';
 const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
   const cardRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
+  const rafRef = useRef(null);
 
   useEffect(() => {
     // Check if device supports hover and user doesn't prefer reduced motion
@@ -23,6 +24,9 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
     return () => {
       hoverQuery.removeEventListener('change', updateInteractive);
       motionQuery.removeEventListener('change', updateInteractive);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
     };
   }, []);
 
@@ -36,51 +40,76 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
   const handleMouseMove = (e) => {
     if (!cardRef.current || !isInteractive) return;
 
-    const card = cardRef.current;
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    // Use requestAnimationFrame for smoother performance (throttling to ~60fps)
+    if (rafRef.current) return;
 
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
+    rafRef.current = requestAnimationFrame(() => {
+      if (!cardRef.current) return;
 
-    // Calculate rotation based on mouse position
-    // We want the card to "levitate" towards the mouse (the side under the mouse lifts up/comes forward)
+      const card = cardRef.current;
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
 
-    // RotateX:
-    // Mouse at Top (y < center) -> We want the card to TILT TOWARDS the mouse (Magnet Effect).
-    // Tilt Towards = Top comes Forward = RotateX Negative.
-    // (y - centerY) is Negative.
-    // Neg * K = Neg. So K is Positive (12.5).
-    const rotateX = ((y - centerY) / centerY) * 12.5;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
 
-    // RotateY:
-    // Mouse at Right (x > center) -> We want the card to TILT TOWARDS the mouse.
-    // Tilt Towards = Right comes Forward = RotateY Negative.
-    // (x - centerX) is Positive.
-    // Pos * K = Neg. So K is Negative (-12.5).
-    const rotateY = ((x - centerX) / centerX) * -12.5;
+      // Calculate rotation based on mouse position
+      // We want the card to "levitate" towards the mouse (the side under the mouse lifts up/comes forward)
 
-    // Apply the transform
-    // Includes the lift (translateY) and scale that matches the CSS hover state intention
-    card.style.transform = `translateY(-10px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+      // RotateX:
+      // Mouse at Top (y < center) -> We want the card to TILT TOWARDS the mouse (Magnet Effect).
+      // Tilt Towards = Top comes Forward = RotateX Negative.
+      // (y - centerY) is Negative.
+      // Neg * K = Neg. So K is Positive.
+      // Increased multiplier to 15 for a more "weighty" feel.
+      const rotateX = ((y - centerY) / centerY) * 15;
 
-    // Set CSS variables for the spotlight effect
-    card.style.setProperty('--mouse-x', `${x}px`);
-    card.style.setProperty('--mouse-y', `${y}px`);
+      // RotateY:
+      // Mouse at Right (x > center) -> We want the card to TILT TOWARDS the mouse.
+      // Tilt Towards = Right comes Forward = RotateY Negative.
+      // (x - centerX) is Positive.
+      // Pos * K = Neg. So K is Negative.
+      const rotateY = ((x - centerX) / centerX) * -15;
+
+      // Calculate Parallax for Content (simulating depth)
+      // Content moves slightly opposite to the tilt to enhance the "floating" effect
+      const parallaxX = ((x - centerX) / centerX) * -5;
+      const parallaxY = ((y - centerY) / centerY) * -5;
+
+      // Apply the transform
+      // Includes the lift (translateY) and scale that matches the CSS hover state intention
+      card.style.transform = `translateY(-10px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+
+      // Set CSS variables for the spotlight effect and parallax
+      card.style.setProperty('--mouse-x', `${x}px`);
+      card.style.setProperty('--mouse-y', `${y}px`);
+      card.style.setProperty('--parallax-x', `${parallaxX}px`);
+      card.style.setProperty('--parallax-y', `${parallaxY}px`);
+
+      rafRef.current = null;
+    });
   };
 
   const handleMouseLeave = () => {
     if (!cardRef.current) return;
+
+    // Cancel any pending animation frame
+    if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+    }
 
     // Reset to default state (managed by CSS)
     cardRef.current.style.transform = '';
     // Reset transition to allow the smooth CSS return animation
     cardRef.current.style.transition = '';
 
-    // Clear spotlight variables (optional, but good practice)
+    // Clear spotlight/parallax variables
     cardRef.current.style.removeProperty('--mouse-x');
     cardRef.current.style.removeProperty('--mouse-y');
+    cardRef.current.style.removeProperty('--parallax-x');
+    cardRef.current.style.removeProperty('--parallax-y');
   };
 
   // Memoize the RegExp creation
@@ -138,7 +167,12 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
             </div>
           )}
 
-          <div className="p-6 flex-1 flex flex-col relative z-10" style={{ transform: 'translateZ(50px)' }}>
+          <div
+            className="p-6 flex-1 flex flex-col relative z-10 transition-transform duration-100 ease-out"
+            style={{
+              transform: 'translateZ(50px) translateX(var(--parallax-x, 0px)) translateY(var(--parallax-y, 0px))'
+            }}
+          >
             <div className="flex items-center mb-3">
               {project.image && <div className="text-2xl mr-3 transform transition-transform duration-300 group-hover:rotate-12 filter drop-shadow">{project.icon}</div>}
               <h3 className="text-xl font-bold text-white tracking-wide group-hover:text-blue-300 transition-colors duration-300">
