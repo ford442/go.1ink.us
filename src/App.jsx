@@ -20,6 +20,14 @@ const CATEGORY_ICONS = {
   'Experiments': '🧪'
 };
 
+const CATEGORY_THEMES = {
+  'Games': ['bg-orange-600/30', 'bg-red-600/30', 'bg-amber-600/20', 'bg-yellow-600/20'],
+  'Audio/Visual': ['bg-fuchsia-600/30', 'bg-violet-600/30', 'bg-purple-600/20', 'bg-pink-600/20'],
+  'Tools': ['bg-blue-600/30', 'bg-sky-600/30', 'bg-cyan-600/20', 'bg-slate-600/20'],
+  'Experiments': ['bg-emerald-600/30', 'bg-lime-600/30', 'bg-green-600/20', 'bg-teal-600/20'],
+  'default': ['bg-blue-600/30', 'bg-purple-600/30', 'bg-pink-600/20', 'bg-cyan-600/20']
+};
+
 // Helper to find which category a tag belongs to
 const getCategoryForTag = (tag) => {
   return Object.keys(CATEGORIES).find(cat => CATEGORIES[cat].includes(tag));
@@ -125,6 +133,15 @@ function App() {
     if (CATEGORIES[activeFilter]) return activeFilter;
     return getCategoryForTag(activeFilter);
   }, [activeFilter]);
+
+  // Determine the active color theme based on the current category context
+  const currentTheme = useMemo(() => {
+    if (currentCategory && CATEGORY_THEMES[currentCategory]) {
+      return CATEGORY_THEMES[currentCategory];
+    }
+    return CATEGORY_THEMES['default'];
+  }, [currentCategory]);
+
 
   // Helper to get count for a category (respecting search)
   const getCategoryCount = (categoryKey) => {
@@ -265,19 +282,19 @@ function App() {
 
         {/* Animated Blobs with Parallax Wrapper */}
         <div ref={blob1Ref} className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] will-change-transform">
-            <div className="w-full h-full bg-blue-600/30 rounded-full blur-[100px] animate-blob mix-blend-screen"></div>
+            <div className={`w-full h-full ${currentTheme[0]} rounded-full blur-[100px] animate-blob mix-blend-screen transition-colors duration-[2000ms]`}></div>
         </div>
 
         <div ref={blob2Ref} className="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] will-change-transform">
-            <div className="w-full h-full bg-purple-600/30 rounded-full blur-[100px] animate-blob mix-blend-screen" style={{ animationDelay: "2s" }}></div>
+            <div className={`w-full h-full ${currentTheme[1]} rounded-full blur-[100px] animate-blob mix-blend-screen transition-colors duration-[2000ms]`} style={{ animationDelay: "2s" }}></div>
         </div>
 
         <div ref={blob3Ref} className="absolute top-[40%] left-[30%] w-[30rem] h-[30rem] will-change-transform">
-            <div className="w-full h-full bg-pink-600/20 rounded-full blur-[80px] animate-blob mix-blend-screen" style={{ animationDelay: "4s" }}></div>
+            <div className={`w-full h-full ${currentTheme[2]} rounded-full blur-[80px] animate-blob mix-blend-screen transition-colors duration-[2000ms]`} style={{ animationDelay: "4s" }}></div>
         </div>
 
         <div ref={blob4Ref} className="absolute top-[10%] right-[20%] w-[35rem] h-[35rem] will-change-transform">
-            <div className="w-full h-full bg-cyan-600/20 rounded-full blur-[90px] animate-blob mix-blend-screen" style={{ animationDelay: "6s" }}></div>
+            <div className={`w-full h-full ${currentTheme[3]} rounded-full blur-[90px] animate-blob mix-blend-screen transition-colors duration-[2000ms]`} style={{ animationDelay: "6s" }}></div>
         </div>
 
         {/* Base Grid Pattern Overlay */}
