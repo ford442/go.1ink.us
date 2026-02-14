@@ -384,7 +384,7 @@ function App() {
           </div>
 
           {/* Category Filter Section */}
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex overflow-x-auto md:flex-wrap md:justify-center gap-4 pb-2 md:pb-0 scrollbar-hide mobile-scroll-mask px-4 md:px-0 snap-x">
             {/* 'All' Button */}
             <button
               onClick={() => {
@@ -397,7 +397,7 @@ function App() {
                 }
               }}
               className={`
-                px-6 py-2 rounded-full font-medium transition-all duration-300 backdrop-blur-md border flex items-center gap-2
+                px-6 py-2 rounded-full font-medium transition-all duration-300 backdrop-blur-md border flex items-center gap-2 snap-center shrink-0
                 ${activeFilter === 'All'
                   ? 'bg-cyan-500/80 text-white border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.5)] scale-105'
                   : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/30'
@@ -432,7 +432,7 @@ function App() {
                     }
                   }}
                   className={`
-                    px-5 py-2 rounded-full font-medium transition-all duration-300 backdrop-blur-md border flex items-center gap-2
+                    px-5 py-2 rounded-full font-medium transition-all duration-300 backdrop-blur-md border flex items-center gap-2 snap-center shrink-0
                     ${isActive
                       ? 'bg-cyan-500/80 text-white border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.5)] scale-105'
                       : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/30'
@@ -451,7 +451,7 @@ function App() {
 
           {/* Sub-Category Tags Section */}
           {currentCategory && (
-            <div className="flex flex-wrap justify-center gap-2 animate-fade-in">
+            <div className="flex overflow-x-auto md:flex-wrap md:justify-center gap-2 animate-fade-in pb-2 md:pb-0 scrollbar-hide mobile-scroll-mask px-4 md:px-0 snap-x">
               {CATEGORIES[currentCategory].map((tag, index) => {
                 const isActive = activeFilter === tag;
                 const count = getTagCount(tag);
@@ -464,7 +464,7 @@ function App() {
                     onClick={() => handleTagClick(tag)}
                     style={{ animationDelay: `${index * 50}ms` }}
                     className={`
-                      px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 border flex items-center gap-2 animate-fade-in
+                      px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 border flex items-center gap-2 animate-fade-in snap-center shrink-0
                       ${isActive
                         ? 'bg-cyan-500/20 text-cyan-200 border-cyan-500/50 shadow-[0_0_10px_rgba(34,211,238,0.3)]'
                         : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:text-white hover:border-white/20'
