@@ -351,6 +351,16 @@ function App() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                      const firstCard = document.querySelector('.card-link');
+                      if (firstCard) {
+                        e.preventDefault();
+                        firstCard.focus();
+                        firstCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
+                    }
+                  }}
                   placeholder="Search protocols..."
                   className="w-full bg-black/40 backdrop-blur-md border border-white/10 text-white pl-12 pr-32 py-4 rounded-full focus:outline-none focus:border-cyan-500/50 focus:bg-black/60 transition-all duration-300 shadow-lg placeholder-gray-500"
                 />
