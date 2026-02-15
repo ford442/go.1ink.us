@@ -40,19 +40,19 @@ def run(playwright):
         search_input.fill("NonExistentTerm")
         page.wait_for_timeout(500)
 
-        # Assert 'SYSTEM ALERT' message
-        system_alert = page.get_by_text("SYSTEM ALERT")
-        if system_alert.is_visible():
-            print("PASS: Found 'SYSTEM ALERT' message.")
+        # Assert 'VOID DETECTED' message
+        void_detected = page.get_by_text("VOID DETECTED")
+        if void_detected.is_visible():
+            print("PASS: Found 'VOID DETECTED' message.")
         else:
-            print("FAIL: 'SYSTEM ALERT' message not visible.")
+            print("FAIL: 'VOID DETECTED' message not visible.")
 
-        # Assert Warning icon (⚠️)
-        warning_icon = page.locator("div").filter(has_text="⚠️")
-        if warning_icon.count() > 0 and warning_icon.first.is_visible():
-             print("PASS: Found Warning icon.")
+        # Assert Ghost icon (👻)
+        ghost_icon = page.locator("div").filter(has_text="👻")
+        if ghost_icon.count() > 0 and ghost_icon.first.is_visible():
+             print("PASS: Found Ghost icon.")
         else:
-             print("FAIL: Warning icon not found.")
+             print("FAIL: Ghost icon not found.")
 
         # Assert Scanline element exists
         scanline = page.locator(".scanline")
