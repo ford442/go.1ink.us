@@ -145,7 +145,7 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
           href={project.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute inset-0 z-0"
+          className="card-link absolute inset-0 z-0 focus:outline-none focus:ring-2 focus:ring-cyan-500 rounded-xl"
           aria-label={project.title}
         ></a>
 
