@@ -28,10 +28,14 @@ const CATEGORY_THEMES = {
   'default': ['bg-blue-600/30', 'bg-purple-600/30', 'bg-pink-600/20', 'bg-cyan-600/20']
 };
 
-// Helper to find which category a tag belongs to
-const getCategoryForTag = (tag) => {
-  return Object.keys(CATEGORIES).find(cat => CATEGORIES[cat].includes(tag));
-};
+// Pre-calculate tag-to-category mapping for O(1) lookup
+const TAG_TO_CATEGORIES = {};
+Object.entries(CATEGORIES).forEach(([category, tags]) => {
+  tags.forEach(tag => {
+    if (!TAG_TO_CATEGORIES[tag]) TAG_TO_CATEGORIES[tag] = [];
+    TAG_TO_CATEGORIES[tag].push(category);
+  });
+});
 
 // Helper to check if a project matches the search query
 const isProjectMatchingQuery = (project, query) => {
@@ -126,12 +130,19 @@ function App() {
   const gridSpotlightRef = useRef(null);
   const starfieldRef = useRef(null);
 
+  // Memoize projects that match the search query (basis for filtering and counts)
+  const projectsMatchingSearch = useMemo(() => {
+    return projectData.filter(p => isProjectMatchingQuery(p, searchQuery));
+  }, [searchQuery]);
+
   // Calculate the current parent category based on the active filter
   // This allows us to show the relevant sub-tags even when a specific tag is selected
   const currentCategory = useMemo(() => {
     if (activeFilter === 'All') return null;
     if (CATEGORIES[activeFilter]) return activeFilter;
-    return getCategoryForTag(activeFilter);
+    // Find category for the active tag
+    const categories = TAG_TO_CATEGORIES[activeFilter];
+    return categories ? categories[0] : null;
   }, [activeFilter]);
 
   // Determine the active color theme based on the current category context
@@ -142,24 +153,44 @@ function App() {
     return CATEGORY_THEMES['default'];
   }, [currentCategory]);
 
+  // Single-pass calculation of all category and tag counts
+  const counts = useMemo(() => {
+    const categoryCounts = {};
+    const tagCounts = {};
 
-  // Helper to get count for a category (respecting search)
-  const getCategoryCount = (categoryKey) => {
-    const categoryTags = CATEGORIES[categoryKey];
-    // Count projects that have AT LEAST ONE tag from this category AND match search
-    return projectData.filter(p =>
-      p.tags.some(t => categoryTags.includes(t)) &&
-      isProjectMatchingQuery(p, searchQuery)
-    ).length;
-  };
+    // Initialize counts
+    Object.keys(CATEGORIES).forEach(cat => {
+      categoryCounts[cat] = 0;
+      CATEGORIES[cat].forEach(tag => {
+        tagCounts[tag] = 0;
+      });
+    });
 
-  // Helper to get count for a specific tag (respecting search)
-  const getTagCount = (tag) => {
-    return projectData.filter(p =>
-      p.tags.includes(tag) &&
-      isProjectMatchingQuery(p, searchQuery)
-    ).length;
-  };
+    projectsMatchingSearch.forEach(project => {
+      const projectCategories = new Set();
+      const projectTags = new Set(project.tags);
+
+      projectTags.forEach(tag => {
+        // Increment tag count if it's one of our tracked tags
+        if (tagCounts[tag] !== undefined) {
+          tagCounts[tag]++;
+        }
+        // Add categories this tag belongs to
+        const categories = TAG_TO_CATEGORIES[tag];
+        if (categories) {
+          categories.forEach(cat => projectCategories.add(cat));
+        }
+      });
+
+      // Increment category counts once per project
+      projectCategories.forEach(cat => {
+        categoryCounts[cat]++;
+      });
+    });
+
+    return { categoryCounts, tagCounts };
+  }, [projectsMatchingSearch]);
+
 
   const handleTagClick = (tag) => {
     if (document.startViewTransition) {
@@ -172,24 +203,17 @@ function App() {
   };
 
   const filteredProjects = useMemo(() => {
-    return projectData.filter(project => {
-      let matchesFilter = false;
-
-      if (activeFilter === 'All') {
-        matchesFilter = true;
-      } else if (CATEGORIES[activeFilter]) {
+    return projectsMatchingSearch.filter(project => {
+      if (activeFilter === 'All') return true;
+      if (CATEGORIES[activeFilter]) {
         // It's a Category: Match if project has ANY tag in this category
         const categoryTags = CATEGORIES[activeFilter];
-        matchesFilter = project.tags.some(tag => categoryTags.includes(tag));
-      } else {
-        // It's a specific Tag
-        matchesFilter = project.tags.includes(activeFilter);
+        return project.tags.some(tag => categoryTags.includes(tag));
       }
-
-      const matchesSearch = isProjectMatchingQuery(project, searchQuery);
-      return matchesFilter && matchesSearch;
+      // It's a specific Tag
+      return project.tags.includes(activeFilter);
     });
-  }, [activeFilter, searchQuery, projectData]);
+  }, [activeFilter, projectsMatchingSearch]);
 
   // Dynamic Background: Parallax (Scroll) + Interactive (Mouse)
   useEffect(() => {
@@ -417,14 +441,14 @@ function App() {
               <span>🌌</span>
               <span>All</span>
               <span className={`text-xs ml-1 ${activeFilter === 'All' ? 'text-cyan-200' : 'text-gray-500'}`}>
-                ({projectData.filter(p => isProjectMatchingQuery(p, searchQuery)).length})
+                ({projectsMatchingSearch.length})
               </span>
             </button>
 
             {/* Category Buttons */}
             {Object.keys(CATEGORIES).map((category) => {
               const isActive = activeFilter === category || (CATEGORIES[category] && CATEGORIES[category].includes(activeFilter));
-              const count = getCategoryCount(category);
+              const count = counts.categoryCounts[category];
 
               // Hide category if search yields 0 results for it, unless it's active
               if (count === 0 && !isActive) return null;
@@ -464,7 +488,7 @@ function App() {
             <div className="flex overflow-x-auto md:flex-wrap md:justify-center gap-2 animate-fade-in pb-2 md:pb-0 scrollbar-hide mobile-scroll-mask px-4 md:px-0 snap-x">
               {CATEGORIES[currentCategory].map((tag, index) => {
                 const isActive = activeFilter === tag;
-                const count = getTagCount(tag);
+                const count = counts.tagCounts[tag];
 
                 if (count === 0 && !isActive) return null;
 
