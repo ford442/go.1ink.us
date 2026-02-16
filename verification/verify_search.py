@@ -41,15 +41,15 @@ def run(playwright):
         page.wait_for_timeout(500)
 
         # Assert 'VOID DETECTED' message
-        system_alert = page.get_by_text("VOID DETECTED")
-        if system_alert.is_visible():
+        void_detected = page.get_by_text("VOID DETECTED")
+        if void_detected.is_visible():
             print("PASS: Found 'VOID DETECTED' message.")
         else:
             print("FAIL: 'VOID DETECTED' message not visible.")
 
         # Assert Ghost icon (👻)
-        warning_icon = page.locator("div").filter(has_text="👻")
-        if warning_icon.count() > 0 and warning_icon.first.is_visible():
+        ghost_icon = page.locator("div").filter(has_text="👻")
+        if ghost_icon.count() > 0 and ghost_icon.first.is_visible():
              print("PASS: Found Ghost icon.")
         else:
              print("FAIL: Ghost icon not found.")
