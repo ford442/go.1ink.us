@@ -58,7 +58,7 @@ function App() {
     return 'All';
   });
 
-  const [searchQuery, setSearchQuery] = useState(() => {
+  const [searchTerm, setSearchTerm] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       return params.get('q') || '';
@@ -70,14 +70,14 @@ function App() {
   useEffect(() => {
     const params = new URLSearchParams();
     if (activeFilter !== 'All') params.set('filter', activeFilter);
-    if (searchQuery) params.set('q', searchQuery);
+    if (searchTerm) params.set('q', searchTerm);
 
     const queryString = params.toString();
     const newUrl = queryString ? `?${queryString}` : window.location.pathname;
 
     // Use replaceState to update URL without cluttering history stack
     window.history.replaceState(null, '', newUrl);
-  }, [activeFilter, searchQuery]);
+  }, [activeFilter, searchTerm]);
 
   const searchInputRef = useRef(null);
 
@@ -95,7 +95,7 @@ function App() {
         if (document.activeElement === searchInputRef.current) {
           // If in search input: Clear if text exists, otherwise Blur
           if (searchInputRef.current.value) {
-            setSearchQuery('');
+            setSearchTerm('');
           } else {
             searchInputRef.current?.blur();
           }
@@ -105,12 +105,12 @@ function App() {
             document.startViewTransition(() => {
               flushSync(() => {
                 setActiveFilter('All');
-                setSearchQuery('');
+                setSearchTerm('');
               });
             });
           } else {
             setActiveFilter('All');
-            setSearchQuery('');
+            setSearchTerm('');
           }
         }
       }
@@ -132,8 +132,8 @@ function App() {
 
   // Memoize projects that match the search query (basis for filtering and counts)
   const projectsMatchingSearch = useMemo(() => {
-    return projectData.filter(p => isProjectMatchingQuery(p, searchQuery));
-  }, [searchQuery]);
+    return projectData.filter(p => isProjectMatchingQuery(p, searchTerm));
+  }, [searchTerm]);
 
   // Calculate the current parent category based on the active filter
   // This allows us to show the relevant sub-tags even when a specific tag is selected
@@ -365,7 +365,7 @@ function App() {
             <div className="relative w-full max-w-lg group">
               <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative flex items-center">
-                <div className="absolute left-4 text-cyan-500/50">
+                <div className="absolute left-4 text-cyan-500/50 group-focus-within:text-cyan-400 transition-colors duration-300">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
@@ -373,8 +373,8 @@ function App() {
                 <input
                   ref={searchInputRef}
                   type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'ArrowDown' || e.key === 'Enter') {
                       const firstCard = document.querySelector('.card-link');
@@ -391,13 +391,13 @@ function App() {
 
                 {/* Right Actions: Results Count or Shortcut Hint */}
                 <div className="absolute right-4 flex items-center space-x-3">
-                  {searchQuery ? (
+                  {searchTerm ? (
                     <>
                       <span className="text-xs font-mono text-cyan-400 bg-cyan-900/30 px-2 py-1 rounded">
                         {filteredProjects.length} found
                       </span>
                       <button
-                        onClick={() => setSearchQuery('')}
+                        onClick={() => setSearchTerm('')}
                         className="text-gray-400 hover:text-white transition-colors"
                         aria-label="Clear search"
                       >
@@ -535,7 +535,7 @@ function App() {
                   key={project.id}
                   project={project}
                   onTagClick={handleTagClick}
-                  searchQuery={searchQuery}
+                  searchTerm={searchTerm}
                   highlightedTags={highlightedTags}
                 />
               );
@@ -550,15 +550,8 @@ function App() {
                    <h3 className="text-2xl font-bold text-cyan-200 uppercase tracking-widest glitch-text" data-text="VOID DETECTED">
                       VOID DETECTED
                    </h3>
-                   <div className="text-cyan-200/80 font-mono text-sm bg-black/30 p-4 rounded border border-cyan-500/20 w-full">
-                      <p className="mb-2">{`> SEARCH_QUERY: "${searchQuery || activeFilter}"`}</p>
-                      <p className="mb-2">{`> STATUS: NO_LIFE_SIGNS_FOUND`}</p>
-                      <p className="animate-pulse">{`> RECOMMENDATION: ADJUST_SENSORS`}</p>
-                   <h3 className="text-2xl font-bold text-cyan-400 uppercase tracking-widest glitch-text" data-text="VOID DETECTED">
-                      VOID DETECTED
-                   </h3>
                    <div className="text-cyan-300/80 font-mono text-sm bg-black/30 p-4 rounded border border-cyan-500/20 w-full">
-                      <p className="mb-2">{`> SEARCH_QUERY: "${searchQuery || activeFilter}"`}</p>
+                      <p className="mb-2">{`> SEARCH_QUERY: "${searchTerm || activeFilter}"`}</p>
                       <p className="mb-2">{`> STATUS: VOID_DETECTED`}</p>
                       <p className="animate-pulse">{`> RECOMMENDATION: INITIATE_NEW_SEARCH_PROTOCOL`}</p>
                    </div>
@@ -568,12 +561,12 @@ function App() {
                          document.startViewTransition(() => {
                            flushSync(() => {
                              setActiveFilter('All');
-                             setSearchQuery('');
+                             setSearchTerm('');
                            });
                          });
                        } else {
                          setActiveFilter('All');
-                         setSearchQuery('');
+                         setSearchTerm('');
                        }
                      }}
                      className="mt-4 px-6 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/50 text-cyan-200 rounded-full transition-all duration-300 hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] uppercase text-sm font-bold tracking-wider"

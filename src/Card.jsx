@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 
-const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
+const Card = ({ project, onTagClick, searchTerm, highlightedTags = [] }) => {
   const cardRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
   const rafRef = useRef(null);
@@ -114,10 +114,10 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
 
   // Memoize the RegExp creation
   const regex = useMemo(() => {
-    if (!searchQuery) return null;
-    const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (!searchTerm) return null;
+    const escapedQuery = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return new RegExp(`(${escapedQuery})`, 'gi');
-  }, [searchQuery]);
+  }, [searchTerm]);
 
   // Helper to highlight matching text
   const highlightMatch = (text, query) => {
@@ -176,12 +176,12 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
             <div className="flex items-center mb-3">
               {project.image && <div className="text-2xl mr-3 transform transition-transform duration-300 group-hover:rotate-12 filter drop-shadow">{project.icon}</div>}
               <h3 className="text-xl font-bold text-white tracking-wide group-hover:text-blue-300 transition-colors duration-300">
-                {highlightMatch(project.title, searchQuery)}
+                {highlightMatch(project.title, searchTerm)}
               </h3>
             </div>
 
             <p className="text-gray-300 mb-5 line-clamp-3 leading-relaxed flex-1">
-              {highlightMatch(project.description, searchQuery)}
+              {highlightMatch(project.description, searchTerm)}
             </p>
 
             <div className="flex flex-wrap gap-2 mt-auto pointer-events-auto">
@@ -202,7 +202,7 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
                       }
                     `}
                   >
-                    {highlightMatch(tag, searchQuery)}
+                    {highlightMatch(tag, searchTerm)}
                   </button>
                 );
               })}
