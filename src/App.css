@@ -246,3 +246,18 @@
   80% { transform: skew(2deg); }
   100% { transform: skew(0deg); }
 }
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.4);
+    border-color: rgba(34, 211, 238, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.8), 0 0 30px rgba(34, 211, 238, 0.4);
+    border-color: rgba(34, 211, 238, 1);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite ease-in-out;
+}
