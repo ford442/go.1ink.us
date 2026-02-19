@@ -205,22 +205,42 @@ function App() {
       currentMouseX += (targetMouseX - currentMouseX) * 0.05;
       currentMouseY += (targetMouseY - currentMouseY) * 0.05;
 
-      // Calculate smooth blob positions based on scroll AND interpolated mouse
+      // Time-based organic drift for "breathing" background
+      const time = performance.now() * 0.001; // Convert to seconds
+
+      // Calculate organic drift offsets using sine/cosine waves with different phases/frequencies
+      // Blob 1
+      const drift1X = Math.sin(time * 0.5) * 30;
+      const drift1Y = Math.cos(time * 0.3) * 30;
+
+      // Blob 2
+      const drift2X = Math.cos(time * 0.4) * 40;
+      const drift2Y = Math.sin(time * 0.6 + 2) * 40;
+
+      // Blob 3
+      const drift3X = Math.sin(time * 0.6 + 4) * 25;
+      const drift3Y = Math.cos(time * 0.5 + 1) * 25;
+
+      // Blob 4
+      const drift4X = Math.cos(time * 0.3 + 5) * 35;
+      const drift4Y = Math.sin(time * 0.4 + 3) * 35;
+
+      // Calculate smooth blob positions based on scroll AND interpolated mouse AND organic drift
       // Blob 1: Moves with scroll (0.2), Retreats from mouse (-0.02)
       if (blob1Ref.current) {
-        blob1Ref.current.style.transform = `translate3d(${currentMouseX * -0.02}px, ${scrollY * 0.2 + currentMouseY * -0.02}px, 0)`;
+        blob1Ref.current.style.transform = `translate3d(${currentMouseX * -0.02 + drift1X}px, ${scrollY * 0.2 + currentMouseY * -0.02 + drift1Y}px, 0)`;
       }
       // Blob 2: Moves with scroll (-0.15), Attracted to mouse (0.03)
       if (blob2Ref.current) {
-        blob2Ref.current.style.transform = `translate3d(${currentMouseX * 0.03}px, ${scrollY * -0.15 + currentMouseY * 0.03}px, 0)`;
+        blob2Ref.current.style.transform = `translate3d(${currentMouseX * 0.03 + drift2X}px, ${scrollY * -0.15 + currentMouseY * 0.03 + drift2Y}px, 0)`;
       }
       // Blob 3: Moves with scroll (0.1), Slight drift with mouse (0.01)
       if (blob3Ref.current) {
-        blob3Ref.current.style.transform = `translate3d(${currentMouseX * 0.01}px, ${scrollY * 0.1 + currentMouseY * 0.01}px, 0)`;
+        blob3Ref.current.style.transform = `translate3d(${currentMouseX * 0.01 + drift3X}px, ${scrollY * 0.1 + currentMouseY * 0.01 + drift3Y}px, 0)`;
       }
       // Blob 4: Moves with scroll (-0.1), Counter-drift with mouse (-0.03)
       if (blob4Ref.current) {
-        blob4Ref.current.style.transform = `translate3d(${currentMouseX * -0.03}px, ${scrollY * -0.1 + currentMouseY * -0.03}px, 0)`;
+        blob4Ref.current.style.transform = `translate3d(${currentMouseX * -0.03 + drift4X}px, ${scrollY * -0.1 + currentMouseY * -0.03 + drift4Y}px, 0)`;
       }
 
       // Starfield: Subtle parallax (very far away)
@@ -296,8 +316,8 @@ function App() {
           style={{
             backgroundSize: '60px 60px',
             backgroundImage: 'linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
-            maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 80%)',
-            WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 80%)'
+            maskImage: 'radial-gradient(circle at center, black 10%, transparent 80%)',
+            WebkitMaskImage: 'radial-gradient(circle at center, black 10%, transparent 80%)'
           }}
         ></div>
 
