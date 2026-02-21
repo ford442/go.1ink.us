@@ -9,11 +9,11 @@ import './App.css';
 // Helper to check if a project matches the search query
 const isProjectMatchingQuery = (project, query) => {
   if (!query) return true;
-  const lowerQuery = query.toLowerCase();
-  return (
-    project.title.toLowerCase().includes(lowerQuery) ||
-    project.description.toLowerCase().includes(lowerQuery) ||
-    project.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))
+  const terms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);
+  return terms.every(term =>
+    project.title.toLowerCase().includes(term) ||
+    project.description.toLowerCase().includes(term) ||
+    project.tags?.some(tag => tag.toLowerCase().includes(term))
   );
 };
 
@@ -80,6 +80,36 @@ function App() {
           } else {
             setActiveFilter('All');
             setSearchTerm('');
+          }
+        }
+      }
+
+      // Card Navigation (Arrow Keys)
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        // Prevent double-handling if focus originated from search input
+        if (e.target === searchInputRef.current) return;
+
+        const cardLinks = Array.from(document.querySelectorAll('.card-link'));
+        const activeIndex = cardLinks.indexOf(document.activeElement);
+
+        if (activeIndex !== -1) {
+          e.preventDefault(); // Prevent page scroll
+          if (e.key === 'ArrowDown') {
+            const nextIndex = activeIndex + 1;
+            if (nextIndex < cardLinks.length) {
+              cardLinks[nextIndex].focus();
+              cardLinks[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          } else if (e.key === 'ArrowUp') {
+            const prevIndex = activeIndex - 1;
+            if (prevIndex >= 0) {
+              cardLinks[prevIndex].focus();
+              cardLinks[prevIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+              // Move back to search input
+              searchInputRef.current?.focus();
+              searchInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
           }
         }
       }
