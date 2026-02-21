@@ -249,8 +249,8 @@ const Card = ({ project, onTagClick, searchTerm, highlightedTags = [] }) => {
             transform: 'translateZ(60px)',
             padding: '1px',
             background: `radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(34, 211, 238, 0.6), transparent 60%)`,
-            maskImage: 'linear-gradient(#fff, #fff) content-box, linear-gradient(#fff, #fff)',
-            WebkitMaskImage: 'linear-gradient(#fff, #fff) content-box, linear-gradient(#fff, #fff)',
+            mask: 'linear-gradient(#fff, #fff) content-box, linear-gradient(#fff, #fff)',
+            WebkitMask: 'linear-gradient(#fff, #fff) content-box, linear-gradient(#fff, #fff)',
             maskComposite: 'exclude',
             WebkitMaskComposite: 'xor',
             mixBlendMode: 'screen' // Added for better blending
