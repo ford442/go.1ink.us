@@ -1,5 +1,17 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 
+// Helper to highlight matching text moved outside to avoid re-allocation on every render
+const highlightMatch = (text, query, regex) => {
+  if (!query || !text || !regex) return text;
+
+  const parts = text.split(regex);
+  return parts.map((part, i) =>
+    part.toLowerCase() === query.toLowerCase() ? (
+      <span key={i} className="bg-cyan-500/30 text-cyan-200 rounded px-0.5 shadow-[0_0_8px_rgba(34,211,238,0.2)] font-semibold">{part}</span>
+    ) : part
+  );
+};
+
 const Card = ({ project, onTagClick, searchTerm, highlightedTags = [] }) => {
   const cardRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
@@ -119,19 +131,6 @@ const Card = ({ project, onTagClick, searchTerm, highlightedTags = [] }) => {
     return new RegExp(`(${escapedQuery})`, 'gi');
   }, [searchTerm]);
 
-  // Helper to highlight matching text
-  const highlightMatch = (text, query) => {
-    if (!query || !text || !regex) return text;
-
-    // Use the memoized regex
-    const parts = text.split(regex);
-    return parts.map((part, i) =>
-      part.toLowerCase() === query.toLowerCase() ? (
-        <span key={i} className="bg-cyan-500/30 text-cyan-200 rounded px-0.5 shadow-[0_0_8px_rgba(34,211,238,0.2)] font-semibold">{part}</span>
-      ) : part
-    );
-  };
-
   return (
     <div className="perspective-container" style={{ viewTransitionName: `project-${project.id}` }}>
       <div
@@ -176,12 +175,12 @@ const Card = ({ project, onTagClick, searchTerm, highlightedTags = [] }) => {
             <div className="flex items-center mb-3">
               {project.image && <div className="text-2xl mr-3 transform transition-transform duration-300 group-hover:rotate-12 filter drop-shadow">{project.icon}</div>}
               <h3 className="text-xl font-bold text-white tracking-wide group-hover:text-blue-300 transition-colors duration-300">
-                {highlightMatch(project.title, searchTerm)}
+                {highlightMatch(project.title, searchTerm, regex)}
               </h3>
             </div>
 
             <p className="text-gray-300 mb-5 line-clamp-3 leading-relaxed flex-1">
-              {highlightMatch(project.description, searchTerm)}
+              {highlightMatch(project.description, searchTerm, regex)}
             </p>
 
             <div className="flex flex-wrap gap-2 mt-auto pointer-events-auto">
@@ -202,7 +201,7 @@ const Card = ({ project, onTagClick, searchTerm, highlightedTags = [] }) => {
                       }
                     `}
                   >
-                    {highlightMatch(tag, searchTerm)}
+                    {highlightMatch(tag, searchTerm, regex)}
                   </button>
                 );
               })}
