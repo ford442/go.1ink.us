@@ -1,17 +1,29 @@
 /* global process */
 import { CATEGORIES } from './src/constants.js';
-import { projectData } from './src/projectData.js';
+import projectData from './src/projectData.js';
 
 console.log('Verifying project data...');
 
-const validCategories = new Set(Object.values(CATEGORIES));
+// Create a Set of all valid tags from CATEGORIES
+const validTags = new Set();
+Object.values(CATEGORIES).forEach(tags => {
+  tags.forEach(tag => validTags.add(tag));
+});
+
 let hasError = false;
 
 projectData.forEach((project, index) => {
-  // Check category
-  if (!validCategories.has(project.category)) {
-    console.error(`Error in project "${project.title}" (index ${index}): Invalid category "${project.category}"`);
+  // Check tags against valid tags
+  if (!project.tags || !Array.isArray(project.tags)) {
+    console.error(`Error in project "${project.title}" (index ${index}): Tags missing or not an array`);
     hasError = true;
+  } else {
+    project.tags.forEach(tag => {
+      if (!validTags.has(tag)) {
+        console.error(`Error in project "${project.title}" (index ${index}): Invalid tag "${tag}"`);
+        hasError = true;
+      }
+    });
   }
 
   // Check required fields
@@ -22,12 +34,6 @@ projectData.forEach((project, index) => {
       hasError = true;
     }
   });
-
-  // Check tags array
-  if (!Array.isArray(project.tags) || project.tags.length === 0) {
-    console.error(`Error in project "${project.title}" (index ${index}): Tags must be a non-empty array`);
-    hasError = true;
-  }
 });
 
 if (hasError) {

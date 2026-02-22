@@ -190,6 +190,22 @@ function App() {
     return { categoryCounts, tagCounts };
   }, [projectsMatchingSearch]);
 
+  // Calculate global tag counts to use for suggestions when search yields no results
+  const suggestedTags = useMemo(() => {
+    const globalTagCounts = {};
+    projectData.forEach(p => {
+      p.tags.forEach(t => {
+        globalTagCounts[t] = (globalTagCounts[t] || 0) + 1;
+      });
+    });
+
+    // Return top 4 most used tags
+    return Object.entries(globalTagCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 4)
+      .map(([tag]) => tag);
+  }, []);
+
 
   const handleTagClick = (tag) => {
     if (document.startViewTransition) {
@@ -572,7 +588,35 @@ function App() {
                    <div className="text-cyan-300/80 font-mono text-sm bg-black/30 p-4 rounded border border-cyan-500/20 w-full">
                       <p className="mb-2">{`> SEARCH_QUERY: "${searchTerm || activeFilter}"`}</p>
                       <p className="mb-2">{`> STATUS: VOID_DETECTED`}</p>
-                      <p className="animate-pulse">{`> RECOMMENDATION: INITIATE_NEW_SEARCH_PROTOCOL`}</p>
+                      <p className="animate-pulse mb-4">{`> RECOMMENDATION: INITIATE_NEW_SEARCH_PROTOCOL`}</p>
+
+                      {/* Suggested Protocols */}
+                      <div className="flex flex-col items-center gap-2 pt-2 border-t border-cyan-500/30">
+                        <p className="text-xs uppercase opacity-70 mb-1">Suggested Protocols:</p>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {suggestedTags.map(tag => (
+                            <button
+                              key={tag}
+                              onClick={() => {
+                                if (document.startViewTransition) {
+                                  document.startViewTransition(() => {
+                                    flushSync(() => {
+                                      setSearchTerm('');
+                                      setActiveFilter(tag);
+                                    });
+                                  });
+                                } else {
+                                  setSearchTerm('');
+                                  setActiveFilter(tag);
+                                }
+                              }}
+                              className="px-3 py-1 bg-cyan-900/40 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-200 text-xs rounded transition-all duration-300 hover:shadow-[0_0_8px_rgba(34,211,238,0.3)]"
+                            >
+                              {tag}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                    </div>
                    <button
                      onClick={() => {
