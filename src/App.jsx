@@ -84,8 +84,8 @@ function App() {
         }
       }
 
-      // Card Navigation (Arrow Keys)
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      // Card Navigation (Arrow Keys - Spatial Grid)
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         // Prevent double-handling if focus originated from search input
         if (e.target === searchInputRef.current) return;
 
@@ -94,22 +94,34 @@ function App() {
 
         if (activeIndex !== -1) {
           e.preventDefault(); // Prevent page scroll
-          if (e.key === 'ArrowDown') {
-            const nextIndex = activeIndex + 1;
-            if (nextIndex < cardLinks.length) {
-              cardLinks[nextIndex].focus();
-              cardLinks[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-          } else if (e.key === 'ArrowUp') {
-            const prevIndex = activeIndex - 1;
-            if (prevIndex >= 0) {
-              cardLinks[prevIndex].focus();
-              cardLinks[prevIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } else {
-              // Move back to search input
+
+          // Determine current grid layout
+          const getGridColumns = () => {
+            if (window.matchMedia('(min-width: 1024px)').matches) return 3; // lg:grid-cols-3
+            if (window.matchMedia('(min-width: 768px)').matches) return 2;  // md:grid-cols-2
+            return 1; // grid-cols-1
+          };
+
+          const cols = getGridColumns();
+          let nextIndex = activeIndex;
+
+          if (e.key === 'ArrowRight') nextIndex = activeIndex + 1;
+          if (e.key === 'ArrowLeft') nextIndex = activeIndex - 1;
+          if (e.key === 'ArrowDown') nextIndex = activeIndex + cols;
+
+          if (e.key === 'ArrowUp') {
+            // If in the top row, move focus back to search input
+            if (activeIndex < cols) {
               searchInputRef.current?.focus();
               searchInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              return;
             }
+            nextIndex = activeIndex - cols;
+          }
+
+          if (nextIndex >= 0 && nextIndex < cardLinks.length) {
+            cardLinks[nextIndex].focus();
+            cardLinks[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
         }
       }
