@@ -211,10 +211,10 @@ function App() {
       });
     });
 
-    // Return top 4 most used tags
+    // Return top 6 most used tags
     return Object.entries(globalTagCounts)
       .sort(([, a], [, b]) => b - a)
-      .slice(0, 4)
+      .slice(0, 6)
       .map(([tag]) => tag);
   }, []);
 
@@ -462,6 +462,42 @@ function App() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Quick Filter / Trending Tags */}
+          <div className="flex justify-center items-center gap-3 mb-6 animate-fade-in px-4" style={{ animationDelay: '0.1s' }}>
+             <span className="text-cyan-400 text-xs font-bold tracking-wider uppercase drop-shadow-[0_0_5px_rgba(34,211,238,0.5)] flex items-center gap-1 whitespace-nowrap">
+               <span className="animate-pulse">⚡</span> Trending:
+             </span>
+             <div className="flex gap-2 overflow-x-auto scrollbar-hide py-1 px-1 mobile-scroll-mask snap-x">
+               {suggestedTags.map((tag) => (
+                 <button
+                   key={tag}
+                   onClick={() => {
+                     if (document.startViewTransition) {
+                        document.startViewTransition(() => {
+                          flushSync(() => {
+                            setSearchTerm('');
+                            setActiveFilter(tag);
+                          });
+                        });
+                      } else {
+                        setSearchTerm('');
+                        setActiveFilter(tag);
+                      }
+                   }}
+                   className={`
+                     px-3 py-1 text-xs font-medium rounded transition-all duration-300 backdrop-blur-md border whitespace-nowrap snap-center shrink-0
+                     ${activeFilter === tag
+                       ? 'bg-cyan-500/20 text-cyan-200 border-cyan-500/50 shadow-[0_0_10px_rgba(34,211,238,0.3)]'
+                       : 'bg-white/5 text-gray-400 border-white/10 hover:bg-cyan-500/10 hover:text-cyan-200 hover:border-cyan-500/30 hover:scale-105'
+                     }
+                   `}
+                 >
+                   {tag}
+                 </button>
+               ))}
+             </div>
           </div>
 
           {/* Category Filter Section */}
