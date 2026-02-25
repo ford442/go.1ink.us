@@ -261,3 +261,69 @@
 .animate-pulse-glow {
   animation: pulse-glow 2s infinite ease-in-out;
 }
+
+/* Theme-Specific Pulse Glow Animations */
+
+/* Orange (Games) */
+@keyframes pulse-glow-orange {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.4);
+    border-color: rgba(249, 115, 22, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.8), 0 0 30px rgba(249, 115, 22, 0.4);
+    border-color: rgba(249, 115, 22, 1);
+  }
+}
+
+.animate-pulse-glow-orange {
+  animation: pulse-glow-orange 2s infinite ease-in-out;
+}
+
+/* Fuchsia (Audio/Visual) */
+@keyframes pulse-glow-fuchsia {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(217, 70, 239, 0.4);
+    border-color: rgba(217, 70, 239, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(217, 70, 239, 0.8), 0 0 30px rgba(217, 70, 239, 0.4);
+    border-color: rgba(217, 70, 239, 1);
+  }
+}
+
+.animate-pulse-glow-fuchsia {
+  animation: pulse-glow-fuchsia 2s infinite ease-in-out;
+}
+
+/* Blue (Tools) */
+@keyframes pulse-glow-blue {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+    border-color: rgba(59, 130, 246, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.4);
+    border-color: rgba(59, 130, 246, 1);
+  }
+}
+
+.animate-pulse-glow-blue {
+  animation: pulse-glow-blue 2s infinite ease-in-out;
+}
+
+/* Emerald (Experiments) */
+@keyframes pulse-glow-emerald {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+    border-color: rgba(16, 185, 129, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.8), 0 0 30px rgba(16, 185, 129, 0.4);
+    border-color: rgba(16, 185, 129, 1);
+  }
+}
+
+.animate-pulse-glow-emerald {
+  animation: pulse-glow-emerald 2s infinite ease-in-out;
+}

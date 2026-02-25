@@ -36,6 +36,17 @@ def verify_theme_colors():
 
         print("Waiting for class change...")
         try:
+            # Check Button Class with Retry
+            games_class = ""
+            for _ in range(10):
+                page.wait_for_timeout(500)
+                games_class = games_btn.get_attribute("class")
+                if "bg-orange-500/80" in games_class:
+                    print("SUCCESS: Games button has bg-orange-500/80")
+                    break
+            else:
+                print(f"FAILURE: Games button class incorrect: {games_class}")
+
             blob1 = page.locator(".animate-blob").nth(0)
             for _ in range(10):
                 page.wait_for_timeout(500)
@@ -58,6 +69,17 @@ def verify_theme_colors():
         av_btn.click()
 
         try:
+            # Check Button Class with Retry
+            av_class = ""
+            for _ in range(10):
+                page.wait_for_timeout(500)
+                av_class = av_btn.get_attribute("class")
+                if "bg-fuchsia-500/80" in av_class:
+                     print("SUCCESS: Audio/Visual button has bg-fuchsia-500/80")
+                     break
+            else:
+                 print(f"FAILURE: Audio/Visual button class incorrect: {av_class}")
+
             blob1 = page.locator(".animate-blob").nth(0)
             for _ in range(10):
                 page.wait_for_timeout(500)
