@@ -242,6 +242,42 @@ function App() {
     });
   }, [activeFilter, projectsMatchingSearch]);
 
+  // Pagination Logic
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  // Reset to Page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter, searchTerm]);
+
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+
+  const paginatedProjects = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredProjects.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredProjects, currentPage]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPages) return;
+
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        flushSync(() => setCurrentPage(newPage));
+      });
+    } else {
+      setCurrentPage(newPage);
+    }
+
+    // Smooth scroll to top of grid area
+    const gridElement = document.getElementById('project-grid');
+    if (gridElement) {
+        gridElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   // Dynamic Background: Parallax (Scroll) + Interactive (Mouse)
   useEffect(() => {
     let scrollY = window.scrollY;
@@ -599,8 +635,9 @@ function App() {
 
         {/* Projects Grid */}
         {filteredProjects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-2">
-            {filteredProjects.map((project) => {
+          <div id="project-grid" className="scroll-mt-24">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-2 mb-12">
+            {paginatedProjects.map((project) => {
               // Determine which tags to highlight based on active filter
               let highlightedTags = [];
               if (CATEGORIES[activeFilter]) {
@@ -623,6 +660,49 @@ function App() {
                 />
               );
             })}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-6 pb-8 animate-fade-in">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`
+                    px-4 py-2 rounded-lg font-mono text-sm border transition-all duration-300 flex items-center gap-2 group
+                    ${currentPage === 1
+                      ? 'border-white/5 text-gray-600 cursor-not-allowed'
+                      : 'border-cyan-500/30 text-cyan-400 bg-black/40 hover:bg-cyan-500/10 hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(34,211,238,0.2)]'
+                    }
+                  `}
+                >
+                  <span className={currentPage !== 1 ? "group-hover:-translate-x-1 transition-transform" : ""}>&lt;</span>
+                  PREV
+                </button>
+
+                <div className="flex flex-col items-center">
+                   <span className="font-mono text-cyan-200 text-sm tracking-widest drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">
+                     PAGE {currentPage} <span className="text-cyan-500/50">/</span> {totalPages}
+                   </span>
+                   <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent mt-1"></div>
+                </div>
+
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`
+                    px-4 py-2 rounded-lg font-mono text-sm border transition-all duration-300 flex items-center gap-2 group
+                    ${currentPage === totalPages
+                      ? 'border-white/5 text-gray-600 cursor-not-allowed'
+                      : 'border-cyan-500/30 text-cyan-400 bg-black/40 hover:bg-cyan-500/10 hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(34,211,238,0.2)]'
+                    }
+                  `}
+                >
+                  NEXT
+                  <span className={currentPage !== totalPages ? "group-hover:translate-x-1 transition-transform" : ""}>&gt;</span>
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="max-w-2xl mx-auto mt-10 animate-fade-in">
