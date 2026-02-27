@@ -35,6 +35,10 @@ function App() {
     return '';
   });
 
+  // Pagination Logic
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
   // Sync state to URL (Deep Linking)
   useEffect(() => {
     const params = new URLSearchParams();
@@ -65,6 +69,7 @@ function App() {
           // If in search input: Clear if text exists, otherwise Blur
           if (searchInputRef.current.value) {
             setSearchTerm('');
+            setCurrentPage(1);
           } else {
             searchInputRef.current?.blur();
           }
@@ -75,11 +80,13 @@ function App() {
               flushSync(() => {
                 setActiveFilter('All');
                 setSearchTerm('');
+                setCurrentPage(1);
               });
             });
           } else {
             setActiveFilter('All');
             setSearchTerm('');
+            setCurrentPage(1);
           }
         }
       }
@@ -222,10 +229,14 @@ function App() {
   const handleTagClick = (tag) => {
     if (document.startViewTransition) {
       document.startViewTransition(() => {
-        flushSync(() => setActiveFilter(tag));
+        flushSync(() => {
+            setActiveFilter(tag);
+            setCurrentPage(1);
+        });
       });
     } else {
       setActiveFilter(tag);
+      setCurrentPage(1);
     }
   };
 
@@ -241,15 +252,6 @@ function App() {
       return project.tags.includes(activeFilter);
     });
   }, [activeFilter, projectsMatchingSearch]);
-
-  // Pagination Logic
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
-
-  // Reset to Page 1 when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [activeFilter, searchTerm]);
 
   const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
 
@@ -300,24 +302,25 @@ function App() {
       currentMouseY += (targetMouseY - currentMouseY) * 0.05;
 
       // Time-based organic drift for "breathing" background
-      const time = performance.now() * 0.001; // Convert to seconds
+      const time = performance.now() * 0.0005; // Slower time factor for more subtle drift
 
       // Calculate organic drift offsets using sine/cosine waves with different phases/frequencies
+      // Increased amplitude and varied frequencies for a more fluid, "lava lamp" feel
       // Blob 1
-      const drift1X = Math.sin(time * 0.5) * 30;
-      const drift1Y = Math.cos(time * 0.3) * 30;
+      const drift1X = Math.sin(time * 0.8) * 50;
+      const drift1Y = Math.cos(time * 0.5) * 50;
 
       // Blob 2
-      const drift2X = Math.cos(time * 0.4) * 40;
-      const drift2Y = Math.sin(time * 0.6 + 2) * 40;
+      const drift2X = Math.cos(time * 0.7) * 60;
+      const drift2Y = Math.sin(time * 0.9 + 2) * 60;
 
       // Blob 3
-      const drift3X = Math.sin(time * 0.6 + 4) * 25;
-      const drift3Y = Math.cos(time * 0.5 + 1) * 25;
+      const drift3X = Math.sin(time * 0.6 + 4) * 40;
+      const drift3Y = Math.cos(time * 0.8 + 1) * 40;
 
       // Blob 4
-      const drift4X = Math.cos(time * 0.3 + 5) * 35;
-      const drift4Y = Math.sin(time * 0.4 + 3) * 35;
+      const drift4X = Math.cos(time * 0.5 + 5) * 55;
+      const drift4Y = Math.sin(time * 0.7 + 3) * 55;
 
       // Calculate smooth blob positions based on scroll AND interpolated mouse AND organic drift
       // Blob 1: Moves with scroll (0.2), Retreats from mouse (-0.02)
@@ -457,7 +460,10 @@ function App() {
                   ref={searchInputRef}
                   type="text"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === 'ArrowDown' || e.key === 'Enter') {
                       const firstCard = document.querySelector('.card-link');
@@ -480,7 +486,10 @@ function App() {
                         {filteredProjects.length} found
                       </span>
                       <button
-                        onClick={() => setSearchTerm('')}
+                        onClick={() => {
+                            setSearchTerm('');
+                            setCurrentPage(1);
+                        }}
                         className="text-gray-400 hover:text-white transition-colors"
                         aria-label="Clear search"
                       >
@@ -515,11 +524,13 @@ function App() {
                           flushSync(() => {
                             setSearchTerm('');
                             setActiveFilter(tag);
+                            setCurrentPage(1);
                           });
                         });
                       } else {
                         setSearchTerm('');
                         setActiveFilter(tag);
+                        setCurrentPage(1);
                       }
                    }}
                    className={`
@@ -543,10 +554,14 @@ function App() {
               onClick={() => {
                 if (document.startViewTransition) {
                   document.startViewTransition(() => {
-                    flushSync(() => setActiveFilter('All'));
+                    flushSync(() => {
+                        setActiveFilter('All');
+                        setCurrentPage(1);
+                    });
                   });
                 } else {
                   setActiveFilter('All');
+                  setCurrentPage(1);
                 }
               }}
               className={`
@@ -578,10 +593,14 @@ function App() {
                   onClick={() => {
                     if (document.startViewTransition) {
                       document.startViewTransition(() => {
-                        flushSync(() => setActiveFilter(category));
+                        flushSync(() => {
+                            setActiveFilter(category);
+                            setCurrentPage(1);
+                        });
                       });
                     } else {
                       setActiveFilter(category);
+                      setCurrentPage(1);
                     }
                   }}
                   className={`
@@ -731,11 +750,13 @@ function App() {
                                     flushSync(() => {
                                       setSearchTerm('');
                                       setActiveFilter(tag);
+                                      setCurrentPage(1);
                                     });
                                   });
                                 } else {
                                   setSearchTerm('');
                                   setActiveFilter(tag);
+                                  setCurrentPage(1);
                                 }
                               }}
                               className="px-3 py-1 bg-cyan-900/40 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-200 text-xs rounded transition-all duration-300 hover:shadow-[0_0_8px_rgba(34,211,238,0.3)]"
@@ -753,11 +774,13 @@ function App() {
                            flushSync(() => {
                              setActiveFilter('All');
                              setSearchTerm('');
+                             setCurrentPage(1);
                            });
                          });
                        } else {
                          setActiveFilter('All');
                          setSearchTerm('');
+                         setCurrentPage(1);
                        }
                      }}
                      className="mt-4 px-6 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/50 text-cyan-200 rounded-full transition-all duration-300 hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] uppercase text-sm font-bold tracking-wider"
