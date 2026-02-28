@@ -12,7 +12,7 @@ const highlightMatch = (text, query, regex) => {
   );
 };
 
-const Card = ({ project, onTagClick, searchTerm, highlightedTags = [] }) => {
+const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
   const cardRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
   const rafRef = useRef(null);
@@ -126,10 +126,10 @@ const Card = ({ project, onTagClick, searchTerm, highlightedTags = [] }) => {
 
   // Memoize the RegExp creation
   const regex = useMemo(() => {
-    if (!searchTerm) return null;
-    const escapedQuery = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (!searchQuery) return null;
+    const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return new RegExp(`(${escapedQuery})`, 'gi');
-  }, [searchTerm]);
+  }, [searchQuery]);
 
   return (
     <div className="perspective-container" style={{ viewTransitionName: `project-${project.id}` }}>
@@ -175,12 +175,12 @@ const Card = ({ project, onTagClick, searchTerm, highlightedTags = [] }) => {
             <div className="flex items-center mb-3">
               {project.image && <div className="text-2xl mr-3 transform transition-transform duration-300 group-hover:rotate-12 filter drop-shadow">{project.icon}</div>}
               <h3 className="text-xl font-bold text-white tracking-wide group-hover:text-blue-300 transition-colors duration-300">
-                {highlightMatch(project.title, searchTerm, regex)}
+                {highlightMatch(project.title, searchQuery, regex)}
               </h3>
             </div>
 
             <p className="text-gray-300 mb-5 line-clamp-3 leading-relaxed flex-1">
-              {highlightMatch(project.description, searchTerm, regex)}
+              {highlightMatch(project.description, searchQuery, regex)}
             </p>
 
             <div className="flex flex-wrap gap-2 mt-auto pointer-events-auto">
@@ -201,7 +201,7 @@ const Card = ({ project, onTagClick, searchTerm, highlightedTags = [] }) => {
                       }
                     `}
                   >
-                    {highlightMatch(tag, searchTerm, regex)}
+                    {highlightMatch(tag, searchQuery, regex)}
                   </button>
                 );
               })}

@@ -6,14 +6,14 @@ import projectData from './projectData';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES } from './constants';
 import './App.css';
 
-// Helper to check if a project matches the search query
+// Helper to check if a project matches the search query in real-time
 const isProjectMatchingQuery = (project, query) => {
-  if (!query) return true;
-  const terms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);
+  if (!query || query.trim() === '') return true;
+  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
   return terms.every(term =>
     project.title.toLowerCase().includes(term) ||
     project.description.toLowerCase().includes(term) ||
-    project.tags?.some(tag => tag.toLowerCase().includes(term))
+    (project.tags && project.tags.some(tag => tag.toLowerCase().includes(term)))
   );
 };
 
@@ -27,7 +27,7 @@ function App() {
     return 'All';
   });
 
-  const [searchTerm, setSearchTerm] = useState(() => {
+  const [searchQuery, setSearchQuery] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       return params.get('q') || '';
@@ -43,14 +43,14 @@ function App() {
   useEffect(() => {
     const params = new URLSearchParams();
     if (activeFilter !== 'All') params.set('filter', activeFilter);
-    if (searchTerm) params.set('q', searchTerm);
+    if (searchQuery) params.set('q', searchQuery);
 
     const queryString = params.toString();
     const newUrl = queryString ? `?${queryString}` : window.location.pathname;
 
     // Use replaceState to update URL without cluttering history stack
     window.history.replaceState(null, '', newUrl);
-  }, [activeFilter, searchTerm]);
+  }, [activeFilter, searchQuery]);
 
   const searchInputRef = useRef(null);
 
@@ -68,7 +68,7 @@ function App() {
         if (document.activeElement === searchInputRef.current) {
           // If in search input: Clear if text exists, otherwise Blur
           if (searchInputRef.current.value) {
-            setSearchTerm('');
+            setSearchQuery('');
             setCurrentPage(1);
           } else {
             searchInputRef.current?.blur();
@@ -79,13 +79,13 @@ function App() {
             document.startViewTransition(() => {
               flushSync(() => {
                 setActiveFilter('All');
-                setSearchTerm('');
+                setSearchQuery('');
                 setCurrentPage(1);
               });
             });
           } else {
             setActiveFilter('All');
-            setSearchTerm('');
+            setSearchQuery('');
             setCurrentPage(1);
           }
         }
@@ -149,9 +149,9 @@ function App() {
   const starfieldRef = useRef(null);
 
   // Memoize projects that match the search query (basis for filtering and counts)
-  const projectsMatchingSearch = useMemo(() => {
-    return projectData.filter(p => isProjectMatchingQuery(p, searchTerm));
-  }, [searchTerm]);
+  const projectsMatchingQuery = useMemo(() => {
+    return projectData.filter(p => isProjectMatchingQuery(p, searchQuery));
+  }, [searchQuery]);
 
   // Calculate the current parent category based on the active filter
   // This allows us to show the relevant sub-tags even when a specific tag is selected
@@ -184,7 +184,7 @@ function App() {
       });
     });
 
-    projectsMatchingSearch.forEach(project => {
+    projectsMatchingQuery.forEach(project => {
       const projectCategories = new Set();
       const projectTags = new Set(project.tags);
 
@@ -207,7 +207,7 @@ function App() {
     });
 
     return { categoryCounts, tagCounts };
-  }, [projectsMatchingSearch]);
+  }, [projectsMatchingQuery]);
 
   // Calculate global tag counts to use for suggestions when search yields no results
   const suggestedTags = useMemo(() => {
@@ -241,7 +241,7 @@ function App() {
   };
 
   const filteredProjects = useMemo(() => {
-    return projectsMatchingSearch.filter(project => {
+    return projectsMatchingQuery.filter(project => {
       if (activeFilter === 'All') return true;
       if (CATEGORIES[activeFilter]) {
         // It's a Category: Match if project has ANY tag in this category
@@ -251,7 +251,7 @@ function App() {
       // It's a specific Tag
       return project.tags.includes(activeFilter);
     });
-  }, [activeFilter, projectsMatchingSearch]);
+  }, [activeFilter, projectsMatchingQuery]);
 
   const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
 
@@ -459,9 +459,9 @@ function App() {
                 <input
                   ref={searchInputRef}
                   type="text"
-                  value={searchTerm}
+                  value={searchQuery}
                   onChange={(e) => {
-                    setSearchTerm(e.target.value);
+                    setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
                   onKeyDown={(e) => {
@@ -474,20 +474,22 @@ function App() {
                       }
                     }
                   }}
-                  placeholder="Search protocols..."
+                  placeholder="Search projects by title, description, or tag..."
+                  autoComplete="off"
+                  spellCheck="false"
                   className="w-full bg-black/40 backdrop-blur-md border border-white/10 text-white pl-12 pr-32 py-4 rounded-full focus:outline-none focus:border-cyan-500/50 focus:bg-black/60 transition-all duration-300 shadow-lg placeholder-gray-500"
                 />
 
                 {/* Right Actions: Results Count or Shortcut Hint */}
                 <div className="absolute right-4 flex items-center space-x-3">
-                  {searchTerm ? (
+                  {searchQuery ? (
                     <>
                       <span className="text-xs font-mono text-cyan-400 bg-cyan-900/30 px-2 py-1 rounded">
                         {filteredProjects.length} found
                       </span>
                       <button
                         onClick={() => {
-                            setSearchTerm('');
+                            setSearchQuery('');
                             setCurrentPage(1);
                         }}
                         className="text-gray-400 hover:text-white transition-colors"
@@ -522,13 +524,13 @@ function App() {
                      if (document.startViewTransition) {
                         document.startViewTransition(() => {
                           flushSync(() => {
-                            setSearchTerm('');
+                            setSearchQuery('');
                             setActiveFilter(tag);
                             setCurrentPage(1);
                           });
                         });
                       } else {
-                        setSearchTerm('');
+                        setSearchQuery('');
                         setActiveFilter(tag);
                         setCurrentPage(1);
                       }
@@ -575,7 +577,7 @@ function App() {
               <span>🌌</span>
               <span>All</span>
               <span className={`text-xs ml-1 ${activeFilter === 'All' ? 'text-cyan-200' : 'text-gray-500'}`}>
-                ({projectsMatchingSearch.length})
+                ({projectsMatchingQuery.length})
               </span>
             </button>
 
@@ -674,7 +676,7 @@ function App() {
                   key={project.id}
                   project={project}
                   onTagClick={handleTagClick}
-                  searchTerm={searchTerm}
+                  searchQuery={searchQuery}
                   highlightedTags={highlightedTags}
                 />
               );
@@ -732,10 +734,10 @@ function App() {
                    <h3 className="text-2xl font-bold text-cyan-200 uppercase tracking-widest glitch-text" data-text="VOID DETECTED">
                       VOID DETECTED
                    </h3>
-                   <div className="text-cyan-300/80 font-mono text-sm bg-black/30 p-4 rounded border border-cyan-500/20 w-full">
-                      <p className="mb-2">{`> SEARCH_QUERY: "${searchTerm || activeFilter}"`}</p>
-                      <p className="mb-2">{`> STATUS: VOID_DETECTED`}</p>
-                      <p className="animate-pulse mb-4">{`> RECOMMENDATION: INITIATE_NEW_SEARCH_PROTOCOL`}</p>
+                   <div className="text-cyan-300/80 font-mono text-sm bg-black/30 p-4 rounded border border-cyan-500/20 w-full text-left">
+                      <p className="mb-2">{`> SEARCH_QUERY: "${searchQuery || activeFilter}"`}</p>
+                      <p className="mb-2">{`> STATUS: NO_RESULTS_FOUND`}</p>
+                      <p className="animate-pulse mb-4">{`> RECOMMENDATION: TRY_DIFFERENT_KEYWORDS_OR_TAGS`}</p>
 
                       {/* Suggested Protocols */}
                       <div className="flex flex-col items-center gap-2 pt-2 border-t border-cyan-500/30">
@@ -748,13 +750,13 @@ function App() {
                                 if (document.startViewTransition) {
                                   document.startViewTransition(() => {
                                     flushSync(() => {
-                                      setSearchTerm('');
+                                      setSearchQuery('');
                                       setActiveFilter(tag);
                                       setCurrentPage(1);
                                     });
                                   });
                                 } else {
-                                  setSearchTerm('');
+                                  setSearchQuery('');
                                   setActiveFilter(tag);
                                   setCurrentPage(1);
                                 }
@@ -773,13 +775,13 @@ function App() {
                          document.startViewTransition(() => {
                            flushSync(() => {
                              setActiveFilter('All');
-                             setSearchTerm('');
+                             setSearchQuery('');
                              setCurrentPage(1);
                            });
                          });
                        } else {
                          setActiveFilter('All');
-                         setSearchTerm('');
+                         setSearchQuery('');
                          setCurrentPage(1);
                        }
                      }}
