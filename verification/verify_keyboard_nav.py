@@ -8,11 +8,11 @@ def run():
         page.wait_for_selector(".glass-card", timeout=10000)
 
         # 1. Type in search
-        page.fill("input[placeholder='Search protocols...']", "Game")
+        page.fill("input[type='text']", "Game")
         page.wait_for_timeout(500)
 
         # 2. Press ArrowDown
-        page.press("input[placeholder='Search protocols...']", "ArrowDown")
+        page.press("input[type='text']", "ArrowDown")
         page.wait_for_timeout(500)
 
         # 3. Check active element
