@@ -1,28 +1,33 @@
 from playwright.sync_api import sync_playwright
-import time
 
 def run(playwright):
     browser = playwright.chromium.launch(headless=True)
-    page = browser.new_page()
+    # Set a reasonable viewport size to capture the dashboard
+    context = browser.new_context(viewport={"width": 1280, "height": 800})
+    page = context.new_page()
+
     try:
-        page.goto("http://localhost:5173")
+        print("Navigating to http://localhost:5173/")
+        page.goto("http://localhost:5173/")
+        page.wait_for_load_state("networkidle")
 
-        # Wait for app to load
-        page.wait_for_selector(".glass-card", timeout=10000)
+        # Scroll down to make background blobs and parallax more visible
+        page.evaluate("window.scrollTo(0, 500)")
+        page.wait_for_timeout(1000)
 
-        # Take first screenshot
-        print("Taking screenshot 1...")
-        page.screenshot(path="verification_bg_1.png")
+        # Move mouse to trigger parallax/drift
+        page.mouse.move(600, 400)
+        page.wait_for_timeout(1000)
 
-        # Wait for drift (2 seconds)
-        time.sleep(2)
-
-        # Take second screenshot
-        print("Taking screenshot 2...")
-        page.screenshot(path="verification_bg_2.png")
+        # Take Screenshot
+        screenshot_path = "verification/dynamic_background_verification.png"
+        page.screenshot(path=screenshot_path, full_page=False)
+        print(f"Screenshot saved to {screenshot_path}")
 
     except Exception as e:
         print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
     finally:
         browser.close()
 

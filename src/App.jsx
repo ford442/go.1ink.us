@@ -307,37 +307,37 @@ function App() {
       // Calculate organic drift offsets using sine/cosine waves with different phases/frequencies
       // Increased amplitude and varied frequencies for a more fluid, "lava lamp" feel
       // Blob 1
-      const drift1X = Math.sin(time * 0.8) * 50;
-      const drift1Y = Math.cos(time * 0.5) * 50;
+      const drift1X = Math.sin(time * 0.8) * 75;
+      const drift1Y = Math.cos(time * 0.5) * 75;
 
       // Blob 2
-      const drift2X = Math.cos(time * 0.7) * 60;
-      const drift2Y = Math.sin(time * 0.9 + 2) * 60;
+      const drift2X = Math.cos(time * 0.7) * 90;
+      const drift2Y = Math.sin(time * 0.9 + 2) * 90;
 
       // Blob 3
-      const drift3X = Math.sin(time * 0.6 + 4) * 40;
-      const drift3Y = Math.cos(time * 0.8 + 1) * 40;
+      const drift3X = Math.sin(time * 0.6 + 4) * 60;
+      const drift3Y = Math.cos(time * 0.8 + 1) * 60;
 
       // Blob 4
-      const drift4X = Math.cos(time * 0.5 + 5) * 55;
-      const drift4Y = Math.sin(time * 0.7 + 3) * 55;
+      const drift4X = Math.cos(time * 0.5 + 5) * 80;
+      const drift4Y = Math.sin(time * 0.7 + 3) * 80;
 
       // Calculate smooth blob positions based on scroll AND interpolated mouse AND organic drift
-      // Blob 1: Moves with scroll (0.2), Retreats from mouse (-0.02)
+      // Blob 1: Moves with scroll (0.4), Retreats from mouse (-0.02)
       if (blob1Ref.current) {
-        blob1Ref.current.style.transform = `translate3d(${currentMouseX * -0.02 + drift1X}px, ${scrollY * 0.2 + currentMouseY * -0.02 + drift1Y}px, 0)`;
+        blob1Ref.current.style.transform = `translate3d(${currentMouseX * -0.02 + drift1X}px, ${scrollY * 0.4 + currentMouseY * -0.02 + drift1Y}px, 0)`;
       }
-      // Blob 2: Moves with scroll (-0.15), Attracted to mouse (0.03)
+      // Blob 2: Moves with scroll (-0.3), Attracted to mouse (0.03)
       if (blob2Ref.current) {
-        blob2Ref.current.style.transform = `translate3d(${currentMouseX * 0.03 + drift2X}px, ${scrollY * -0.15 + currentMouseY * 0.03 + drift2Y}px, 0)`;
+        blob2Ref.current.style.transform = `translate3d(${currentMouseX * 0.03 + drift2X}px, ${scrollY * -0.3 + currentMouseY * 0.03 + drift2Y}px, 0)`;
       }
-      // Blob 3: Moves with scroll (0.1), Slight drift with mouse (0.01)
+      // Blob 3: Moves with scroll (0.2), Slight drift with mouse (0.01)
       if (blob3Ref.current) {
-        blob3Ref.current.style.transform = `translate3d(${currentMouseX * 0.01 + drift3X}px, ${scrollY * 0.1 + currentMouseY * 0.01 + drift3Y}px, 0)`;
+        blob3Ref.current.style.transform = `translate3d(${currentMouseX * 0.01 + drift3X}px, ${scrollY * 0.2 + currentMouseY * 0.01 + drift3Y}px, 0)`;
       }
-      // Blob 4: Moves with scroll (-0.1), Counter-drift with mouse (-0.03)
+      // Blob 4: Moves with scroll (-0.2), Counter-drift with mouse (-0.03)
       if (blob4Ref.current) {
-        blob4Ref.current.style.transform = `translate3d(${currentMouseX * -0.03 + drift4X}px, ${scrollY * -0.1 + currentMouseY * -0.03 + drift4Y}px, 0)`;
+        blob4Ref.current.style.transform = `translate3d(${currentMouseX * -0.03 + drift4X}px, ${scrollY * -0.2 + currentMouseY * -0.03 + drift4Y}px, 0)`;
       }
 
       // Starfield: Subtle parallax (very far away)
@@ -710,17 +710,17 @@ function App() {
 
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
+                  disabled={currentPage >= totalPages}
                   className={`
                     px-4 py-2 rounded-lg font-mono text-sm border transition-all duration-300 flex items-center gap-2 group
-                    ${currentPage === totalPages
+                    ${currentPage >= totalPages
                       ? 'border-white/5 text-gray-600 cursor-not-allowed'
                       : 'border-cyan-500/30 text-cyan-400 bg-black/40 hover:bg-cyan-500/10 hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(34,211,238,0.2)]'
                     }
                   `}
                 >
                   NEXT
-                  <span className={currentPage !== totalPages ? "group-hover:translate-x-1 transition-transform" : ""}>&gt;</span>
+                  <span className={currentPage < totalPages ? "group-hover:translate-x-1 transition-transform" : ""}>&gt;</span>
                 </button>
               </div>
             )}
