@@ -147,6 +147,7 @@ function App() {
   // Ref for the spotlight grid
   const gridSpotlightRef = useRef(null);
   const starfieldRef = useRef(null);
+  const canvasRef = useRef(null); // Canvas for cursor trail effect
 
   // Memoize projects that match the search query (basis for filtering and counts)
   const projectsMatchingQuery = useMemo(() => {
@@ -296,6 +297,9 @@ function App() {
     let pageMouseY = 0;
     let animationFrameId;
 
+    // Trail particles state
+    const trailParticles = [];
+
     const updateTransforms = () => {
       // Lerp current towards target (0.05 factor for smooth inertia)
       currentMouseX += (targetMouseX - currentMouseX) * 0.05;
@@ -352,6 +356,45 @@ function App() {
         const mask = `radial-gradient(300px circle at ${pageMouseX}px ${pageMouseY}px, black, transparent)`;
         gridSpotlightRef.current.style.maskImage = mask;
         gridSpotlightRef.current.style.webkitMaskImage = mask;
+      }
+
+      // Update and Draw Canvas Cursor Trail
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        // Ensure canvas matches window size
+        if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Add new particle at current mouse position
+        trailParticles.push({
+          x: pageMouseX,
+          y: pageMouseY,
+          life: 1.0, // 1.0 down to 0
+          size: Math.random() * 4 + 2,
+        });
+
+        // Update and draw all particles
+        for (let i = trailParticles.length - 1; i >= 0; i--) {
+          const p = trailParticles[i];
+          p.life -= 0.02; // Fade out speed
+          p.y -= 0.5; // Drift upwards slightly
+
+          if (p.life <= 0) {
+            trailParticles.splice(i, 1);
+            continue;
+          }
+
+          ctx.beginPath();
+          // Use cyan color with fading opacity
+          ctx.fillStyle = `rgba(34, 211, 238, ${p.life * 0.5})`;
+          ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
 
       animationFrameId = requestAnimationFrame(updateTransforms);
@@ -429,6 +472,13 @@ function App() {
             WebkitMaskImage: 'transparent'
           }}
         ></div>
+
+        {/* Dynamic Canvas Cursor Trail */}
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full pointer-events-none"
+          style={{ mixBlendMode: 'screen', zIndex: 1 }}
+        />
       </div>
       
       <div className="container mx-auto px-4 py-12 relative z-10">
