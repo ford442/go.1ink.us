@@ -66,22 +66,15 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
 
-      // Calculate rotation based on mouse position
-      // We want the card to "levitate" towards the mouse (the side under the mouse lifts up/comes forward)
+      // 🌌 CURATOR FEATURE: Mouse Tilt (Magnet Effect)
+      // Calculate rotation based on mouse position to make the card "tilt towards" the mouse cursor.
 
-      // RotateX:
-      // Mouse at Top (y < center) -> We want the card to TILT TOWARDS the mouse (Magnet Effect).
-      // Tilt Towards = Top comes Forward = RotateX Negative.
-      // (y - centerY) is Negative.
-      // Neg * K = Neg. So K is Positive.
-      // Increased multiplier to 15 for a more "weighty" feel.
+      // Mouse at Top (y < center) -> Card TILT TOWARDS mouse -> Top comes Forward -> RotateX Negative.
+      // (y - centerY) is Negative. Neg * Pos = Neg.
       const rotateX = ((y - centerY) / centerY) * 15;
 
-      // RotateY:
-      // Mouse at Right (x > center) -> We want the card to TILT TOWARDS the mouse.
-      // Tilt Towards = Right comes Forward = RotateY Negative.
-      // (x - centerX) is Positive.
-      // Pos * K = Neg. So K is Negative.
+      // Mouse at Right (x > center) -> Card TILT TOWARDS mouse -> Right comes Forward -> RotateY Negative.
+      // (x - centerX) is Positive. Pos * Neg = Neg.
       const rotateY = ((x - centerX) / centerX) * -15;
 
       // Calculate Parallax for Content (simulating depth)
