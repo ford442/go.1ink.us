@@ -857,3 +857,4 @@ function App() {
 }
 
 export default App;
+// Curator: Search functionality initialized
