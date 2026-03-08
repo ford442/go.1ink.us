@@ -327,3 +327,30 @@
 .animate-pulse-glow-emerald {
   animation: pulse-glow-emerald 2s infinite ease-in-out;
 }
+
+/* Glass Reflection Sweep */
+.glass-reflection {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.group:hover .glass-reflection {
+  animation: sweep 1.5s ease-in-out;
+}
+
+@keyframes sweep {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}

@@ -248,6 +248,11 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
             mixBlendMode: 'screen' // Added for better blending
           }}
         />
+
+        {/* 🌌 CURATOR FEATURE: Sweeping Glass Reflection */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl z-20" style={{ transform: 'translateZ(70px)' }}>
+          <div className="glass-reflection" />
+        </div>
       </div>
     </div>
   );
