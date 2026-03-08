@@ -3,7 +3,7 @@ import { flushSync } from 'react-dom';
 import Card from './Card';
 import Starfield from './Starfield';
 import projectData from './projectData';
-import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES } from './constants';
+import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
 import './App.css';
 
 // Helper to check if a project matches the search query in real-time
@@ -242,12 +242,13 @@ function App() {
   };
 
   const filteredProjects = useMemo(() => {
+    const categorySet = CATEGORY_SETS[activeFilter];
+
     return projectsMatchingQuery.filter(project => {
       if (activeFilter === 'All') return true;
-      if (CATEGORIES[activeFilter]) {
-        // It's a Category: Match if project has ANY tag in this category
-        const categoryTags = CATEGORIES[activeFilter];
-        return project.tags.some(tag => categoryTags.includes(tag));
+      if (categorySet) {
+        // It's a Category: Match if project has ANY tag in this category (O(1) membership check)
+        return project.tags.some(tag => categorySet.has(tag));
       }
       // It's a specific Tag
       return project.tags.includes(activeFilter);
@@ -633,7 +634,7 @@ function App() {
 
             {/* Category Buttons */}
             {Object.keys(CATEGORIES).map((category) => {
-              const isActive = activeFilter === category || (CATEGORIES[category] && CATEGORIES[category].includes(activeFilter));
+              const isActive = activeFilter === category || (CATEGORY_SETS[category] && CATEGORY_SETS[category].has(activeFilter));
               const count = counts.categoryCounts[category];
 
               // Hide category if search yields 0 results for it, unless it's active
@@ -711,9 +712,10 @@ function App() {
             {paginatedProjects.map((project) => {
               // Determine which tags to highlight based on active filter
               let highlightedTags = [];
-              if (CATEGORIES[activeFilter]) {
+              const activeCategorySet = CATEGORY_SETS[activeFilter];
+              if (activeCategorySet) {
                 // Active filter is a Category: Highlight all tags that belong to this category
-                highlightedTags = project.tags.filter(tag => CATEGORIES[activeFilter].includes(tag));
+                highlightedTags = project.tags.filter(tag => activeCategorySet.has(tag));
               } else if (activeFilter !== 'All') {
                 // Active filter is a specific Tag: Highlight just that tag
                 if (project.tags.includes(activeFilter)) {

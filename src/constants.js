@@ -30,6 +30,12 @@ Object.entries(CATEGORIES).forEach(([category, tags]) => {
   });
 });
 
+// Pre-calculate Sets for each category for O(1) tag membership checks
+export const CATEGORY_SETS = {};
+Object.entries(CATEGORIES).forEach(([category, tags]) => {
+  CATEGORY_SETS[category] = new Set(tags);
+});
+
 // Styles for active category and tag buttons
 export const CATEGORY_BUTTON_STYLES = {
   'Games': {
