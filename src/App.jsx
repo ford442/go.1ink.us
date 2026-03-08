@@ -301,9 +301,9 @@ function App() {
     const trailParticles = [];
 
     const updateTransforms = () => {
-      // Lerp current towards target (0.05 factor for smooth inertia)
-      currentMouseX += (targetMouseX - currentMouseX) * 0.05;
-      currentMouseY += (targetMouseY - currentMouseY) * 0.05;
+      // Lerp current towards target (0.03 factor for smoother inertia and weighty drift)
+      currentMouseX += (targetMouseX - currentMouseX) * 0.03;
+      currentMouseY += (targetMouseY - currentMouseY) * 0.03;
 
       // Time-based organic drift for "breathing" background
       const time = performance.now() * 0.0005; // Slower time factor for more subtle drift
@@ -311,42 +311,42 @@ function App() {
       // Calculate organic drift offsets using sine/cosine waves with different phases/frequencies
       // Increased amplitude and varied frequencies for a more fluid, "lava lamp" feel
       // Blob 1
-      const drift1X = Math.sin(time * 0.8) * 75;
-      const drift1Y = Math.cos(time * 0.5) * 75;
+      const drift1X = Math.sin(time * 0.8) * 150;
+      const drift1Y = Math.cos(time * 0.5) * 150;
 
       // Blob 2
-      const drift2X = Math.cos(time * 0.7) * 90;
-      const drift2Y = Math.sin(time * 0.9 + 2) * 90;
+      const drift2X = Math.cos(time * 0.7) * 180;
+      const drift2Y = Math.sin(time * 0.9 + 2) * 180;
 
       // Blob 3
-      const drift3X = Math.sin(time * 0.6 + 4) * 60;
-      const drift3Y = Math.cos(time * 0.8 + 1) * 60;
+      const drift3X = Math.sin(time * 0.6 + 4) * 120;
+      const drift3Y = Math.cos(time * 0.8 + 1) * 120;
 
       // Blob 4
-      const drift4X = Math.cos(time * 0.5 + 5) * 80;
-      const drift4Y = Math.sin(time * 0.7 + 3) * 80;
+      const drift4X = Math.cos(time * 0.5 + 5) * 160;
+      const drift4Y = Math.sin(time * 0.7 + 3) * 160;
 
       // Calculate smooth blob positions based on scroll AND interpolated mouse AND organic drift
-      // Blob 1: Moves with scroll (0.4), Retreats from mouse (-0.02)
+      // Blob 1: Moves with scroll (0.8), Retreats from mouse (-0.04)
       if (blob1Ref.current) {
-        blob1Ref.current.style.transform = `translate3d(${currentMouseX * -0.02 + drift1X}px, ${scrollY * 0.4 + currentMouseY * -0.02 + drift1Y}px, 0)`;
+        blob1Ref.current.style.transform = `translate3d(${currentMouseX * -0.04 + drift1X}px, ${scrollY * 0.8 + currentMouseY * -0.04 + drift1Y}px, 0)`;
       }
-      // Blob 2: Moves with scroll (-0.3), Attracted to mouse (0.03)
+      // Blob 2: Moves with scroll (-0.6), Attracted to mouse (0.06)
       if (blob2Ref.current) {
-        blob2Ref.current.style.transform = `translate3d(${currentMouseX * 0.03 + drift2X}px, ${scrollY * -0.3 + currentMouseY * 0.03 + drift2Y}px, 0)`;
+        blob2Ref.current.style.transform = `translate3d(${currentMouseX * 0.06 + drift2X}px, ${scrollY * -0.6 + currentMouseY * 0.06 + drift2Y}px, 0)`;
       }
-      // Blob 3: Moves with scroll (0.2), Slight drift with mouse (0.01)
+      // Blob 3: Moves with scroll (0.4), Slight drift with mouse (0.02)
       if (blob3Ref.current) {
-        blob3Ref.current.style.transform = `translate3d(${currentMouseX * 0.01 + drift3X}px, ${scrollY * 0.2 + currentMouseY * 0.01 + drift3Y}px, 0)`;
+        blob3Ref.current.style.transform = `translate3d(${currentMouseX * 0.02 + drift3X}px, ${scrollY * 0.4 + currentMouseY * 0.02 + drift3Y}px, 0)`;
       }
-      // Blob 4: Moves with scroll (-0.2), Counter-drift with mouse (-0.03)
+      // Blob 4: Moves with scroll (-0.4), Counter-drift with mouse (-0.06)
       if (blob4Ref.current) {
-        blob4Ref.current.style.transform = `translate3d(${currentMouseX * -0.03 + drift4X}px, ${scrollY * -0.2 + currentMouseY * -0.03 + drift4Y}px, 0)`;
+        blob4Ref.current.style.transform = `translate3d(${currentMouseX * -0.06 + drift4X}px, ${scrollY * -0.4 + currentMouseY * -0.06 + drift4Y}px, 0)`;
       }
 
       // Starfield: Subtle parallax (very far away)
       if (starfieldRef.current) {
-        starfieldRef.current.style.transform = `translate3d(${currentMouseX * -0.005}px, ${scrollY * 0.02 + currentMouseY * -0.005}px, 0)`;
+        starfieldRef.current.style.transform = `translate3d(${currentMouseX * -0.01}px, ${scrollY * 0.04 + currentMouseY * -0.01}px, 0)`;
       }
 
       // Update the Grid Spotlight
