@@ -12,7 +12,7 @@ const highlightMatch = (text, query, regex) => {
   );
 };
 
-const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
+const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavorite = false, onToggleFavorite }) => {
   const cardRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
   const rafRef = useRef(null);
@@ -140,6 +140,27 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [] }) => {
           className="card-link absolute inset-0 z-0 focus:outline-none focus:ring-4 focus:ring-cyan-400 focus:shadow-[0_0_25px_rgba(34,211,238,0.6)] rounded-xl transition-all duration-300"
           aria-label={project.title}
         ></a>
+
+        {/* Favorite Button */}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (onToggleFavorite) onToggleFavorite();
+          }}
+          className={`absolute top-4 right-4 z-30 p-2 rounded-full transition-all duration-300 pointer-events-auto backdrop-blur-md
+            ${isFavorite
+              ? 'bg-pink-500/20 text-pink-400 opacity-100 shadow-[0_0_15px_rgba(236,72,153,0.5)] border border-pink-400/50 scale-110'
+              : 'bg-black/30 text-white/50 opacity-0 group-hover:opacity-100 border border-white/10 hover:bg-pink-500/20 hover:text-pink-300 hover:border-pink-400/50 hover:scale-110'
+            }
+          `}
+          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          style={{ transform: 'translateZ(60px)' }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+          </svg>
+        </button>
 
         {/* Image Area with overlay gradient */}
         <div className="h-full flex flex-col pointer-events-none" style={{ transformStyle: 'preserve-3d' }}>

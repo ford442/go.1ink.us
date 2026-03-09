@@ -35,6 +35,35 @@ function App() {
     return '';
   });
 
+  // Favorites state
+  const [favorites, setFavorites] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('curator_favorites');
+        return stored ? JSON.parse(stored) : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+
+  // Sync favorites to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('curator_favorites', JSON.stringify(favorites));
+    }
+  }, [favorites]);
+
+  const toggleFavorite = (projectId) => {
+    setFavorites(prev => {
+      if (prev.includes(projectId)) {
+        return prev.filter(id => id !== projectId);
+      }
+      return [...prev, projectId];
+    });
+  };
+
   // Pagination Logic
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
@@ -246,6 +275,7 @@ function App() {
 
     return projectsMatchingQuery.filter(project => {
       if (activeFilter === 'All') return true;
+      if (activeFilter === 'Favorites') return favorites.includes(project.id);
       if (categorySet) {
         // It's a Category: Match if project has ANY tag in this category (O(1) membership check)
         return project.tags.some(tag => categorySet.has(tag));
@@ -253,7 +283,11 @@ function App() {
       // It's a specific Tag
       return project.tags.includes(activeFilter);
     });
-  }, [activeFilter, projectsMatchingQuery]);
+  }, [activeFilter, projectsMatchingQuery, favorites]);
+
+  const favoriteCount = useMemo(() => {
+    return projectsMatchingQuery.filter(project => favorites.includes(project.id)).length;
+  }, [projectsMatchingQuery, favorites]);
 
   const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
 
@@ -632,6 +666,36 @@ function App() {
               </span>
             </button>
 
+            {/* 'Favorites' Button */}
+            <button
+              onClick={() => {
+                if (document.startViewTransition) {
+                  document.startViewTransition(() => {
+                    flushSync(() => {
+                        setActiveFilter('Favorites');
+                        setCurrentPage(1);
+                    });
+                  });
+                } else {
+                  setActiveFilter('Favorites');
+                  setCurrentPage(1);
+                }
+              }}
+              className={`
+                px-6 py-2 rounded-full font-medium transition-all duration-300 backdrop-blur-md border flex items-center gap-2 snap-center shrink-0
+                ${activeFilter === 'Favorites'
+                  ? 'bg-pink-500/80 text-white border-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.5)] scale-105 animate-pulse-glow'
+                  : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-pink-300 hover:border-pink-500/30'
+                }
+              `}
+            >
+              <span>💖</span>
+              <span>Favorites</span>
+              <span className={`text-xs ml-1 ${activeFilter === 'Favorites' ? 'text-pink-200' : 'text-gray-500'}`}>
+                ({favoriteCount})
+              </span>
+            </button>
+
             {/* Category Buttons */}
             {Object.keys(CATEGORIES).map((category) => {
               const isActive = activeFilter === category || (CATEGORY_SETS[category] && CATEGORY_SETS[category].has(activeFilter));
@@ -730,6 +794,8 @@ function App() {
                   onTagClick={handleTagClick}
                   searchQuery={searchQuery}
                   highlightedTags={highlightedTags}
+                  isFavorite={favorites.includes(project.id)}
+                  onToggleFavorite={() => toggleFavorite(project.id)}
                 />
               );
             })}
