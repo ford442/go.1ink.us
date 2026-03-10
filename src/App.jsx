@@ -18,6 +18,47 @@ const isProjectMatchingQuery = (project, query) => {
 };
 
 function App() {
+  // Command Center Header State
+  const [systemStats, setSystemStats] = useState({
+    time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+    uptime: 999990, // Random high start
+    connections: 1337,
+    memory: 42
+  });
+
+  // Animated Command Center Header Logic
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSystemStats(prev => {
+        // Fluctuate connections slightly
+        let newConnections = prev.connections + Math.floor(Math.random() * 5) - 2;
+        if (newConnections < 1000) newConnections = 1000 + Math.floor(Math.random() * 50);
+
+        // Fluctuate memory
+        let newMemory = prev.memory + (Math.random() > 0.5 ? 1 : -1);
+        if (newMemory < 20) newMemory = 20;
+        if (newMemory > 80) newMemory = 80;
+
+        return {
+          time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+          uptime: prev.uptime + 1,
+          connections: newConnections,
+          memory: newMemory
+        };
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Format uptime to HH:MM:SS
+  const formatUptime = (seconds) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
   // activeFilter can be 'All', a Category Key (e.g., 'Games'), or a specific Tag (e.g., 'Fluid')
   const [activeFilter, setActiveFilter] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -464,6 +505,35 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-indigo-950 to-slate-950 relative overflow-hidden font-sans">
       
+      {/* Command Center Status Header */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-md border-b border-cyan-500/30 text-xs font-mono py-1.5 px-4 flex justify-between items-center shadow-[0_0_15px_rgba(34,211,238,0.15)] drop-shadow">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]"></div>
+            <span className="text-green-400 tracking-wider font-bold">SYS.ONLINE</span>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 text-cyan-200/70 border-l border-cyan-500/30 pl-4">
+            <span className="opacity-50">UPTIME:</span>
+            <span className="text-cyan-100">{formatUptime(systemStats.uptime)}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-2 text-cyan-200/70 border-r border-cyan-500/30 pr-4">
+             <span className="opacity-50">MEM:</span>
+             <span className="text-cyan-100 min-w-[28px]">{systemStats.memory}%</span>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 text-cyan-200/70 border-r border-cyan-500/30 pr-4">
+             <span className="opacity-50">NET:</span>
+             <span className="text-cyan-100 min-w-[40px]">{systemStats.connections}</span>
+          </div>
+          <div className="text-cyan-300 font-bold tracking-widest drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]">
+            {systemStats.time}
+          </div>
+        </div>
+      </div>
+
+
       {/* Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <Starfield ref={starfieldRef} />
@@ -516,7 +586,7 @@ function App() {
         />
       </div>
       
-      <div className="container mx-auto px-4 py-12 relative z-10">
+      <div className="container mx-auto px-4 pt-20 pb-12 relative z-10">
         <header className="text-center mb-12 flex justify-center">
           <div className="relative">
             {/* Glow behind title */}
