@@ -354,3 +354,34 @@
   0% { left: -100%; }
   100% { left: 200%; }
 }
+
+/* Toast Animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.animate-fade-out-right {
+  animation: fadeOutRight 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
