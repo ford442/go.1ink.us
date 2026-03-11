@@ -12,7 +12,7 @@ const highlightMatch = (text, query, regex) => {
   );
 };
 
-const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavorite = false, onToggleFavorite }) => {
+const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavorite = false, onToggleFavorite, onCopyLink }) => {
   const cardRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
   const rafRef = useRef(null);
@@ -141,26 +141,42 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavori
           aria-label={project.title}
         ></a>
 
-        {/* Favorite Button */}
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (onToggleFavorite) onToggleFavorite();
-          }}
-          className={`absolute top-4 right-4 z-30 p-2 rounded-full transition-all duration-300 pointer-events-auto backdrop-blur-md
-            ${isFavorite
-              ? 'bg-pink-500/20 text-pink-400 opacity-100 shadow-[0_0_15px_rgba(236,72,153,0.5)] border border-pink-400/50 scale-110'
-              : 'bg-black/30 text-white/50 opacity-0 group-hover:opacity-100 border border-white/10 hover:bg-pink-500/20 hover:text-pink-300 hover:border-pink-400/50 hover:scale-110'
-            }
-          `}
-          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-          style={{ transform: 'translateZ(60px)' }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-          </svg>
-        </button>
+        <div className="absolute top-4 right-4 z-30 flex flex-col gap-2 pointer-events-auto" style={{ transform: 'translateZ(60px)' }}>
+          {/* Favorite Button */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (onToggleFavorite) onToggleFavorite(project);
+            }}
+            className={`p-2 rounded-full transition-all duration-300 backdrop-blur-md
+              ${isFavorite
+                ? 'bg-pink-500/20 text-pink-400 opacity-100 shadow-[0_0_15px_rgba(236,72,153,0.5)] border border-pink-400/50 scale-110'
+                : 'bg-black/30 text-white/50 opacity-0 group-hover:opacity-100 border border-white/10 hover:bg-pink-500/20 hover:text-pink-300 hover:border-pink-400/50 hover:scale-110'
+              }
+            `}
+            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+            </svg>
+          </button>
+
+          {/* Copy Link Button */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (onCopyLink) onCopyLink(project);
+            }}
+            className="p-2 rounded-full transition-all duration-300 backdrop-blur-md bg-black/30 text-white/50 opacity-0 group-hover:opacity-100 border border-white/10 hover:bg-cyan-500/20 hover:text-cyan-300 hover:border-cyan-400/50 hover:scale-110"
+            aria-label="Copy link"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+          </button>
+        </div>
 
         {/* Image Area with overlay gradient */}
         <div className="h-full flex flex-col pointer-events-none" style={{ transformStyle: 'preserve-3d' }}>

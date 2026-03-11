@@ -96,13 +96,48 @@ function App() {
     }
   }, [favorites]);
 
-  const toggleFavorite = (projectId) => {
-    setFavorites(prev => {
-      if (prev.includes(projectId)) {
-        return prev.filter(id => id !== projectId);
-      }
-      return [...prev, projectId];
-    });
+  // Toast Notifications State
+  const [toasts, setToasts] = useState([]);
+
+  const removeToast = (id) => {
+    setToasts(prev => prev.map(t => t.id === id ? { ...t, fadingOut: true } : t));
+    // Wait for the fade out animation to finish before removing
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 300); // matches the 0.3s duration of fade-out-right
+  };
+
+  const addToast = (message, type = 'info') => {
+    const id = Date.now() + Math.random().toString(36).substr(2, 9);
+    setToasts(prev => [...prev, { id, message, type }]);
+
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      removeToast(id);
+    }, 3000);
+  };
+
+  const toggleFavorite = (project) => {
+    const isFavorited = favorites.includes(project.id);
+    if (isFavorited) {
+      addToast(`> SYS_UPDATE: [${project.title.toUpperCase()}] REMOVED`, 'warning');
+      setFavorites(prev => prev.filter(id => id !== project.id));
+    } else {
+      addToast(`> SYS_UPDATE: [${project.title.toUpperCase()}] FAVORITED`, 'success');
+      setFavorites(prev => [...prev, project.id]);
+    }
+  };
+
+  const handleCopyLink = (project) => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(project.url).then(() => {
+        addToast(`> SYS_CMD: [${project.title.toUpperCase()}] LINK_COPIED`, 'info');
+      }).catch(() => {
+        addToast(`> SYS_ERR: LINK_COPY_FAILED`, 'error');
+      });
+    } else {
+      addToast(`> SYS_ERR: CLIPBOARD_NOT_SUPPORTED`, 'error');
+    }
   };
 
   // Pagination Logic
@@ -865,7 +900,8 @@ function App() {
                   searchQuery={searchQuery}
                   highlightedTags={highlightedTags}
                   isFavorite={favorites.includes(project.id)}
-                  onToggleFavorite={() => toggleFavorite(project.id)}
+                  onToggleFavorite={toggleFavorite}
+                  onCopyLink={handleCopyLink}
                 />
               );
             })}
@@ -990,6 +1026,50 @@ function App() {
           />
         </footer>
       </div>
+
+      {/* Toast Notifications Container */}
+      <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-3 pointer-events-none">
+        {toasts.map(toast => {
+          let borderClass, textClass, icon;
+          switch (toast.type) {
+            case 'success':
+              borderClass = 'border-pink-500/50 shadow-[0_0_15px_rgba(236,72,153,0.3)]';
+              textClass = 'text-pink-400';
+              icon = '💖';
+              break;
+            case 'warning':
+              borderClass = 'border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.3)]';
+              textClass = 'text-yellow-400';
+              icon = '⚠️';
+              break;
+            case 'error':
+              borderClass = 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]';
+              textClass = 'text-red-400';
+              icon = '❌';
+              break;
+            case 'info':
+            default:
+              borderClass = 'border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.3)]';
+              textClass = 'text-cyan-400';
+              icon = '🔗';
+              break;
+          }
+
+          return (
+            <div
+              key={toast.id}
+              className={`${toast.fadingOut ? 'animate-fade-out-right' : 'animate-slide-in-right'} bg-black/80 backdrop-blur-md border ${borderClass} rounded flex items-center gap-3 px-4 py-3 pointer-events-auto cursor-pointer hover:bg-black/90 transition-colors`}
+              onClick={() => removeToast(toast.id)}
+            >
+              <span className="text-lg drop-shadow">{icon}</span>
+              <span className={`font-mono text-xs md:text-sm tracking-wider font-bold ${textClass}`}>
+                {toast.message}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
     </div>
   );
 }
