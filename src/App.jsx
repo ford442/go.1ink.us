@@ -76,6 +76,16 @@ function App() {
     return '';
   });
 
+  const [sortOption, setSortOption] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('sort') || 'Featured';
+    }
+    return 'Featured';
+  });
+
+  const [randomSeed, setRandomSeed] = useState(() => Math.random());
+
   // Favorites state
   const [favorites, setFavorites] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -149,13 +159,14 @@ function App() {
     const params = new URLSearchParams();
     if (activeFilter !== 'All') params.set('filter', activeFilter);
     if (searchQuery) params.set('q', searchQuery);
+    if (sortOption !== 'Featured') params.set('sort', sortOption);
 
     const queryString = params.toString();
     const newUrl = queryString ? `?${queryString}` : window.location.pathname;
 
     // Use replaceState to update URL without cluttering history stack
     window.history.replaceState(null, '', newUrl);
-  }, [activeFilter, searchQuery]);
+  }, [activeFilter, searchQuery, sortOption]);
 
   const searchInputRef = useRef(null);
 
@@ -185,12 +196,14 @@ function App() {
               flushSync(() => {
                 setActiveFilter('All');
                 setSearchQuery('');
+                setSortOption('Featured');
                 setCurrentPage(1);
               });
             });
           } else {
             setActiveFilter('All');
             setSearchQuery('');
+            setSortOption('Featured');
             setCurrentPage(1);
           }
         }
@@ -365,12 +378,35 @@ function App() {
     return projectsMatchingQuery.filter(project => favorites.includes(project.id)).length;
   }, [projectsMatchingQuery, favorites]);
 
-  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+  const sortedProjects = useMemo(() => {
+    const projects = [...filteredProjects];
+
+    switch (sortOption) {
+      case 'Newest':
+        // Assuming higher ID means newer, otherwise you'd need a date field
+        return projects.sort((a, b) => b.id - a.id);
+      case 'A-Z':
+        return projects.sort((a, b) => a.title.localeCompare(b.title));
+      case 'Random':
+        // Use a seeded shuffle so order remains stable across renders unless explicitly re-randomized
+        return projects.sort((a, b) => {
+          const aRandom = Math.sin(a.id * randomSeed) * 10000;
+          const bRandom = Math.sin(b.id * randomSeed) * 10000;
+          return (aRandom - Math.floor(aRandom)) - (bRandom - Math.floor(bRandom));
+        });
+      case 'Featured':
+      default:
+        // Returns original array order from projectData (assumed to be featured order)
+        return projects;
+    }
+  }, [filteredProjects, sortOption, randomSeed]);
+
+  const totalPages = Math.ceil(sortedProjects.length / itemsPerPage);
 
   const paginatedProjects = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredProjects.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredProjects, currentPage]);
+    return sortedProjects.slice(startIndex, startIndex + itemsPerPage);
+  }, [sortedProjects, currentPage]);
 
   const handlePageChange = (newPage) => {
     if (newPage < 1 || newPage > totalPages) return;
@@ -872,6 +908,43 @@ function App() {
               })}
             </div>
           )}
+
+          {/* Sort Controls */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-cyan-500/10 animate-fade-in px-4">
+            <span className="text-xs font-mono text-cyan-500/70 tracking-widest uppercase">Sort By:</span>
+            <div className="flex overflow-x-auto w-full sm:w-auto scrollbar-hide snap-x mobile-scroll-mask gap-2 pb-2 sm:pb-0">
+              {['Featured', 'Newest', 'A-Z', 'Random'].map((option) => (
+                <button
+                  key={option}
+                  onClick={() => {
+                    if (option === 'Random') {
+                      setRandomSeed(Math.random());
+                    }
+                    if (document.startViewTransition) {
+                      document.startViewTransition(() => {
+                        flushSync(() => {
+                          setSortOption(option);
+                          setCurrentPage(1);
+                        });
+                      });
+                    } else {
+                      setSortOption(option);
+                      setCurrentPage(1);
+                    }
+                  }}
+                  className={`
+                    px-4 py-1 rounded text-xs font-mono transition-all duration-300 border snap-center shrink-0 whitespace-nowrap
+                    ${sortOption === option
+                      ? 'bg-cyan-500/20 text-cyan-200 border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]'
+                      : 'bg-black/30 text-gray-500 border-white/5 hover:bg-cyan-500/10 hover:text-cyan-400 hover:border-cyan-500/30'
+                    }
+                  `}
+                >
+                  {option === 'Random' ? '🎲 Random' : option}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Projects Grid */}
