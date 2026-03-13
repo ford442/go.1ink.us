@@ -12,7 +12,7 @@ const highlightMatch = (text, query, regex) => {
   );
 };
 
-const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavorite = false, onToggleFavorite, onCopyLink }) => {
+const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick }) => {
   const cardRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
   const rafRef = useRef(null);
@@ -133,13 +133,14 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavori
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        <a
-          href={project.url}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            if (onProjectClick) onProjectClick(project);
+          }}
           className="card-link absolute inset-0 z-0 focus:outline-none focus:ring-4 focus:ring-cyan-400 focus:shadow-[0_0_25px_rgba(34,211,238,0.6)] rounded-xl transition-all duration-300"
           aria-label={project.title}
-        ></a>
+        ></button>
 
         <div className="absolute top-4 right-4 z-30 flex flex-col gap-2 pointer-events-auto" style={{ transform: 'translateZ(60px)' }}>
           {/* Favorite Button */}
