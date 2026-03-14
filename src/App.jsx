@@ -18,6 +18,27 @@ const isProjectMatchingQuery = (project, query) => {
 };
 
 function App() {
+
+  // Theme State
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('curator_theme') || 'cyan';
+    }
+    return 'cyan';
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('curator_theme', theme);
+      if (theme === 'cyan') {
+        document.documentElement.removeAttribute('data-theme');
+      } else {
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    }
+  }, [theme]);
+
+
   // Command Center Header State
   const [systemStats, setSystemStats] = useState({
     time: new Date().toLocaleTimeString('en-US', { hour12: false }),
@@ -145,6 +166,12 @@ function App() {
     }, 3000);
   };
 
+  const changeTheme = (newTheme) => {
+    if (theme !== newTheme) {
+      setTheme(newTheme);
+      addToast(`> SYS_UPDATE: COLOR_PROTOCOL_${newTheme.toUpperCase()}`, 'info');
+    }
+  };
   const toggleFavorite = (project) => {
     const isFavorited = favorites.includes(project.id);
     if (isFavorited) {
@@ -600,28 +627,36 @@ function App() {
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-indigo-950 to-slate-950 relative overflow-hidden font-sans">
       
       {/* Command Center Status Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-md border-b border-cyan-500/30 text-xs font-mono py-1.5 px-4 flex justify-between items-center shadow-[0_0_15px_rgba(34,211,238,0.15)] drop-shadow">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-md border-b border-accent-500/30 text-xs font-mono py-1.5 px-4 flex justify-between items-center shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.15)] drop-shadow">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]"></div>
             <span className="text-green-400 tracking-wider font-bold">SYS.ONLINE</span>
           </div>
-          <div className="hidden sm:flex items-center gap-2 text-cyan-200/70 border-l border-cyan-500/30 pl-4">
+          <div className="hidden sm:flex items-center gap-2 text-accent-200/70 border-l border-accent-500/30 pl-4">
             <span className="opacity-50">UPTIME:</span>
-            <span className="text-cyan-100">{formatUptime(systemStats.uptime)}</span>
+            <span className="text-accent-100">{formatUptime(systemStats.uptime)}</span>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-2 text-cyan-200/70 border-r border-cyan-500/30 pr-4">
+
+          <div className="hidden lg:flex items-center gap-2 border-r border-accent-500/30 pr-4">
+             <span className="opacity-50 text-accent-200/70 mr-1">THEME:</span>
+             <button onClick={() => changeTheme('cyan')} className={`w-3 h-3 rounded-full bg-cyan-400 ${theme === 'cyan' ? 'ring-2 ring-white scale-125' : 'opacity-50 hover:opacity-100'} transition-all`} aria-label="Cyan Theme"></button>
+             <button onClick={() => changeTheme('purple')} className={`w-3 h-3 rounded-full bg-purple-400 ${theme === 'purple' ? 'ring-2 ring-white scale-125' : 'opacity-50 hover:opacity-100'} transition-all`} aria-label="Purple Theme"></button>
+             <button onClick={() => changeTheme('emerald')} className={`w-3 h-3 rounded-full bg-emerald-400 ${theme === 'emerald' ? 'ring-2 ring-white scale-125' : 'opacity-50 hover:opacity-100'} transition-all`} aria-label="Emerald Theme"></button>
+          </div>
+
+          <div className="hidden md:flex items-center gap-2 text-accent-200/70 border-r border-accent-500/30 pr-4">
              <span className="opacity-50">MEM:</span>
-             <span className="text-cyan-100 min-w-[28px]">{systemStats.memory}%</span>
+             <span className="text-accent-100 min-w-[28px]">{systemStats.memory}%</span>
           </div>
-          <div className="hidden sm:flex items-center gap-2 text-cyan-200/70 border-r border-cyan-500/30 pr-4">
+          <div className="hidden sm:flex items-center gap-2 text-accent-200/70 border-r border-accent-500/30 pr-4">
              <span className="opacity-50">NET:</span>
-             <span className="text-cyan-100 min-w-[40px]">{systemStats.connections}</span>
+             <span className="text-accent-100 min-w-[40px]">{systemStats.connections}</span>
           </div>
-          <div className="text-cyan-300 font-bold tracking-widest drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]">
+          <div className="text-accent-300 font-bold tracking-widest drop-shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.8)]">
             {systemStats.time}
           </div>
         </div>
@@ -666,7 +701,7 @@ function App() {
           className="absolute inset-0"
           style={{
             backgroundSize: '60px 60px',
-            backgroundImage: 'linear-gradient(to right, rgba(34, 211, 238, 0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(34, 211, 238, 0.15) 1px, transparent 1px)',
+            backgroundImage: 'linear-gradient(to right, rgba(var(--rgb-accent-400),0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(var(--rgb-accent-400),0.15) 1px, transparent 1px)',
             maskImage: 'transparent', // Initially invisible, updated by JS
             WebkitMaskImage: 'transparent'
           }}
@@ -698,9 +733,9 @@ function App() {
           {/* Search Input Section */}
           <div className="flex justify-center">
             <div className="relative w-full max-w-lg group">
-              <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-accent-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative flex items-center">
-                <div className="absolute left-4 text-cyan-500/50 group-focus-within:text-cyan-400 transition-colors duration-300">
+                <div className="absolute left-4 text-accent-500/50 group-focus-within:text-accent-400 transition-colors duration-300">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
@@ -726,14 +761,14 @@ function App() {
                   placeholder="Search projects by title, description, or tag..."
                   autoComplete="off"
                   spellCheck="false"
-                  className="w-full bg-black/40 backdrop-blur-md border border-white/10 text-white pl-12 pr-32 py-4 rounded-full focus:outline-none focus:border-cyan-500/50 focus:bg-black/60 transition-all duration-300 shadow-lg placeholder-gray-500"
+                  className="w-full bg-black/40 backdrop-blur-md border border-white/10 text-white pl-12 pr-32 py-4 rounded-full focus:outline-none focus:border-accent-500/50 focus:bg-black/60 transition-all duration-300 shadow-lg placeholder-gray-500"
                 />
 
                 {/* Right Actions: Results Count or Shortcut Hint */}
                 <div className="absolute right-4 flex items-center space-x-3">
                   {searchQuery ? (
                     <>
-                      <span className="text-xs font-mono text-cyan-400 bg-cyan-900/30 px-2 py-1 rounded">
+                      <span className="text-xs font-mono text-accent-400 bg-accent-900/30 px-2 py-1 rounded">
                         {filteredProjects.length} found
                       </span>
                       <button
@@ -762,7 +797,7 @@ function App() {
 
           {/* Quick Filter / Trending Tags */}
           <div className="flex justify-center items-center gap-3 mb-6 animate-fade-in px-4" style={{ animationDelay: '0.1s' }}>
-             <span className="text-cyan-400 text-xs font-bold tracking-wider uppercase drop-shadow-[0_0_5px_rgba(34,211,238,0.5)] flex items-center gap-1 whitespace-nowrap">
+             <span className="text-accent-400 text-xs font-bold tracking-wider uppercase drop-shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.5)] flex items-center gap-1 whitespace-nowrap">
                <span className="animate-pulse">⚡</span> Trending:
              </span>
              <div className="flex gap-2 overflow-x-auto scrollbar-hide py-1 px-1 mobile-scroll-mask snap-x">
@@ -788,7 +823,7 @@ function App() {
                      px-3 py-1 text-xs font-medium rounded transition-all duration-300 backdrop-blur-md border whitespace-nowrap snap-center shrink-0
                      ${activeFilter === tag
                        ? CATEGORY_BUTTON_STYLES[TAG_TO_CATEGORIES[tag]?.[0]]?.tagClass || CATEGORY_BUTTON_STYLES['default'].tagClass
-                       : 'bg-white/5 text-gray-400 border-white/10 hover:bg-cyan-500/10 hover:text-cyan-200 hover:border-cyan-500/30 hover:scale-105'
+                       : 'bg-white/5 text-gray-400 border-white/10 hover:bg-accent-500/10 hover:text-accent-200 hover:border-accent-500/30 hover:scale-105'
                      }
                    `}
                  >
@@ -825,7 +860,7 @@ function App() {
             >
               <span>🌌</span>
               <span>All</span>
-              <span className={`text-xs ml-1 ${activeFilter === 'All' ? 'text-cyan-200' : 'text-gray-500'}`}>
+              <span className={`text-xs ml-1 ${activeFilter === 'All' ? 'text-accent-200' : 'text-gray-500'}`}>
                 ({projectsMatchingQuery.length})
               </span>
             </button>
@@ -894,7 +929,7 @@ function App() {
                 >
                   <span>{CATEGORY_ICONS[category]}</span>
                   <span>{category}</span>
-                  <span className={`text-xs ml-1 ${isActive ? 'text-cyan-200' : 'text-gray-500'}`}>
+                  <span className={`text-xs ml-1 ${isActive ? 'text-accent-200' : 'text-gray-500'}`}>
                     ({count})
                   </span>
                 </button>
@@ -933,8 +968,8 @@ function App() {
           )}
 
           {/* Sort Controls */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-cyan-500/10 animate-fade-in px-4">
-            <span className="text-xs font-mono text-cyan-500/70 tracking-widest uppercase">Sort By:</span>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-accent-500/10 animate-fade-in px-4">
+            <span className="text-xs font-mono text-accent-500/70 tracking-widest uppercase">Sort By:</span>
             <div className="flex overflow-x-auto w-full sm:w-auto scrollbar-hide snap-x mobile-scroll-mask gap-2 pb-2 sm:pb-0">
               {['Featured', 'Newest', 'A-Z', 'Random'].map((option) => (
                 <button
@@ -958,8 +993,8 @@ function App() {
                   className={`
                     px-4 py-1 rounded text-xs font-mono transition-all duration-300 border snap-center shrink-0 whitespace-nowrap
                     ${sortOption === option
-                      ? 'bg-cyan-500/20 text-cyan-200 border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]'
-                      : 'bg-black/30 text-gray-500 border-white/5 hover:bg-cyan-500/10 hover:text-cyan-400 hover:border-cyan-500/30'
+                      ? 'bg-accent-500/20 text-accent-200 border-accent-400 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]'
+                      : 'bg-black/30 text-gray-500 border-white/5 hover:bg-accent-500/10 hover:text-accent-400 hover:border-accent-500/30'
                     }
                   `}
                 >
@@ -1014,7 +1049,7 @@ function App() {
                     px-4 py-2 rounded-lg font-mono text-sm border transition-all duration-300 flex items-center gap-2 group
                     ${currentPage === 1
                       ? 'border-white/5 text-gray-600 cursor-not-allowed'
-                      : 'border-cyan-500/30 text-cyan-400 bg-black/40 hover:bg-cyan-500/10 hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(34,211,238,0.2)]'
+                      : 'border-accent-500/30 text-accent-400 bg-black/40 hover:bg-accent-500/10 hover:border-accent-400 hover:shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.2)]'
                     }
                   `}
                 >
@@ -1023,10 +1058,10 @@ function App() {
                 </button>
 
                 <div className="flex flex-col items-center">
-                   <span className="font-mono text-cyan-200 text-sm tracking-widest drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">
-                     PAGE {currentPage} <span className="text-cyan-500/50">/</span> {totalPages}
+                   <span className="font-mono text-accent-200 text-sm tracking-widest drop-shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.5)]">
+                     PAGE {currentPage} <span className="text-accent-500/50">/</span> {totalPages}
                    </span>
-                   <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent mt-1"></div>
+                   <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-accent-500/50 to-transparent mt-1"></div>
                 </div>
 
                 <button
@@ -1036,7 +1071,7 @@ function App() {
                     px-4 py-2 rounded-lg font-mono text-sm border transition-all duration-300 flex items-center gap-2 group
                     ${currentPage >= totalPages
                       ? 'border-white/5 text-gray-600 cursor-not-allowed'
-                      : 'border-cyan-500/30 text-cyan-400 bg-black/40 hover:bg-cyan-500/10 hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(34,211,238,0.2)]'
+                      : 'border-accent-500/30 text-accent-400 bg-black/40 hover:bg-accent-500/10 hover:border-accent-400 hover:shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.2)]'
                     }
                   `}
                 >
@@ -1048,20 +1083,20 @@ function App() {
           </div>
         ) : (
           <div className="max-w-2xl mx-auto mt-10 animate-fade-in">
-             <div className="relative overflow-hidden rounded-xl p-8 backdrop-blur-md bg-cyan-900/5 border border-cyan-500/30 shadow-[0_0_30px_rgba(34,211,238,0.1),inset_0_0_20px_rgba(34,211,238,0.05)]">
+             <div className="relative overflow-hidden rounded-xl p-8 backdrop-blur-md bg-accent-900/5 border border-accent-500/30 shadow-[0_0_30px_rgba(var(--rgb-accent-400),0.1),inset_0_0_20px_rgba(var(--rgb-accent-400),0.05)]">
                 <div className="scanline"></div>
                 <div className="flex flex-col items-center justify-center text-center space-y-4 relative z-10">
                    <div className="text-6xl mb-2 opacity-80 glitch-text" data-text="👻">👻</div>
-                   <h3 className="text-2xl font-bold text-cyan-200 uppercase tracking-widest glitch-text" data-text="VOID DETECTED">
+                   <h3 className="text-2xl font-bold text-accent-200 uppercase tracking-widest glitch-text" data-text="VOID DETECTED">
                       VOID DETECTED
                    </h3>
-                   <div className="text-cyan-300/80 font-mono text-sm bg-black/30 p-4 rounded border border-cyan-500/20 w-full text-left">
+                   <div className="text-accent-300/80 font-mono text-sm bg-black/30 p-4 rounded border border-accent-500/20 w-full text-left">
                       <p className="mb-2">{`> SEARCH_QUERY: "${searchQuery || activeFilter}"`}</p>
                       <p className="mb-2">{`> STATUS: NO_RESULTS_FOUND`}</p>
                       <p className="animate-pulse mb-4">{`> RECOMMENDATION: TRY_DIFFERENT_KEYWORDS_OR_TAGS`}</p>
 
                       {/* Suggested Protocols */}
-                      <div className="flex flex-col items-center gap-2 pt-2 border-t border-cyan-500/30">
+                      <div className="flex flex-col items-center gap-2 pt-2 border-t border-accent-500/30">
                         <p className="text-xs uppercase opacity-70 mb-1">Suggested Protocols:</p>
                         <div className="flex flex-wrap justify-center gap-2">
                           {suggestedTags.map(tag => (
@@ -1082,7 +1117,7 @@ function App() {
                                   setCurrentPage(1);
                                 }
                               }}
-                              className="px-3 py-1 bg-cyan-900/40 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-200 text-xs rounded transition-all duration-300 hover:shadow-[0_0_8px_rgba(34,211,238,0.3)]"
+                              className="px-3 py-1 bg-accent-900/40 hover:bg-accent-500/20 border border-accent-500/30 text-accent-200 text-xs rounded transition-all duration-300 hover:shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.3)]"
                             >
                               {tag}
                             </button>
@@ -1106,7 +1141,7 @@ function App() {
                          setCurrentPage(1);
                        }
                      }}
-                     className="mt-4 px-6 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/50 text-cyan-200 rounded-full transition-all duration-300 hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] uppercase text-sm font-bold tracking-wider"
+                     className="mt-4 px-6 py-2 bg-accent-500/10 hover:bg-accent-500/20 border border-accent-500/50 text-accent-200 rounded-full transition-all duration-300 hover:shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.4)] uppercase text-sm font-bold tracking-wider"
                    >
                      Reset Protocol
                    </button>
@@ -1134,7 +1169,7 @@ function App() {
           ></div>
 
           {/* Modal Content */}
-          <div className="relative w-full max-w-4xl bg-gray-900/90 border border-cyan-500/30 rounded-2xl shadow-[0_0_40px_rgba(34,211,238,0.15)] overflow-hidden flex flex-col md:flex-row transform transition-all">
+          <div className="relative w-full max-w-4xl bg-gray-900/90 border border-accent-500/30 rounded-2xl shadow-[0_0_40px_rgba(var(--rgb-accent-400),0.15)] overflow-hidden flex flex-col md:flex-row transform transition-all">
             {/* Scanline Effect */}
             <div className="scanline"></div>
 
@@ -1148,10 +1183,10 @@ function App() {
                     className="w-full h-full object-cover opacity-80"
                   />
                   {/* Holographic Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 via-transparent to-purple-500/20 mix-blend-overlay"></div>
+                  <div className="absolute inset-0 bg-gradient-to-tr from-accent-500/20 via-transparent to-purple-500/20 mix-blend-overlay"></div>
                   {/* Grid Pattern Overlay */}
                   <div className="absolute inset-0 opacity-30" style={{
-                    backgroundImage: 'linear-gradient(to right, rgba(34, 211, 238, 0.2) 1px, transparent 1px), linear-gradient(to bottom, rgba(34, 211, 238, 0.2) 1px, transparent 1px)',
+                    backgroundImage: 'linear-gradient(to right, rgba(var(--rgb-accent-400),0.2) 1px, transparent 1px), linear-gradient(to bottom, rgba(var(--rgb-accent-400),0.2) 1px, transparent 1px)',
                     backgroundSize: '20px 20px'
                   }}></div>
                 </div>
@@ -1164,7 +1199,7 @@ function App() {
               {/* Category Icon Badge */}
               <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-lg">
                 <span className="text-xl">{selectedProject.icon}</span>
-                <span className="text-xs font-mono text-cyan-300 font-bold uppercase tracking-wider">
+                <span className="text-xs font-mono text-accent-300 font-bold uppercase tracking-wider">
                   {TAG_TO_CATEGORIES[selectedProject.tags[0]]?.[0] || 'Project'}
                 </span>
               </div>
@@ -1194,7 +1229,7 @@ function App() {
 
                 {/* System ID / Status */}
                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
-                  <span className="text-xs font-mono text-cyan-500 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
+                  <span className="text-xs font-mono text-accent-500 bg-accent-500/10 px-2 py-0.5 rounded border border-accent-500/20">
                     ID: {selectedProject.id.toString().padStart(4, '0')}
                   </span>
                   <div className="flex items-center gap-1.5">
@@ -1205,7 +1240,7 @@ function App() {
 
                 {/* Description */}
                 <div className="mb-8 relative">
-                  <div className="absolute -left-3 top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-500 to-transparent opacity-50"></div>
+                  <div className="absolute -left-3 top-0 bottom-0 w-1 bg-gradient-to-b from-accent-500 to-transparent opacity-50"></div>
                   <p className="text-gray-300 text-lg leading-relaxed font-light">
                     {selectedProject.description}
                   </p>
@@ -1218,7 +1253,7 @@ function App() {
                     {selectedProject.tags.map((tag, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 text-xs font-medium text-cyan-200 bg-cyan-900/30 border border-cyan-500/20 rounded-full"
+                        className="px-3 py-1 text-xs font-medium text-accent-200 bg-accent-900/30 border border-accent-500/20 rounded-full"
                       >
                         {tag}
                       </span>
@@ -1233,7 +1268,7 @@ function App() {
                   href={selectedProject.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/50 hover:border-cyan-300 px-6 py-3 rounded-lg font-bold tracking-widest uppercase text-sm flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] group"
+                  className="flex-1 bg-accent-500/20 hover:bg-accent-500/30 text-accent-300 border border-accent-400/50 hover:border-accent-300 px-6 py-3 rounded-lg font-bold tracking-widest uppercase text-sm flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-[0_0_20px_rgba(var(--rgb-accent-400),0.4)] group"
                 >
                   <span className="animate-pulse">▶</span>
                   Launch Protocol
@@ -1295,8 +1330,8 @@ function App() {
               break;
             case 'info':
             default:
-              borderClass = 'border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.3)]';
-              textClass = 'text-cyan-400';
+              borderClass = 'border-accent-500/50 shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)]';
+              textClass = 'text-accent-400';
               icon = '🔗';
               break;
           }

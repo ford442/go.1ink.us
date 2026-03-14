@@ -7,7 +7,7 @@ const highlightMatch = (text, query, regex) => {
   const parts = text.split(regex);
   return parts.map((part, i) =>
     part.toLowerCase() === query.toLowerCase() ? (
-      <span key={i} className="bg-cyan-500/30 text-cyan-200 rounded px-0.5 shadow-[0_0_8px_rgba(34,211,238,0.2)] font-semibold">{part}</span>
+      <span key={i} className="bg-accent-500/30 text-accent-200 rounded px-0.5 shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.2)] font-semibold">{part}</span>
     ) : part
   );
 };
@@ -138,7 +138,7 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavori
             e.preventDefault();
             if (onProjectClick) onProjectClick(project);
           }}
-          className="card-link absolute inset-0 z-0 focus:outline-none focus:ring-4 focus:ring-cyan-400 focus:shadow-[0_0_25px_rgba(34,211,238,0.6)] rounded-xl transition-all duration-300"
+          className="card-link absolute inset-0 z-0 focus:outline-none focus:ring-4 focus:ring-accent-400 focus:shadow-[0_0_25px_rgba(var(--rgb-accent-400),0.6)] rounded-xl transition-all duration-300"
           aria-label={project.title}
         ></button>
 
@@ -170,7 +170,7 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavori
               e.stopPropagation();
               if (onCopyLink) onCopyLink(project);
             }}
-            className="p-2 rounded-full transition-all duration-300 backdrop-blur-md bg-black/30 text-white/50 opacity-0 group-hover:opacity-100 border border-white/10 hover:bg-cyan-500/20 hover:text-cyan-300 hover:border-cyan-400/50 hover:scale-110"
+            className="p-2 rounded-full transition-all duration-300 backdrop-blur-md bg-black/30 text-white/50 opacity-0 group-hover:opacity-100 border border-white/10 hover:bg-accent-500/20 hover:text-accent-300 hover:border-accent-400/50 hover:scale-110"
             aria-label="Copy link"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -227,8 +227,8 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavori
                     }}
                     className={`px-3 py-1 text-xs font-semibold tracking-wider border rounded-full transition-all duration-300 cursor-pointer z-20
                       ${isHighlighted
-                        ? 'bg-cyan-500/80 text-white border-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.6)] scale-105 ring-1 ring-cyan-200'
-                        : 'text-cyan-200 bg-cyan-900/30 border-cyan-500/20 hover:bg-cyan-800/50 hover:text-white hover:border-cyan-400 hover:scale-105 group-hover:border-cyan-400/50 group-hover:shadow-[0_0_10px_rgba(34,211,238,0.2)]'
+                        ? 'bg-accent-500/80 text-white border-accent-300 shadow-[0_0_12px_rgba(var(--rgb-accent-400),0.6)] scale-105 ring-1 ring-accent-200'
+                        : 'text-accent-200 bg-accent-900/30 border-accent-500/20 hover:bg-accent-800/50 hover:text-white hover:border-accent-400 hover:scale-105 group-hover:border-accent-400/50 group-hover:shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]'
                       }
                     `}
                   >
@@ -244,7 +244,7 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavori
         <div
           className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
           style={{
-            background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(34, 211, 238, 0.15), transparent 40%)`,
+            background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(var(--rgb-accent-400),0.15), transparent 40%)`,
             zIndex: 5, // Ensure it sits nicely in the stack
             mixBlendMode: 'screen' // Added for better blending
           }}
@@ -254,7 +254,7 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavori
         <div
           className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-60 transition-opacity duration-500"
           style={{
-            background: `conic-gradient(from 225deg at var(--mouse-x, 50%) var(--mouse-y, 50%), transparent 0deg, rgba(34, 211, 238, 0.2) 60deg, rgba(168, 85, 247, 0.2) 120deg, transparent 180deg)`,
+            background: `conic-gradient(from 225deg at var(--mouse-x, 50%) var(--mouse-y, 50%), transparent 0deg, rgba(var(--rgb-accent-400),0.2) 60deg, rgba(168, 85, 247, 0.2) 120deg, transparent 180deg)`,
             zIndex: 4,
             mixBlendMode: 'color-dodge',
             filter: 'blur(10px)'
@@ -278,7 +278,7 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavori
             zIndex: 15,
             transform: 'translateZ(60px)',
             padding: '1px',
-            background: `radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(34, 211, 238, 0.6), transparent 60%)`,
+            background: `radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(var(--rgb-accent-400),0.6), transparent 60%)`,
             mask: 'linear-gradient(#fff, #fff) content-box, linear-gradient(#fff, #fff)',
             WebkitMask: 'linear-gradient(#fff, #fff) content-box, linear-gradient(#fff, #fff)',
             maskComposite: 'exclude',
