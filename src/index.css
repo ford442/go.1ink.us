@@ -1,1 +1,54 @@
 @import "tailwindcss";
+
+@theme {
+  --color-accent-100: var(--color-accent-100);
+  --color-accent-200: var(--color-accent-200);
+  --color-accent-300: var(--color-accent-300);
+  --color-accent-400: var(--color-accent-400);
+  --color-accent-500: var(--color-accent-500);
+  --color-accent-600: var(--color-accent-600);
+  --color-accent-800: var(--color-accent-800);
+  --color-accent-900: var(--color-accent-900);
+}
+
+:root {
+  /* Cyan (Default) */
+  --color-accent-100: #cffafe;
+  --color-accent-200: #a5f3fc;
+  --color-accent-300: #67e8f9;
+  --color-accent-400: #22d3ee;
+  --color-accent-500: #06b6d4;
+  --color-accent-600: #0891b2;
+  --color-accent-800: #155e75;
+  --color-accent-900: #164e63;
+  --rgb-accent-400: 34, 211, 238;
+  --rgb-accent-500: 6, 182, 212;
+}
+
+[data-theme="purple"] {
+  /* Purple */
+  --color-accent-100: #f3e8ff;
+  --color-accent-200: #e9d5ff;
+  --color-accent-300: #d8b4fe;
+  --color-accent-400: #c084fc;
+  --color-accent-500: #a855f7;
+  --color-accent-600: #9333ea;
+  --color-accent-800: #6b21a8;
+  --color-accent-900: #581c87;
+  --rgb-accent-400: 192, 132, 252;
+  --rgb-accent-500: 168, 85, 247;
+}
+
+[data-theme="emerald"] {
+  /* Emerald */
+  --color-accent-100: #d1fae5;
+  --color-accent-200: #a7f3d0;
+  --color-accent-300: #6ee7b7;
+  --color-accent-400: #34d399;
+  --color-accent-500: #10b981;
+  --color-accent-600: #059669;
+  --color-accent-800: #065f46;
+  --color-accent-900: #064e3b;
+  --rgb-accent-400: 52, 211, 153;
+  --rgb-accent-500: 16, 185, 129;
+}
