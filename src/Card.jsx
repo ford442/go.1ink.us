@@ -16,6 +16,7 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavori
   const cardRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
   const rafRef = useRef(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
     // Check if device supports hover and user doesn't prefer reduced motion
@@ -182,12 +183,23 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavori
         {/* Image Area with overlay gradient */}
         <div className="h-full flex flex-col pointer-events-none" style={{ transformStyle: 'preserve-3d' }}>
           {project.image ? (
-            <div className="h-48 overflow-hidden rounded-t-xl relative border-b border-white/5 shrink-0" style={{ transform: 'translateZ(30px)' }}>
+            <div className="h-48 overflow-hidden rounded-t-xl relative border-b border-white/5 shrink-0 bg-black/40" style={{ transform: 'translateZ(30px)' }}>
+              {!imageLoaded && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/80 backdrop-blur-sm z-10">
+                  <div className="relative w-12 h-12 flex items-center justify-center mb-2">
+                    <div className="absolute inset-0 rounded-full border-t-2 border-accent-500/80 border-r-2 border-transparent animate-spin"></div>
+                    <div className="absolute inset-2 rounded-full border-b-2 border-purple-500/80 border-l-2 border-transparent animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+                    <div className="w-2 h-2 rounded-full bg-accent-400 animate-pulse shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.8)]"></div>
+                  </div>
+                  <span className="text-[10px] font-mono text-accent-400 tracking-widest uppercase animate-pulse">LOADING_ASSET</span>
+                </div>
+              )}
               <img
                 src={project.image}
                 alt={project.title}
                 loading="lazy"
-                className="w-full h-full object-cover transition-transform duration-700 delay-700 group-hover:scale-110"
+                onLoad={() => setImageLoaded(true)}
+                className={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-100' : 'opacity-0'} group-hover:scale-110 delay-100 group-hover:delay-700`}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300"></div>
             </div>
