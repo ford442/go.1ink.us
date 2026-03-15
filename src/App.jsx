@@ -110,6 +110,14 @@ function App() {
   // Quick View Modal State
   const [selectedProject, setSelectedProject] = useState(null);
   const selectedProjectRef = useRef(null);
+  const [modalImageLoaded, setModalImageLoaded] = useState(false);
+
+  // Wrapper to handle project selection and reset image loaded state
+  const handleProjectSelect = (project) => {
+    setModalImageLoaded(false);
+    setSelectedProject(project);
+  };
+
   useEffect(() => {
     selectedProjectRef.current = selectedProject;
 
@@ -1033,7 +1041,7 @@ function App() {
                   isFavorite={favorites.includes(project.id)}
                   onToggleFavorite={toggleFavorite}
                   onCopyLink={handleCopyLink}
-                  onProjectClick={setSelectedProject}
+                  onProjectClick={handleProjectSelect}
                 />
               );
             })}
@@ -1165,7 +1173,7 @@ function App() {
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
-            onClick={() => setSelectedProject(null)}
+            onClick={() => handleProjectSelect(null)}
           ></div>
 
           {/* Modal Content */}
@@ -1177,10 +1185,27 @@ function App() {
             <div className="w-full md:w-1/2 relative bg-black flex-shrink-0">
               {selectedProject.image ? (
                 <div className="w-full h-64 md:h-full relative overflow-hidden group">
+                  {!modalImageLoaded && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 backdrop-blur-md z-10 border-r border-accent-500/20">
+                      <div className="relative w-20 h-20 flex items-center justify-center mb-6">
+                        <div className="absolute inset-0 rounded-full border-t-2 border-b-2 border-accent-500/80 animate-spin" style={{ animationDuration: '3s' }}></div>
+                        <div className="absolute inset-2 rounded-full border-l-2 border-r-2 border-pink-500/80 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '2s' }}></div>
+                        <div className="absolute inset-4 rounded-full border-t-2 border-emerald-500/80 animate-spin" style={{ animationDuration: '1s' }}></div>
+                        <div className="text-2xl animate-pulse glitch-text" data-text="⚡">⚡</div>
+                      </div>
+                      <div className="font-mono text-accent-400 text-sm tracking-[0.3em] uppercase animate-pulse">
+                        DECRYPTING_VISUALS...
+                      </div>
+                      <div className="w-48 h-1 bg-black/50 rounded-full mt-4 overflow-hidden border border-accent-500/20">
+                        <div className="h-full bg-accent-500/50 rounded-full w-1/2 animate-ping" style={{ animationDuration: '1.5s' }}></div>
+                      </div>
+                    </div>
+                  )}
                   <img
                     src={selectedProject.image}
                     alt={selectedProject.title}
-                    className="w-full h-full object-cover opacity-80"
+                    onLoad={() => setModalImageLoaded(true)}
+                    className={`w-full h-full object-cover transition-opacity duration-1000 ${modalImageLoaded ? 'opacity-80' : 'opacity-0'}`}
                   />
                   {/* Holographic Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-tr from-accent-500/20 via-transparent to-purple-500/20 mix-blend-overlay"></div>
@@ -1209,7 +1234,7 @@ function App() {
             <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-between relative z-10">
               {/* Close Button */}
               <button
-                onClick={() => setSelectedProject(null)}
+                onClick={() => handleProjectSelect(null)}
                 className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors border border-transparent hover:border-white/20"
                 aria-label="Close modal"
               >
