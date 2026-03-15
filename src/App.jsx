@@ -447,11 +447,14 @@ function App() {
         return projects.sort((a, b) => a.title.localeCompare(b.title));
       case 'Random':
         // Use a seeded shuffle so order remains stable across renders unless explicitly re-randomized
-        return projects.sort((a, b) => {
-          const aRandom = Math.sin(a.id * randomSeed) * 10000;
-          const bRandom = Math.sin(b.id * randomSeed) * 10000;
-          return (aRandom - Math.floor(aRandom)) - (bRandom - Math.floor(bRandom));
-        });
+        // Optimized with a Schwartzian transform to pre-calculate random keys
+        return projects
+          .map(p => {
+            const val = Math.sin(p.id * randomSeed) * 10000;
+            return { project: p, key: val - Math.floor(val) };
+          })
+          .sort((a, b) => a.key - b.key)
+          .map(item => item.project);
       case 'Featured':
       default:
         // Returns original array order from projectData (assumed to be featured order)
