@@ -303,6 +303,9 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavori
         <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl z-20" style={{ transform: 'translateZ(70px)' }}>
           <div className="glass-reflection" />
         </div>
+
+        {/* 🌌 CURATOR FEATURE: True Holographic Glass Effects */}
+        <div className="holo-overlay absolute inset-0 pointer-events-none rounded-xl z-10" style={{ transform: 'translateZ(20px)' }}></div>
       </div>
     </div>
   );
