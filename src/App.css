@@ -18,7 +18,16 @@
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+              inset 0 0 20px rgba(255, 255, 255, 0.02);
+  overflow: hidden; /* Added to keep holo effects inside */
+}
+
+.glass-card:hover {
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+              inset 0 0 30px rgba(255, 255, 255, 0.05);
 }
 
 /* 3D Card Effects */
@@ -384,4 +393,36 @@
 
 .animate-fade-out-right {
   animation: fadeOutRight 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* Holographic Overlay */
+.holo-overlay {
+  background: linear-gradient(
+    125deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.1) 40%,
+    rgba(236, 72, 153, 0.05) 45%, /* Pink */
+    rgba(6, 182, 212, 0.1) 50%, /* Cyan */
+    rgba(168, 85, 247, 0.05) 55%, /* Purple */
+    rgba(255, 255, 255, 0.1) 60%,
+    transparent 80%
+  );
+  background-size: 200% 200%;
+  animation: holo-shine 6s linear infinite;
+  mix-blend-mode: color-dodge;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.group:hover .holo-overlay {
+  opacity: 1;
+}
+
+@keyframes holo-shine {
+  0% {
+    background-position: 200% 50%;
+  }
+  100% {
+    background-position: -200% 50%;
+  }
 }
