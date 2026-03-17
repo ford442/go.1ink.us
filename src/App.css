@@ -87,6 +87,25 @@
   }
 }
 
+@keyframes slideOutDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.animate-slide-out-down {
+  animation: slideOutDown 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
 .perspective-container:nth-child(1) { animation-delay: 0.1s; }
 .perspective-container:nth-child(2) { animation-delay: 0.15s; }
 .perspective-container:nth-child(3) { animation-delay: 0.2s; }

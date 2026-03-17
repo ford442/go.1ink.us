@@ -6,16 +6,6 @@ import projectData from './projectData';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
 import './App.css';
 
-// Helper to check if a project matches the search query in real-time
-const isProjectMatchingQuery = (project, query) => {
-  if (!query || query.trim() === '') return true;
-  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
-  return terms.every(term =>
-    project.title.toLowerCase().includes(term) ||
-    project.description.toLowerCase().includes(term) ||
-    (project.tags && project.tags.some(tag => tag.toLowerCase().includes(term)))
-  );
-};
 
 function App() {
 
@@ -153,6 +143,219 @@ function App() {
     }
   }, [favorites]);
 
+  // Terminal Command Bar State
+  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
+  const [isTerminalClosing, setIsTerminalClosing] = useState(false); // For exit animation
+  const [terminalHistory, setTerminalHistory] = useState([
+    { type: 'system', text: 'CURATOR_OS v1.0.4 - TERMINAL INITIALIZED' },
+    { type: 'system', text: 'Type "help" for a list of commands.' }
+  ]);
+  const [terminalInput, setTerminalInput] = useState('');
+  const terminalInputRef = useRef(null);
+  const terminalEndRef = useRef(null);
+
+  // Terminal Command Processor
+  const handleTerminalSubmit = (e) => {
+    e.preventDefault();
+    if (!terminalInput.trim()) return;
+
+    const commandStr = terminalInput.trim();
+    const [command, ...args] = commandStr.split(/\s+/);
+
+    // Echo command
+    const newHistory = [...terminalHistory, { type: 'user', text: `root@curator:~# ${commandStr}` }];
+
+    let responseText = '';
+    let responseType = 'system'; // 'system' | 'error' | 'success' | 'user'
+
+    switch (command.toLowerCase()) {
+      case 'help':
+        responseText = `AVAILABLE PROTOCOLS:\n` +
+          `  help         - Display this information\n` +
+          `  filter <val> - Set filter (e.g., 'filter Games', 'filter all')\n` +
+          `  sort <val>   - Set sorting (newest, a-z, random, featured)\n` +
+          `  ls           - List active projects by ID\n` +
+          `  open <id>    - Initialize view for specific project ID\n` +
+          `  fav <id>     - Toggle favorite status for project ID\n` +
+          `  theme <val>  - Change OS theme (cyan, purple, emerald)\n` +
+          `  clear        - Flush terminal buffer\n` +
+          `  exit / close - Terminate command session`;
+        break;
+
+      case 'filter':
+        if (args.length === 0) {
+          responseText = 'ERR: Missing parameter. Usage: filter <category|tag|all>';
+          responseType = 'error';
+        } else {
+          const filterParam = args.join(' ');
+          // Basic matching logic: check exact matches first, then case-insensitive
+          let matchedFilter = null;
+          if (filterParam.toLowerCase() === 'all') matchedFilter = 'All';
+          else if (filterParam.toLowerCase() === 'favorites') matchedFilter = 'Favorites';
+          else if (CATEGORIES[filterParam]) matchedFilter = filterParam; // Exact Category Match
+          else {
+             // Case insensitive search across categories and tags
+             const allValidFilters = ['All', 'Favorites', ...Object.keys(CATEGORIES)];
+             Object.values(CATEGORIES).forEach(tags => allValidFilters.push(...tags));
+
+             matchedFilter = allValidFilters.find(f => f.toLowerCase() === filterParam.toLowerCase());
+          }
+
+          if (matchedFilter) {
+            setActiveFilter(matchedFilter);
+            setCurrentPage(1);
+            responseText = `> FILTER_PROTOCOL_ENGAGED: [${matchedFilter.toUpperCase()}]`;
+            responseType = 'success';
+          } else {
+             responseText = `ERR: Invalid filter target '${filterParam}'`;
+             responseType = 'error';
+          }
+        }
+        break;
+
+      case 'sort':
+        if (args.length === 0) {
+          responseText = 'ERR: Missing parameter. Usage: sort <featured|newest|a-z|random>';
+          responseType = 'error';
+        } else {
+          const sortParam = args[0].toLowerCase();
+          const sortMap = { 'featured': 'Featured', 'newest': 'Newest', 'a-z': 'A-Z', 'random': 'Random' };
+          if (sortMap[sortParam]) {
+             if (sortParam === 'random') {
+                 // Use setTimeout or a local var so it isn't executing during render evaluation if linter thinks this is during render
+                 setTimeout(() => setRandomSeed(Math.random()), 0);
+             }
+             setSortOption(sortMap[sortParam]);
+             setCurrentPage(1);
+             responseText = `> SORT_MATRIX_UPDATED: [${sortMap[sortParam].toUpperCase()}]`;
+             responseType = 'success';
+          } else {
+             responseText = `ERR: Unknown sorting algorithm '${args[0]}'`;
+             responseType = 'error';
+          }
+        }
+        break;
+
+      case 'ls':
+        // Note: we can't directly access filteredProjects safely here without it being a dependency,
+        // but since this is called in an event handler, it will read the current closure state.
+        // It's safer to use a ref if we want latest, but standard React state closure is usually fine
+        // for simple interactive forms.
+        if (projectsMatchingQuery.length === 0) {
+           responseText = 'NO ACTIVE INSTANCES DETECTED.';
+        } else {
+           // We map over all projects, but only show IDs that match the current query
+           const visibleProjects = projectData.filter(project => {
+              if (!searchQuery || searchQuery.trim() === '') return true;
+              const terms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
+              return terms.every(term =>
+                project.title.toLowerCase().includes(term) ||
+                project.description.toLowerCase().includes(term) ||
+                (project.tags && project.tags.some(tag => tag.toLowerCase().includes(term)))
+              );
+           });
+           responseText = visibleProjects.map(p => `[${p.id.toString().padStart(4, '0')}] ${p.title}`).join('\n');
+        }
+        break;
+
+      case 'open':
+        if (args.length === 0) {
+          responseText = 'ERR: Missing parameter. Usage: open <id>';
+          responseType = 'error';
+        } else {
+          const idToOpen = parseInt(args[0], 10);
+          const projectToOpen = projectData.find(p => p.id === idToOpen);
+          if (projectToOpen) {
+            handleProjectSelect(projectToOpen);
+            // Close terminal to show modal
+            setIsTerminalClosing(true);
+            setTimeout(() => {
+              setIsTerminalOpen(false);
+              setIsTerminalClosing(false);
+            }, 300);
+            responseText = `> INITIALIZING_VIEW: [${projectToOpen.title.toUpperCase()}]`;
+            responseType = 'success';
+          } else {
+            responseText = `ERR: Instance ID ${args[0]} not found in database.`;
+            responseType = 'error';
+          }
+        }
+        break;
+
+      case 'fav':
+         if (args.length === 0) {
+          responseText = 'ERR: Missing parameter. Usage: fav <id>';
+          responseType = 'error';
+        } else {
+          const idToFav = parseInt(args[0], 10);
+          const projectToFav = projectData.find(p => p.id === idToFav);
+          if (projectToFav) {
+             toggleFavorite(projectToFav);
+             responseText = `> FAVORITE_STATUS_TOGGLED: [${projectToFav.title.toUpperCase()}]`;
+             responseType = 'success';
+          } else {
+            responseText = `ERR: Instance ID ${args[0]} not found in database.`;
+            responseType = 'error';
+          }
+        }
+        break;
+
+      case 'theme':
+         if (args.length === 0) {
+          responseText = 'ERR: Missing parameter. Usage: theme <cyan|purple|emerald>';
+          responseType = 'error';
+        } else {
+          const validThemes = ['cyan', 'purple', 'emerald'];
+          if (validThemes.includes(args[0].toLowerCase())) {
+             changeTheme(args[0].toLowerCase());
+             responseText = `> COLOR_PROTOCOL_UPDATED`;
+             responseType = 'success';
+          } else {
+             responseText = `ERR: Unsupported color matrix '${args[0]}'`;
+             responseType = 'error';
+          }
+        }
+        break;
+
+      case 'clear':
+        setTerminalHistory([]);
+        setTerminalInput('');
+        return; // Early return to avoid adding the command echo
+
+      case 'exit':
+      case 'close':
+      case 'quit':
+        setIsTerminalClosing(true);
+        setTimeout(() => {
+          setIsTerminalOpen(false);
+          setIsTerminalClosing(false);
+        }, 300);
+        setTerminalInput('');
+        return;
+
+      default:
+        responseText = `ERR: Command not recognized: '${command}'. Type 'help' for protocols.`;
+        responseType = 'error';
+    }
+
+    setTerminalHistory([...newHistory, { type: responseType, text: responseText }]);
+    setTerminalInput('');
+  };
+
+  // Auto-scroll terminal
+  useEffect(() => {
+    if (isTerminalOpen && terminalEndRef.current) {
+      terminalEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [terminalHistory, isTerminalOpen]);
+
+  // Focus terminal input when opened
+  useEffect(() => {
+    if (isTerminalOpen && !isTerminalClosing && terminalInputRef.current) {
+      setTimeout(() => terminalInputRef.current.focus(), 50);
+    }
+  }, [isTerminalOpen, isTerminalClosing]);
+
   // Toast Notifications State
   const [toasts, setToasts] = useState([]);
 
@@ -232,8 +435,32 @@ function App() {
         searchInputRef.current?.focus();
       }
 
+      // Global Terminal Toggle
+      if (e.key === '`' || e.key === '~') {
+        e.preventDefault();
+        if (isTerminalOpen) {
+          setIsTerminalClosing(true);
+          setTimeout(() => {
+            setIsTerminalOpen(false);
+            setIsTerminalClosing(false);
+          }, 300); // Wait for animation
+        } else {
+          setIsTerminalOpen(true);
+        }
+        return;
+      }
+
       // Global Escape Handler
       if (e.key === 'Escape') {
+        if (isTerminalOpen) {
+          setIsTerminalClosing(true);
+          setTimeout(() => {
+            setIsTerminalOpen(false);
+            setIsTerminalClosing(false);
+          }, 300);
+          return;
+        }
+
         if (selectedProjectRef.current) {
           setSelectedProject(null);
           return;
@@ -312,7 +539,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isTerminalOpen]);
 
   // Refs for background blobs to implement parallax
   const blob1Ref = useRef(null);
@@ -326,8 +553,17 @@ function App() {
   const canvasRef = useRef(null); // Canvas for cursor trail effect
 
   // Memoize projects that match the search query (basis for filtering and counts)
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const projectsMatchingQuery = useMemo(() => {
-    return projectData.filter(p => isProjectMatchingQuery(p, searchQuery));
+    if (!searchQuery || searchQuery.trim() === '') return projectData;
+    const terms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
+    return projectData.filter(project => {
+      return terms.every(term =>
+        project.title.toLowerCase().includes(term) ||
+        project.description.toLowerCase().includes(term) ||
+        (project.tags && project.tags.some(tag => tag.toLowerCase().includes(term)))
+      );
+    });
   }, [searchQuery]);
 
   // Calculate the current parent category based on the active filter
@@ -1333,6 +1569,68 @@ function App() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Terminal Command Bar */}
+      {(isTerminalOpen || isTerminalClosing) && (
+        <div className={`fixed bottom-0 left-0 right-0 z-[200] bg-black/95 backdrop-blur-xl border-t border-accent-500/50 p-4 font-mono text-sm shadow-[0_-10px_40px_rgba(var(--rgb-accent-400),0.15)] flex flex-col transform-gpu ${isTerminalClosing ? 'animate-slide-out-down' : 'animate-slide-in-up'}`}>
+           <div className="flex justify-between items-center mb-2 pb-2 border-b border-accent-500/30">
+              <div className="flex items-center gap-2">
+                 <span className="animate-pulse glitch-text text-lg" data-text="⚡">⚡</span>
+                 <span className="text-accent-400 font-bold tracking-widest uppercase text-xs">Terminal Protocol</span>
+              </div>
+              <button
+                onClick={() => {
+                  setIsTerminalClosing(true);
+                  setTimeout(() => {
+                    setIsTerminalOpen(false);
+                    setIsTerminalClosing(false);
+                  }, 300);
+                }}
+                className="text-gray-500 hover:text-white transition-colors p-1"
+                aria-label="Close terminal"
+              >
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                 </svg>
+              </button>
+           </div>
+
+           {/* Terminal Output History */}
+           <div className="flex-1 overflow-y-auto max-h-[30vh] min-h-[150px] mb-3 space-y-1.5 scrollbar-hide pr-2">
+             {terminalHistory.map((entry, i) => (
+               <div key={i} className={`whitespace-pre-wrap ${
+                 entry.type === 'error' ? 'text-red-400 drop-shadow-[0_0_5px_rgba(239,68,68,0.5)]' :
+                 entry.type === 'success' ? 'text-green-400 drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]' :
+                 entry.type === 'user' ? 'text-white opacity-80' :
+                 'text-accent-300 opacity-90'
+               }`}>
+                 {entry.text}
+               </div>
+             ))}
+             <div ref={terminalEndRef} />
+           </div>
+
+           {/* Terminal Input */}
+           <form onSubmit={handleTerminalSubmit} className="relative flex items-center group">
+              <span className="text-accent-500 mr-2 font-bold whitespace-nowrap drop-shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.8)]">root@curator:~#</span>
+              <input
+                 ref={terminalInputRef}
+                 type="text"
+                 value={terminalInput}
+                 onChange={(e) => setTerminalInput(e.target.value)}
+                 className="flex-1 bg-transparent border-none outline-none text-white focus:ring-0 p-0 placeholder-gray-600"
+                 placeholder="Type 'help' for available protocols..."
+                 autoComplete="off"
+                 spellCheck="false"
+                 autoFocus
+              />
+              <div className="absolute right-0 w-2 h-4 bg-accent-400 animate-pulse opacity-50 pointer-events-none"></div>
+           </form>
+
+           {/* Decorative scanline for terminal */}
+           <div className="scanline opacity-20 pointer-events-none"></div>
         </div>
       )}
 
