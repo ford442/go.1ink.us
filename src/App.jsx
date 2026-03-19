@@ -31,7 +31,7 @@ function App() {
 
   // Command Center Header State
   const [systemStats, setSystemStats] = useState({
-    time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+    time: `${new Date().toLocaleTimeString('en-US', { hour12: false })}.${new Date().getMilliseconds().toString().padStart(3, '0')}`,
     uptime: 999990, // Random high start
     connections: 1337,
     memory: 42
@@ -39,7 +39,7 @@ function App() {
 
   // Animated Command Center Header Logic
   useEffect(() => {
-    const timer = setInterval(() => {
+    const slowTimer = setInterval(() => {
       setSystemStats(prev => {
         // Fluctuate connections slightly
         let newConnections = prev.connections + Math.floor(Math.random() * 5) - 2;
@@ -51,7 +51,7 @@ function App() {
         if (newMemory > 80) newMemory = 80;
 
         return {
-          time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+          ...prev,
           uptime: prev.uptime + 1,
           connections: newConnections,
           memory: newMemory
@@ -59,7 +59,17 @@ function App() {
       });
     }, 1000);
 
-    return () => clearInterval(timer);
+    const fastTimer = setInterval(() => {
+      setSystemStats(prev => ({
+        ...prev,
+        time: `${new Date().toLocaleTimeString('en-US', { hour12: false })}.${new Date().getMilliseconds().toString().padStart(3, '0')}`
+      }));
+    }, 50);
+
+    return () => {
+      clearInterval(slowTimer);
+      clearInterval(fastTimer);
+    };
   }, []);
 
   // Format uptime to HH:MM:SS
@@ -898,12 +908,26 @@ function App() {
           <div className="hidden md:flex items-center gap-2 text-accent-200/70 border-r border-accent-500/30 pr-4">
              <span className="opacity-50">MEM:</span>
              <span className="text-accent-100 min-w-[28px]">{systemStats.memory}%</span>
+             <div className="flex gap-0.5 ml-1">
+                <div className={`w-1 h-3 ${systemStats.memory >= 20 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
+                <div className={`w-1 h-3 ${systemStats.memory >= 40 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
+                <div className={`w-1 h-3 ${systemStats.memory >= 60 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
+                <div className={`w-1 h-3 ${systemStats.memory >= 80 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
+                <div className={`w-1 h-3 ${systemStats.memory >= 95 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
+             </div>
           </div>
           <div className="hidden sm:flex items-center gap-2 text-accent-200/70 border-r border-accent-500/30 pr-4">
              <span className="opacity-50">NET:</span>
              <span className="text-accent-100 min-w-[40px]">{systemStats.connections}</span>
+             <div className="flex gap-0.5 ml-1">
+                <div className={`w-1 h-3 ${systemStats.connections >= 400 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
+                <div className={`w-1 h-3 ${systemStats.connections >= 800 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
+                <div className={`w-1 h-3 ${systemStats.connections >= 1200 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
+                <div className={`w-1 h-3 ${systemStats.connections >= 1600 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
+                <div className={`w-1 h-3 ${systemStats.connections >= 2000 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
+             </div>
           </div>
-          <div className="text-accent-300 font-bold tracking-widest drop-shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.8)]">
+          <div className="text-accent-300 font-bold tracking-widest drop-shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.8)] font-mono tabular-nums min-w-[110px] text-right">
             {systemStats.time}
           </div>
         </div>
