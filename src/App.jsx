@@ -1296,7 +1296,7 @@ function App() {
 
               return (
                 <Card
-                  key={project.id}
+                  key={`${activeFilter}-${sortOption}-${currentPage}-${project.id}`}
                   project={project}
                   onTagClick={handleTagClick}
                   searchQuery={searchQuery}

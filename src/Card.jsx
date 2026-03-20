@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
+import Tooltip from './Tooltip';
 
 // Helper to highlight matching text moved outside to avoid re-allocation on every render
 const highlightMatch = (text, query, regex) => {
@@ -145,39 +146,43 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavori
 
         <div className="absolute top-4 right-4 z-30 flex flex-col gap-2 pointer-events-auto" style={{ transform: 'translateZ(60px)' }}>
           {/* Favorite Button */}
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (onToggleFavorite) onToggleFavorite(project);
-            }}
-            className={`p-2 rounded-full transition-all duration-300 backdrop-blur-md
-              ${isFavorite
-                ? 'bg-pink-500/20 text-pink-400 opacity-100 shadow-[0_0_15px_rgba(236,72,153,0.5)] border border-pink-400/50 scale-110'
-                : 'bg-black/30 text-white/50 opacity-0 group-hover:opacity-100 border border-white/10 hover:bg-pink-500/20 hover:text-pink-300 hover:border-pink-400/50 hover:scale-110'
-              }
-            `}
-            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-            </svg>
-          </button>
+          <Tooltip text={isFavorite ? "SYS: REM_FAV" : "SYS: ADD_FAV"}>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (onToggleFavorite) onToggleFavorite(project);
+              }}
+              className={`p-2 rounded-full transition-all duration-300 backdrop-blur-md
+                ${isFavorite
+                  ? 'bg-pink-500/20 text-pink-400 opacity-100 shadow-[0_0_15px_rgba(236,72,153,0.5)] border border-pink-400/50 scale-110'
+                  : 'bg-black/30 text-white/50 opacity-0 group-hover:opacity-100 border border-white/10 hover:bg-pink-500/20 hover:text-pink-300 hover:border-pink-400/50 hover:scale-110'
+                }
+              `}
+              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </Tooltip>
 
           {/* Copy Link Button */}
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (onCopyLink) onCopyLink(project);
-            }}
-            className="p-2 rounded-full transition-all duration-300 backdrop-blur-md bg-black/30 text-white/50 opacity-0 group-hover:opacity-100 border border-white/10 hover:bg-accent-500/20 hover:text-accent-300 hover:border-accent-400/50 hover:scale-110"
-            aria-label="Copy link"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-            </svg>
-          </button>
+          <Tooltip text="SYS: COPY_LINK">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (onCopyLink) onCopyLink(project);
+              }}
+              className="p-2 rounded-full transition-all duration-300 backdrop-blur-md bg-black/30 text-white/50 opacity-0 group-hover:opacity-100 border border-white/10 hover:bg-accent-500/20 hover:text-accent-300 hover:border-accent-400/50 hover:scale-110"
+              aria-label="Copy link"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+            </button>
+          </Tooltip>
         </div>
 
         {/* Image Area with overlay gradient */}
@@ -226,7 +231,23 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavori
               {highlightMatch(project.description, searchQuery, regex)}
             </p>
 
-            <div className="flex flex-wrap gap-2 mt-auto pointer-events-auto">
+            {/* Tech Stack Badges */}
+            {project.tech && project.tech.length > 0 && (
+              <div className="mb-4 pointer-events-auto">
+                <div className="flex flex-wrap gap-1.5">
+                  {project.tech.map((techItem, index) => (
+                    <span
+                      key={index}
+                      className="text-[10px] font-mono px-2 py-0.5 rounded border border-white/10 bg-black/40 text-gray-400 hover:text-accent-300 hover:border-accent-500/50 hover:bg-accent-900/40 transition-colors duration-300"
+                    >
+                      {highlightMatch(techItem, searchQuery, regex)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-2 mt-auto pointer-events-auto pt-2 border-t border-white/5">
               {project.tags.map((tag, index) => {
                 const isHighlighted = highlightedTags.includes(tag);
                 return (
