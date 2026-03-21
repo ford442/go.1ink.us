@@ -9,6 +9,63 @@ import './App.css';
 
 function App() {
 
+  // Boot Sequence State
+  const [isBooting, setIsBooting] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !sessionStorage.getItem('curator_booted');
+    }
+    return true;
+  });
+  const [bootLogs, setBootLogs] = useState([]);
+
+  // Track unmount locally to handle the case where it was already booted in a previous session
+  const [showBootScreen, setShowBootScreen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !sessionStorage.getItem('curator_booted');
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    if (!isBooting) {
+      // Let the animation finish before unmounting
+      const timer = setTimeout(() => setShowBootScreen(false), 1000);
+      return () => clearTimeout(timer);
+    }
+
+    const logs = [
+      "INITIALIZING QUANTUM KERNEL...",
+      "LOADING PROJECT MATRIX... OK",
+      "ESTABLISHING SECURE CONNECTION... OK",
+      "DECRYPTING ASSETS...",
+      "WELCOME TO CURATOR OS"
+    ];
+
+    let currentLog = 0;
+
+    // Add logs sequentially
+    const logInterval = setInterval(() => {
+      if (currentLog < logs.length) {
+        setBootLogs(prev => [...prev, logs[currentLog]]);
+        currentLog++;
+      } else {
+        clearInterval(logInterval);
+
+        // Short delay after last log before fading out
+        setTimeout(() => {
+          setIsBooting(false);
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('curator_booted', 'true');
+          }
+        }, 800);
+      }
+    }, 400); // 400ms between each log
+
+    return () => {
+      clearInterval(logInterval);
+    };
+  }, [isBooting]);
+
   // Theme State
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -883,6 +940,49 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-indigo-950 to-slate-950 relative overflow-hidden font-sans">
       
+      {/* SYS_BOOT Sequence Screen */}
+      {showBootScreen && (
+        <div className={`fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center font-mono pointer-events-none transition-all duration-1000 ${!isBooting ? 'animate-boot-fade' : ''}`}>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--rgb-accent-400),0.1),transparent_50%)]"></div>
+          <div className="scanline"></div>
+
+          <div className="max-w-2xl w-full px-8 flex flex-col gap-4 relative z-10 text-left">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-16 h-16 relative">
+                <div className="absolute inset-0 border-4 border-accent-500/30 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-t-accent-400 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+                <div className="absolute inset-2 border-2 border-purple-500/50 rounded-full"></div>
+                <div className="absolute inset-2 border-2 border-b-purple-400 border-t-transparent border-l-transparent border-r-transparent rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-xl glitch-text" data-text="⚡">⚡</span>
+                </div>
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-accent-200 tracking-[0.2em] uppercase glitch-text" data-text="CURATOR_OS">CURATOR_OS</h1>
+                <p className="text-xs text-accent-500/70 tracking-widest mt-1">v1.0.4 - SYSTEM BOOT</p>
+              </div>
+            </div>
+
+            <div className="space-y-2 min-h-[200px]">
+              {bootLogs.map((log, index) => (
+                <div key={index} className="flex items-center gap-3 text-sm">
+                  <span className="text-accent-500">{`>`}</span>
+                  <span className={`text-gray-300 font-medium ${index === bootLogs.length - 1 ? 'typewriter-text text-accent-400 font-bold' : ''}`}>
+                    {log}
+                  </span>
+                </div>
+              ))}
+              {isBooting && (
+                <div className="flex items-center gap-3 text-sm mt-2">
+                   <span className="text-accent-500">{`>`}</span>
+                   <div className="w-2 h-4 bg-accent-400 animate-pulse"></div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Command Center Status Header */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-md border-b border-accent-500/30 text-xs font-mono py-1.5 px-4 flex justify-between items-center shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.15)] drop-shadow">
         <div className="flex items-center gap-4">
