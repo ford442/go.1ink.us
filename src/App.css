@@ -49,6 +49,20 @@
     0 0 40px rgba(147, 51, 234, 0.15);
 }
 
+/* Custom Cursor active styles */
+body.custom-cursor-active,
+body.custom-cursor-active * {
+  cursor: none !important;
+}
+
+/* Keep standard I-beam on inputs */
+body.custom-cursor-active input,
+body.custom-cursor-active textarea,
+body.custom-cursor-active input *,
+body.custom-cursor-active textarea * {
+  cursor: text !important;
+}
+
 /* Floating Animation */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }

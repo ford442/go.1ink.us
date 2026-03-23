@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import Card from './Card';
 import Starfield from './Starfield';
+import CustomCursor from './CustomCursor';
 import projectData from './projectData';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
 import './App.css';
@@ -620,7 +621,6 @@ function App() {
   const canvasRef = useRef(null); // Canvas for cursor trail effect
 
   // Memoize projects that match the search query (basis for filtering and counts)
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const projectsMatchingQuery = useMemo(() => {
     if (!searchQuery || searchQuery.trim() === '') return projectData;
     const terms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
@@ -939,7 +939,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-indigo-950 to-slate-950 relative overflow-hidden font-sans">
-      
+      <CustomCursor />
       {/* SYS_BOOT Sequence Screen */}
       {showBootScreen && (
         <div className={`fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center font-mono pointer-events-none transition-all duration-1000 ${!isBooting ? 'animate-boot-fade' : ''}`}>
