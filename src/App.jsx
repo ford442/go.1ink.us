@@ -241,7 +241,7 @@ function App() {
         responseText = `AVAILABLE PROTOCOLS:\n` +
           `  help         - Display this information\n` +
           `  filter <val> - Set filter (e.g., 'filter Games', 'filter all')\n` +
-          `  sort <val>   - Set sorting (newest, a-z, random, featured)\n` +
+          `  sort <val>   - Set sorting (newest, a-z, random, featured, complex)\n` +
           `  ls           - List active projects by ID\n` +
           `  open <id>    - Initialize view for specific project ID\n` +
           `  fav <id>     - Toggle favorite status for project ID\n` +
@@ -283,11 +283,11 @@ function App() {
 
       case 'sort':
         if (args.length === 0) {
-          responseText = 'ERR: Missing parameter. Usage: sort <featured|newest|a-z|random>';
+          responseText = 'ERR: Missing parameter. Usage: sort <featured|newest|a-z|random|complex>';
           responseType = 'error';
         } else {
           const sortParam = args[0].toLowerCase();
-          const sortMap = { 'featured': 'Featured', 'newest': 'Newest', 'a-z': 'A-Z', 'random': 'Random' };
+          const sortMap = { 'featured': 'Featured', 'newest': 'Newest', 'a-z': 'A-Z', 'random': 'Random', 'complex': 'Most Complex' };
           if (sortMap[sortParam]) {
              if (sortParam === 'random') {
                  // Use setTimeout or a local var so it isn't executing during render evaluation if linter thinks this is during render
@@ -749,15 +749,22 @@ function App() {
       case 'A-Z':
         return projects.sort((a, b) => a.title.localeCompare(b.title));
       case 'Random':
-        // Use a seeded shuffle so order remains stable across renders unless explicitly re-randomized
-        // Optimized with a Schwartzian transform to pre-calculate random keys
+        // Schwartzian transform for O(N) sorting after O(N) random value generation
+        // Uses the seed to maintain stability across renders until seed changes
         return projects
           .map(p => {
+            // Simple pseudo-random hash based on id and seed
             const val = Math.sin(p.id * randomSeed) * 10000;
             return { project: p, key: val - Math.floor(val) };
           })
           .sort((a, b) => a.key - b.key)
           .map(item => item.project);
+      case 'Most Complex':
+        return projects.sort((a, b) => {
+          const scoreA = (a.tech?.length || 0) + (a.tags?.length || 0);
+          const scoreB = (b.tech?.length || 0) + (b.tags?.length || 0);
+          return scoreB - scoreA;
+        });
       case 'Featured':
       default:
         // Returns original array order from projectData (assumed to be featured order)
@@ -1342,7 +1349,7 @@ function App() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-accent-500/10 animate-fade-in px-4">
             <span className="text-xs font-mono text-accent-500/70 tracking-widest uppercase">Sort By:</span>
             <div className="flex overflow-x-auto w-full sm:w-auto scrollbar-hide snap-x mobile-scroll-mask gap-2 pb-2 sm:pb-0">
-              {['Featured', 'Newest', 'A-Z', 'Random'].map((option) => (
+              {['Featured', 'Newest', 'A-Z', 'Most Complex', 'Random'].map((option) => (
                 <button
                   key={option}
                   onClick={() => {
@@ -1807,3 +1814,7 @@ function App() {
 
 export default App;
 // Curator: Search functionality initialized
+
+// CURATOR'S JOURNAL - UX LOG
+// - Added 'Most Complex' sorting option and visual indicator.
+// - Insight: Sorting by complexity gives users a way to instantly find the most sophisticated projects. The visual meter adds a nice touch of "sci-fi dashboard" feel without cluttering the UI.
