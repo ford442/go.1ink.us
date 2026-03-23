@@ -312,17 +312,8 @@ function App() {
         if (projectsMatchingQuery.length === 0) {
            responseText = 'NO ACTIVE INSTANCES DETECTED.';
         } else {
-           // We map over all projects, but only show IDs that match the current query
-           const visibleProjects = projectData.filter(project => {
-              if (!searchQuery || searchQuery.trim() === '') return true;
-              const terms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
-              return terms.every(term =>
-                project.title.toLowerCase().includes(term) ||
-                project.description.toLowerCase().includes(term) ||
-                (project.tags && project.tags.some(tag => tag.toLowerCase().includes(term)))
-              );
-           });
-           responseText = visibleProjects.map(p => `[${p.id.toString().padStart(4, '0')}] ${p.title}`).join('\n');
+           // We use projectsMatchingQuery directly as it already filters by searchQuery
+           responseText = projectsMatchingQuery.map(p => `[${p.id.toString().padStart(4, '0')}] ${p.title}`).join('\n');
         }
         break;
 
