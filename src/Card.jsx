@@ -13,7 +13,7 @@ const highlightMatch = (text, query, regex) => {
   );
 };
 
-const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick }) => {
+const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick, draggable = false, isDragged = false, isDragOver = false, onDragStart, onDragOver, onDragEnd, onDrop }) => {
   const cardRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
   const rafRef = useRef(null);
@@ -143,14 +143,26 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavori
   }, [project.tech, project.tags]);
 
   return (
-    <div className="perspective-container" style={{ viewTransitionName: `project-${project.id}` }}>
+    <div
+      className={`perspective-container transition-all duration-300 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 scale-105 z-50' : ''}`}
+      style={{ viewTransitionName: `project-${project.id}` }}
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDragEnd={onDragEnd}
+      onDrop={onDrop}
+    >
       <div
         ref={cardRef}
-        className="glass-card card-3d block rounded-xl flex flex-col h-full relative group will-change-transform"
+        className={`glass-card card-3d block rounded-xl flex flex-col h-full relative group will-change-transform`}
         onMouseEnter={handleMouseEnter}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
+        {/* Drag Handle Indicator */}
+        {draggable && (
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-40 w-12 h-1.5 bg-white/20 rounded-full group-hover:bg-white/40 transition-colors pointer-events-none shadow-[0_0_10px_rgba(255,255,255,0.1)]"></div>
+        )}
         <button
           onClick={(e) => {
             e.preventDefault();

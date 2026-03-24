@@ -211,6 +211,57 @@ function App() {
     }
   }, [favorites]);
 
+  // Drag and Drop State for Favorites
+  const [draggedFavoriteId, setDraggedFavoriteId] = useState(null);
+  const [dragOverFavoriteId, setDragOverFavoriteId] = useState(null);
+
+  const handleDragStart = (e, projectId) => {
+    setDraggedFavoriteId(projectId);
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', projectId);
+    }
+  };
+
+  const handleDragOver = (e, projectId) => {
+    e.preventDefault(); // Necessary to allow dropping
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'move';
+    }
+    if (dragOverFavoriteId !== projectId) {
+      setDragOverFavoriteId(projectId);
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedFavoriteId(null);
+    setDragOverFavoriteId(null);
+  };
+
+  const handleDrop = (e, targetProjectId) => {
+    e.preventDefault();
+    if (!draggedFavoriteId || draggedFavoriteId === targetProjectId) {
+      handleDragEnd();
+      return;
+    }
+
+    setFavorites(prevFavorites => {
+      const draggedIndex = prevFavorites.indexOf(draggedFavoriteId);
+      const targetIndex = prevFavorites.indexOf(targetProjectId);
+
+      if (draggedIndex === -1 || targetIndex === -1) return prevFavorites;
+
+      const newFavorites = [...prevFavorites];
+      newFavorites.splice(draggedIndex, 1);
+      newFavorites.splice(targetIndex, 0, draggedFavoriteId);
+
+      return newFavorites;
+    });
+
+    addToast(`> SYS_CMD: FAVORITES_REORDERED`, 'success');
+    handleDragEnd();
+  };
+
   // Terminal Command Bar State
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [isTerminalClosing, setIsTerminalClosing] = useState(false); // For exit animation
@@ -759,9 +810,16 @@ function App() {
       case 'Featured':
       default:
         // Returns original array order from projectData (assumed to be featured order)
+        if (activeFilter === 'Favorites') {
+          return projects.sort((a, b) => {
+            const indexA = favorites.indexOf(a.id);
+            const indexB = favorites.indexOf(b.id);
+            return indexA - indexB;
+          });
+        }
         return projects;
     }
-  }, [filteredProjects, sortOption, randomSeed]);
+  }, [filteredProjects, sortOption, randomSeed, activeFilter, favorites]);
 
   const totalPages = Math.ceil(sortedProjects.length / itemsPerPage);
 
@@ -1403,6 +1461,13 @@ function App() {
                   onToggleFavorite={toggleFavorite}
                   onCopyLink={handleCopyLink}
                   onProjectClick={handleProjectSelect}
+                  draggable={activeFilter === 'Favorites' && sortOption === 'Featured'}
+                  isDragged={draggedFavoriteId === project.id}
+                  isDragOver={dragOverFavoriteId === project.id}
+                  onDragStart={(e) => handleDragStart(e, project.id)}
+                  onDragOver={(e) => handleDragOver(e, project.id)}
+                  onDragEnd={handleDragEnd}
+                  onDrop={(e) => handleDrop(e, project.id)}
                 />
               );
             })}
