@@ -138,6 +138,9 @@ function App() {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
+  // Mobile Filter Drawer State
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+
   // activeFilter can be 'All', a Category Key (e.g., 'Games'), or a specific Tag (e.g., 'Fluid')
   const [activeFilter, setActiveFilter] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -1260,6 +1263,49 @@ function App() {
              </div>
           </div>
 
+          {/* Mobile Filter Toggle Button */}
+          <div className="md:hidden flex justify-center mb-6 px-4 animate-fade-in" style={{ animationDelay: '0.15s' }}>
+            <button
+              onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
+              className="w-full relative group overflow-hidden bg-accent-900/40 border border-accent-500/30 rounded-xl py-3 px-4 flex items-center justify-between transition-all duration-300 hover:bg-accent-500/10 hover:border-accent-400"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-accent-500/0 via-accent-500/5 to-accent-500/0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
+              <div className="flex items-center gap-3 relative z-10">
+                <span className="text-accent-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                  </svg>
+                </span>
+                <span className="font-mono text-sm tracking-widest uppercase font-bold text-accent-100">Filter Protocols</span>
+
+                {/* Active Indicator */}
+                {(activeFilter !== 'All' || sortOption !== 'Featured') && (
+                  <span className="flex h-2 w-2 relative ml-1">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-500"></span>
+                  </span>
+                )}
+              </div>
+
+              <div className="relative z-10 text-accent-500/70 group-hover:text-accent-400 transition-colors">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`h-5 w-5 transform transition-transform duration-300 ${isMobileFiltersOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </button>
+          </div>
+
+          {/* Collapsible Filter Container (Desktop: Always visible, Mobile: Grid Transition) */}
+          <div className={`grid transition-all duration-300 ease-in-out md:grid-rows-[1fr] md:opacity-100 ${isMobileFiltersOpen ? 'grid-rows-[1fr] opacity-100 mb-8' : 'grid-rows-[0fr] opacity-0 mb-0 md:mb-8'}`}>
+            <div className="overflow-hidden flex flex-col gap-6">
+
           {/* Category Filter Section */}
           <div className="flex overflow-x-auto md:flex-wrap md:justify-center gap-4 pb-2 md:pb-0 scrollbar-hide mobile-scroll-mask px-4 md:px-0 snap-x">
             {/* 'All' Button */}
@@ -1430,6 +1476,10 @@ function App() {
               ))}
             </div>
           </div>
+
+            </div>
+          </div>
+
         </div>
 
         {/* Projects Grid */}
