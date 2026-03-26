@@ -13,7 +13,7 @@ const highlightMatch = (text, query, regex) => {
   );
 };
 
-const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick, draggable = false, isDragged = false, isDragOver = false, onDragStart, onDragOver, onDragEnd, onDrop }) => {
+const Card = ({ project, index = 0, onTagClick, searchQuery, highlightedTags = [], isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick, draggable = false, isDragged = false, isDragOver = false, onDragStart, onDragOver, onDragEnd, onDrop }) => {
   const cardRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
   const rafRef = useRef(null);
@@ -144,8 +144,8 @@ const Card = ({ project, onTagClick, searchQuery, highlightedTags = [], isFavori
 
   return (
     <div
-      className={`perspective-container transition-all duration-300 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 scale-105 z-50' : ''}`}
-      style={{ viewTransitionName: `project-${project.id}` }}
+      className={`perspective-container animate-slide-in-up transition-all duration-300 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 scale-105 z-50' : ''}`}
+      style={{ viewTransitionName: `project-${project.id}`, animationDelay: `${index * 100}ms` }}
       draggable={draggable}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
