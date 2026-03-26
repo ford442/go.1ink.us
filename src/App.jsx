@@ -1486,7 +1486,7 @@ function App() {
         {filteredProjects.length > 0 ? (
           <div id="project-grid" className="scroll-mt-24">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-2 mb-12">
-            {paginatedProjects.map((project) => {
+            {paginatedProjects.map((project, index) => {
               // Determine which tags to highlight based on active filter
               let highlightedTags = [];
               const activeCategorySet = CATEGORY_SETS[activeFilter];
@@ -1504,6 +1504,7 @@ function App() {
                 <Card
                   key={`${activeFilter}-${sortOption}-${currentPage}-${project.id}`}
                   project={project}
+                  index={index}
                   onTagClick={handleTagClick}
                   searchQuery={searchQuery}
                   highlightedTags={highlightedTags}
