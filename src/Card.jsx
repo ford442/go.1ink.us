@@ -13,7 +13,7 @@ const highlightMatch = (text, query, regex) => {
   );
 };
 
-const Card = ({ project, index = 0, onTagClick, searchQuery, highlightedTags = [], isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick, draggable = false, isDragged = false, isDragOver = false, onDragStart, onDragOver, onDragEnd, onDrop }) => {
+const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, highlightedTags = [], isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick, draggable = false, isDragged = false, isDragOver = false, onDragStart, onDragOver, onDragEnd, onDrop }) => {
   const cardRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
   const rafRef = useRef(null);
@@ -142,6 +142,173 @@ const Card = ({ project, index = 0, onTagClick, searchQuery, highlightedTags = [
     return score;
   }, [project.tech, project.tags]);
 
+  if (layout === 'matrix') {
+    return (
+      <div
+        className={`perspective-container animate-slide-in-up transition-all duration-300 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 z-50 rounded-lg' : ''}`}
+        style={{ viewTransitionName: `project-${project.id}`, animationDelay: `${index * 50}ms` }}
+        draggable={draggable}
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDragEnd={onDragEnd}
+        onDrop={onDrop}
+      >
+        <div className="glass-card relative group flex items-center p-3 gap-4 rounded-lg hover:bg-white/5 hover:border-accent-500/50 transition-colors h-20">
+          {/* Click area */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              if (onProjectClick) onProjectClick(project);
+            }}
+            className="card-link absolute inset-0 z-0 focus:outline-none focus:ring-2 focus:ring-accent-400 focus:shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.4)] rounded-lg transition-all duration-300"
+            aria-label={project.title}
+          ></button>
+
+          {/* Drag Handle Indicator */}
+          {draggable && (
+            <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 w-1 h-8 bg-white/20 rounded-full group-hover:bg-white/40 transition-colors pointer-events-none shadow-[0_0_10px_rgba(255,255,255,0.1)]"></div>
+          )}
+
+          {/* ID & Status */}
+          <div className={`flex flex-col items-center justify-center gap-0.5 w-12 shrink-0 z-10 pointer-events-none ${draggable ? 'ml-2' : ''}`}>
+             <span className="text-[9px] font-mono text-accent-500 opacity-50 uppercase tracking-widest">Sys.ID</span>
+             <span className="text-xs font-mono text-accent-400 font-bold">{project.id.toString().padStart(4, '0')}</span>
+          </div>
+
+          {/* Thumbnail */}
+          <div className="w-20 h-14 rounded border border-white/10 bg-black/50 overflow-hidden shrink-0 relative z-10 pointer-events-none group-hover:border-accent-500/50 transition-colors duration-300">
+             {!imageLoaded && project.image && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm z-10">
+                   <div className="w-1.5 h-1.5 rounded-full bg-accent-400 animate-pulse shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.8)]"></div>
+                </div>
+             )}
+             {project.image ? (
+               <img
+                 src={project.image}
+                 alt={project.title}
+                 loading="lazy"
+                 onLoad={() => setImageLoaded(true)}
+                 className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-80' : 'opacity-0'} group-hover:opacity-100`}
+               />
+             ) : (
+               <div className="w-full h-full flex items-center justify-center text-xl bg-gradient-to-br from-indigo-900/50 to-purple-900/50 transform transition-transform duration-300 group-hover:scale-110">
+                 {project.icon}
+               </div>
+             )}
+          </div>
+
+          {/* Info */}
+          <div className="flex-1 flex flex-col min-w-0 z-10 pointer-events-none justify-center">
+             <div className="flex items-center gap-2">
+               <h3 className="text-sm md:text-base font-bold text-white truncate group-hover:text-accent-300 transition-colors duration-300">
+                 {highlightMatch(project.title, searchQuery, regex)}
+               </h3>
+               {/* Tech badges inline (hide on very small screens) */}
+               <div className="hidden sm:flex gap-1 overflow-hidden">
+                  {project.tech?.slice(0, 2).map((t, i) => (
+                    <span key={i} className="text-[9px] font-mono px-1.5 rounded bg-white/5 text-gray-400 border border-white/10 whitespace-nowrap">
+                      {highlightMatch(t, searchQuery, regex)}
+                    </span>
+                  ))}
+               </div>
+             </div>
+             <p className="text-xs text-gray-400 truncate mt-0.5">
+               {highlightMatch(project.description, searchQuery, regex)}
+             </p>
+          </div>
+
+          {/* Tags */}
+          <div className="hidden lg:flex flex-wrap gap-1 w-40 shrink-0 z-20 pointer-events-auto justify-end">
+             {project.tags.slice(0, 3).map((tag, i) => {
+               const isHighlighted = highlightedTags.includes(tag);
+               return (
+                 <button
+                   key={i}
+                   onClick={(e) => {
+                     e.preventDefault();
+                     e.stopPropagation();
+                     if (onTagClick) onTagClick(tag);
+                   }}
+                   className={`text-[9px] px-2 py-0.5 rounded-full border transition-all duration-300 whitespace-nowrap
+                     ${isHighlighted
+                       ? 'bg-accent-500/80 text-white border-accent-300 shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.6)] ring-1 ring-accent-200'
+                       : 'text-accent-200 bg-accent-900/30 border-accent-500/20 hover:bg-accent-800/50 hover:text-white hover:border-accent-400'
+                     }
+                   `}
+                 >
+                   {highlightMatch(tag, searchQuery, regex)}
+                 </button>
+               );
+             })}
+          </div>
+
+          {/* Complexity */}
+          <div className="hidden md:flex flex-col items-center justify-center gap-1 w-12 shrink-0 z-10 pointer-events-none border-l border-white/5 pl-2">
+            <span className="text-[8px] font-mono text-gray-500 uppercase">CPLX</span>
+            <div className="flex gap-px" title={`Complexity: ${complexityScore}/5`}>
+              {[1, 2, 3, 4, 5].map(level => (
+                <div
+                  key={level}
+                  className={`w-1 h-2 rounded-sm transition-all duration-300 ${
+                    level <= complexityScore
+                      ? 'bg-accent-400 shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.8)]'
+                      : 'bg-white/10'
+                  }`}
+                  style={{ opacity: level <= complexityScore ? 1 : 0.3 }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-1.5 z-20 pointer-events-auto shrink-0 pr-2 border-l border-white/5 pl-3">
+             <Tooltip text={isFavorite ? "REM_FAV" : "ADD_FAV"}>
+               <button
+                 onClick={(e) => {
+                   e.preventDefault();
+                   e.stopPropagation();
+                   if (onToggleFavorite) onToggleFavorite(project);
+                 }}
+                 className={`p-1.5 rounded-md transition-all duration-300
+                   ${isFavorite
+                     ? 'text-pink-400 bg-pink-500/20 shadow-[0_0_10px_rgba(236,72,153,0.3)] border border-pink-400/30'
+                     : 'text-gray-500 hover:text-pink-300 hover:bg-pink-500/10 hover:border-pink-400/30 border border-transparent'
+                   }
+                 `}
+                 aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+               >
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                   <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                 </svg>
+               </button>
+             </Tooltip>
+             <Tooltip text="COPY_LINK">
+               <button
+                 onClick={(e) => {
+                   e.preventDefault();
+                   e.stopPropagation();
+                   if (onCopyLink) onCopyLink(project);
+                 }}
+                 className="p-1.5 rounded-md text-gray-500 hover:text-accent-300 hover:bg-accent-500/20 hover:border-accent-400/30 border border-transparent transition-all duration-300"
+                 aria-label="Copy link"
+               >
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                 </svg>
+               </button>
+             </Tooltip>
+          </div>
+
+          {/* Holographic sweep effect for matrix row */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg z-0">
+             <div className="glass-reflection opacity-50" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Grid Layout (Default)
   return (
     <div
       className={`perspective-container animate-slide-in-up transition-all duration-300 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 scale-105 z-50' : ''}`}
