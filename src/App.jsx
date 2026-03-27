@@ -166,6 +166,23 @@ function App() {
     return 'Featured';
   });
 
+  const [displayMode, setDisplayMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlMode = params.get('view');
+      if (urlMode === 'grid' || urlMode === 'matrix') return urlMode;
+      return localStorage.getItem('curator_display_mode') || 'grid';
+    }
+    return 'grid';
+  });
+
+  // Sync display mode to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('curator_display_mode', displayMode);
+    }
+  }, [displayMode]);
+
   const [randomSeed, setRandomSeed] = useState(() => Math.random());
 
   // Quick View Modal State
@@ -296,6 +313,7 @@ function App() {
           `  help         - Display this information\n` +
           `  filter <val> - Set filter (e.g., 'filter Games', 'filter all')\n` +
           `  sort <val>   - Set sorting (newest, a-z, random, featured, complex)\n` +
+          `  view <val>   - Set display protocol (grid, matrix)\n` +
           `  ls           - List active projects by ID\n` +
           `  open <id>    - Initialize view for specific project ID\n` +
           `  fav <id>     - Toggle favorite status for project ID\n` +
@@ -330,6 +348,23 @@ function App() {
             responseType = 'success';
           } else {
              responseText = `ERR: Invalid filter target '${filterParam}'`;
+             responseType = 'error';
+          }
+        }
+        break;
+
+      case 'view':
+        if (args.length === 0) {
+          responseText = 'ERR: Missing parameter. Usage: view <grid|matrix>';
+          responseType = 'error';
+        } else {
+          const viewParam = args[0].toLowerCase();
+          if (viewParam === 'grid' || viewParam === 'matrix') {
+             setDisplayMode(viewParam);
+             responseText = `> DISPLAY_PROTOCOL_UPDATED: [${viewParam.toUpperCase()}]`;
+             responseType = 'success';
+          } else {
+             responseText = `ERR: Unknown display protocol '${args[0]}'`;
              responseType = 'error';
           }
         }
@@ -529,13 +564,14 @@ function App() {
     if (activeFilter !== 'All') params.set('filter', activeFilter);
     if (searchQuery) params.set('q', searchQuery);
     if (sortOption !== 'Featured') params.set('sort', sortOption);
+    if (displayMode !== 'grid') params.set('view', displayMode);
 
     const queryString = params.toString();
     const newUrl = queryString ? `?${queryString}` : window.location.pathname;
 
     // Use replaceState to update URL without cluttering history stack
     window.history.replaceState(null, '', newUrl);
-  }, [activeFilter, searchQuery, sortOption]);
+  }, [activeFilter, searchQuery, sortOption, displayMode]);
 
   const searchInputRef = useRef(null);
 
@@ -1440,40 +1476,63 @@ function App() {
             </div>
           )}
 
-          {/* Sort Controls */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-accent-500/10 animate-fade-in px-4">
-            <span className="text-xs font-mono text-accent-500/70 tracking-widest uppercase">Sort By:</span>
-            <div className="flex overflow-x-auto w-full sm:w-auto scrollbar-hide snap-x mobile-scroll-mask gap-2 pb-2 sm:pb-0">
-              {['Featured', 'Newest', 'A-Z', 'Most Complex', 'Random'].map((option) => (
-                <button
-                  key={option}
-                  onClick={() => {
-                    if (option === 'Random') {
-                      setRandomSeed(Math.random());
-                    }
-                    if (document.startViewTransition) {
-                      document.startViewTransition(() => {
-                        flushSync(() => {
-                          setSortOption(option);
-                          setCurrentPage(1);
+          {/* Controls: Sort & View Toggle */}
+          <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-4xl mx-auto pt-4 border-t border-accent-500/10 animate-fade-in px-4 gap-4">
+            {/* Sort Controls */}
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+              <span className="text-xs font-mono text-accent-500/70 tracking-widest uppercase whitespace-nowrap">Sort By:</span>
+              <div className="flex overflow-x-auto w-full sm:w-auto scrollbar-hide snap-x mobile-scroll-mask gap-2 pb-2 sm:pb-0">
+                {['Featured', 'Newest', 'A-Z', 'Most Complex', 'Random'].map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => {
+                      if (option === 'Random') {
+                        setRandomSeed(Math.random());
+                      }
+                      if (document.startViewTransition) {
+                        document.startViewTransition(() => {
+                          flushSync(() => {
+                            setSortOption(option);
+                            setCurrentPage(1);
+                          });
                         });
-                      });
-                    } else {
-                      setSortOption(option);
-                      setCurrentPage(1);
-                    }
-                  }}
-                  className={`
-                    px-4 py-1 rounded text-xs font-mono transition-all duration-300 border snap-center shrink-0 whitespace-nowrap
-                    ${sortOption === option
-                      ? 'bg-accent-500/20 text-accent-200 border-accent-400 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]'
-                      : 'bg-black/30 text-gray-500 border-white/5 hover:bg-accent-500/10 hover:text-accent-400 hover:border-accent-500/30'
-                    }
-                  `}
-                >
-                  {option === 'Random' ? '🎲 Random' : option}
-                </button>
-              ))}
+                      } else {
+                        setSortOption(option);
+                        setCurrentPage(1);
+                      }
+                    }}
+                    className={`
+                      px-4 py-1 rounded text-xs font-mono transition-all duration-300 border snap-center shrink-0 whitespace-nowrap
+                      ${sortOption === option
+                        ? 'bg-accent-500/20 text-accent-200 border-accent-400 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]'
+                        : 'bg-black/30 text-gray-500 border-white/5 hover:bg-accent-500/10 hover:text-accent-400 hover:border-accent-500/30'
+                      }
+                    `}
+                  >
+                    {option === 'Random' ? '🎲 Random' : option}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* View Mode Toggle */}
+            <div className="hidden md:flex items-center gap-1 bg-black/40 p-1 rounded-lg border border-white/5 shrink-0">
+              <button
+                onClick={() => setDisplayMode('grid')}
+                className={`p-1.5 rounded transition-all duration-300 ${displayMode === 'grid' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)] scale-105' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                aria-label="Grid View"
+                title="Grid Protocol"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg>
+              </button>
+              <button
+                onClick={() => setDisplayMode('matrix')}
+                className={`p-1.5 rounded transition-all duration-300 ${displayMode === 'matrix' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)] scale-105' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                aria-label="Matrix View"
+                title="Matrix Protocol"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z"/></svg>
+              </button>
             </div>
           </div>
 
@@ -1485,7 +1544,7 @@ function App() {
         {/* Projects Grid */}
         {filteredProjects.length > 0 ? (
           <div id="project-grid" className="scroll-mt-24">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-2 mb-12">
+            <div className={displayMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-2 mb-12" : "flex flex-col gap-3 px-2 mb-12 max-w-4xl mx-auto w-full"}>
             {paginatedProjects.map((project, index) => {
               // Determine which tags to highlight based on active filter
               let highlightedTags = [];
@@ -1502,9 +1561,10 @@ function App() {
 
               return (
                 <Card
-                  key={`${activeFilter}-${sortOption}-${currentPage}-${project.id}`}
+                  key={`${activeFilter}-${sortOption}-${currentPage}-${project.id}-${displayMode}`}
                   project={project}
                   index={index}
+                  layout={displayMode}
                   onTagClick={handleTagClick}
                   searchQuery={searchQuery}
                   highlightedTags={highlightedTags}
