@@ -13,7 +13,7 @@ const highlightMatch = (text, query, regex) => {
   );
 };
 
-const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, highlightedTags = [], isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick, draggable = false, isDragged = false, isDragOver = false, onDragStart, onDragOver, onDragEnd, onDrop }) => {
+const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, highlightedTags = [], isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick, draggable = false, isDragged = false, isDragOver = false, onDragStart, onDragOver, onDragEnd, onDrop, onContextMenu }) => {
   const cardRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
   const rafRef = useRef(null);
@@ -152,6 +152,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
         onDragOver={onDragOver}
         onDragEnd={onDragEnd}
         onDrop={onDrop}
+        onContextMenu={onContextMenu}
       >
         <div className="glass-card relative group flex items-center p-3 gap-4 rounded-lg hover:bg-white/5 hover:border-accent-500/50 transition-colors h-20">
           {/* Click area */}
@@ -318,6 +319,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
       onDrop={onDrop}
+      onContextMenu={onContextMenu}
     >
       <div
         ref={cardRef}
