@@ -185,6 +185,9 @@ function App() {
 
   const [randomSeed, setRandomSeed] = useState(() => Math.random());
 
+  // Custom Context Menu State
+  const [contextMenu, setContextMenu] = useState(null);
+
   // Quick View Modal State
   const [selectedProject, setSelectedProject] = useState(null);
   const selectedProjectRef = useRef(null);
@@ -553,6 +556,32 @@ function App() {
       addToast(`> SYS_ERR: CLIPBOARD_NOT_SUPPORTED`, 'error');
     }
   };
+
+  // Context Menu Handlers
+  const handleContextMenu = (e, project) => {
+    e.preventDefault();
+    setContextMenu({
+      mouseX: e.clientX,
+      mouseY: e.clientY,
+      project
+    });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu(null);
+  };
+
+  useEffect(() => {
+    if (!contextMenu) return;
+
+    // Close context menu on any outside click or scroll
+    window.addEventListener('click', closeContextMenu);
+    window.addEventListener('scroll', closeContextMenu);
+    return () => {
+      window.removeEventListener('click', closeContextMenu);
+      window.removeEventListener('scroll', closeContextMenu);
+    };
+  }, [contextMenu]);
 
   // Pagination Logic
   const [currentPage, setCurrentPage] = useState(1);
@@ -1541,6 +1570,93 @@ function App() {
 
         </div>
 
+        {/* Custom Context Menu Overlay */}
+        {contextMenu && (
+          <div
+            className="fixed z-[9999] bg-black/90 border border-accent-500/50 backdrop-blur-md text-accent-400 font-mono text-xs rounded-lg shadow-[0_0_20px_rgba(var(--rgb-accent-400),0.3)] overflow-hidden animate-fade-in"
+            style={{
+              top: contextMenu.mouseY,
+              left: contextMenu.mouseX,
+              // Adjust if too close to right edge
+              transform: `translate(${contextMenu.mouseX > window.innerWidth - 200 ? '-100%' : '0'}, ${contextMenu.mouseY > window.innerHeight - 200 ? '-100%' : '0'})`
+            }}
+            onClick={(e) => e.stopPropagation()} // Prevent closing immediately when clicking inside
+            onContextMenu={(e) => e.preventDefault()}
+          >
+            <div className="px-4 py-2 border-b border-accent-500/30 bg-accent-900/40 text-[10px] uppercase tracking-widest text-accent-500/80">
+              SYS.ID: {contextMenu.project.id.toString().padStart(4, '0')}
+            </div>
+            <ul className="py-1 flex flex-col w-48">
+              <li>
+                <button
+                  onClick={() => {
+                    handleProjectSelect(contextMenu.project);
+                    closeContextMenu();
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-accent-500/20 hover:text-white transition-colors flex items-center gap-2 group"
+                >
+                  <span className="text-accent-500 group-hover:text-accent-300">👁</span>
+                  Initialize Quick View
+                </button>
+              </li>
+              <li>
+                <a
+                  href={contextMenu.project.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => closeContextMenu()}
+                  className="w-full text-left px-4 py-2 hover:bg-accent-500/20 hover:text-white transition-colors flex items-center gap-2 group"
+                >
+                  <span className="text-accent-500 group-hover:text-accent-300">▶</span>
+                  Launch Protocol
+                </a>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    toggleFavorite(contextMenu.project);
+                    closeContextMenu();
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-pink-500/20 hover:text-pink-300 transition-colors flex items-center gap-2 group"
+                >
+                  <span className="text-pink-500 group-hover:text-pink-400">
+                    {favorites.includes(contextMenu.project.id) ? '💔' : '💖'}
+                  </span>
+                  {favorites.includes(contextMenu.project.id) ? 'Remove Favorite' : 'Mark as Favorite'}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    handleCopyLink(contextMenu.project);
+                    closeContextMenu();
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-accent-500/20 hover:text-white transition-colors flex items-center gap-2 group"
+                >
+                  <span className="text-accent-500 group-hover:text-accent-300">🔗</span>
+                  Copy Data Link
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    if (navigator.clipboard) {
+                      navigator.clipboard.writeText(contextMenu.project.id.toString());
+                      addToast(`> SYS_CMD: COPIED_SYS_ID [${contextMenu.project.id.toString().padStart(4, '0')}]`, 'info');
+                    }
+                    closeContextMenu();
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-accent-500/20 hover:text-white transition-colors flex items-center gap-2 group"
+                >
+                  <span className="text-accent-500 group-hover:text-accent-300">#</span>
+                  Copy System ID
+                </button>
+              </li>
+            </ul>
+            <div className="scanline opacity-30 pointer-events-none"></div>
+          </div>
+        )}
+
         {/* Projects Grid */}
         {filteredProjects.length > 0 ? (
           <div id="project-grid" className="scroll-mt-24">
@@ -1579,6 +1695,7 @@ function App() {
                   onDragOver={(e) => handleDragOver(e, project.id)}
                   onDragEnd={handleDragEnd}
                   onDrop={(e) => handleDrop(e, project.id)}
+                  onContextMenu={(e) => handleContextMenu(e, project)}
                 />
               );
             })}
