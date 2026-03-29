@@ -4,6 +4,7 @@ import Card from './Card';
 import Starfield from './Starfield';
 import CustomCursor from './CustomCursor';
 import projectData from './projectData';
+import TelemetryGraph from './TelemetryGraph';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
 import './App.css';
 
@@ -321,9 +322,43 @@ function App() {
           `  open <id>    - Initialize view for specific project ID\n` +
           `  fav <id>     - Toggle favorite status for project ID\n` +
           `  theme <val>  - Change OS theme (cyan, purple, emerald)\n` +
+          `  stats        - View system diagnostics\n` +
           `  clear        - Flush terminal buffer\n` +
           `  exit / close - Terminate command session`;
         break;
+
+      case 'stats': {
+        const totalProjects = projectData.length;
+        const favCount = favorites.length;
+        let statsStr = `SYSTEM DIAGNOSTICS\n`;
+        statsStr += `------------------\n`;
+        statsStr += `TOTAL PROJECTS : ${totalProjects}\n`;
+        statsStr += `FAVORITES      : ${favCount}\n\n`;
+        statsStr += `CATEGORY DISTRIBUTION:\n`;
+
+        const catCounts = {};
+        projectData.forEach(p => {
+            const cats = new Set();
+            p.tags.forEach(t => {
+                if (TAG_TO_CATEGORIES[t]) {
+                    TAG_TO_CATEGORIES[t].forEach(c => cats.add(c));
+                }
+            });
+            cats.forEach(c => {
+                catCounts[c] = (catCounts[c] || 0) + 1;
+            });
+        });
+
+        Object.entries(catCounts).forEach(([cat, count]) => {
+            const barLen = Math.round((count / totalProjects) * 20);
+            const bar = '█'.repeat(barLen) + '░'.repeat(20 - barLen);
+            statsStr += `[${bar}] ${cat.padEnd(15)} (${count})\n`;
+        });
+
+        responseText = statsStr;
+        responseType = 'system';
+        break;
+      }
 
       case 'filter':
         if (args.length === 0) {
@@ -1131,24 +1166,16 @@ function App() {
 
           <div className="hidden md:flex items-center gap-2 text-accent-200/70 border-r border-accent-500/30 pr-4">
              <span className="opacity-50">MEM:</span>
-             <span className="text-accent-100 min-w-[28px]">{systemStats.memory}%</span>
-             <div className="flex gap-0.5 ml-1">
-                <div className={`w-1 h-3 ${systemStats.memory >= 20 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
-                <div className={`w-1 h-3 ${systemStats.memory >= 40 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
-                <div className={`w-1 h-3 ${systemStats.memory >= 60 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
-                <div className={`w-1 h-3 ${systemStats.memory >= 80 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
-                <div className={`w-1 h-3 ${systemStats.memory >= 95 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
+             <span className="text-accent-100 min-w-[28px] tabular-nums">{systemStats.memory}%</span>
+             <div className="ml-1 border border-accent-500/30 rounded overflow-hidden">
+                <TelemetryGraph value={systemStats.memory} max={100} width={40} height={16} />
              </div>
           </div>
           <div className="hidden sm:flex items-center gap-2 text-accent-200/70 border-r border-accent-500/30 pr-4">
              <span className="opacity-50">NET:</span>
-             <span className="text-accent-100 min-w-[40px]">{systemStats.connections}</span>
-             <div className="flex gap-0.5 ml-1">
-                <div className={`w-1 h-3 ${systemStats.connections >= 400 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
-                <div className={`w-1 h-3 ${systemStats.connections >= 800 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
-                <div className={`w-1 h-3 ${systemStats.connections >= 1200 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
-                <div className={`w-1 h-3 ${systemStats.connections >= 1600 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
-                <div className={`w-1 h-3 ${systemStats.connections >= 2000 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
+             <span className="text-accent-100 min-w-[40px] tabular-nums">{systemStats.connections}</span>
+             <div className="ml-1 border border-accent-500/30 rounded overflow-hidden">
+                <TelemetryGraph value={systemStats.connections} max={3000} width={40} height={16} />
              </div>
           </div>
           <div className="text-accent-300 font-bold tracking-widest drop-shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.8)] font-mono tabular-nums min-w-[110px] text-right">
