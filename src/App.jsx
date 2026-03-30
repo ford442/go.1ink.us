@@ -134,13 +134,17 @@ function App() {
   // Mobile Filter Drawer State
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
-  // activeFilter can be 'All', a Category Key (e.g., 'Games'), or a specific Tag (e.g., 'Fluid')
-  const [activeFilter, setActiveFilter] = useState(() => {
+  // activeFilters is an array of Category Keys (e.g., 'Games'), specific Tags (e.g., 'Fluid'), or 'Favorites'
+  const [activeFilters, setActiveFilters] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      return params.get('filter') || 'All';
+      const filtersParam = params.get('filters');
+      if (filtersParam) {
+        return filtersParam.split(',').map(f => f.trim()).filter(Boolean);
+      }
+      return [];
     }
-    return 'All';
+    return [];
   });
 
   const [searchQuery, setSearchQuery] = useState(() => {
@@ -372,9 +376,8 @@ function App() {
           }
 
           if (matchedFilter) {
-            setActiveFilter(matchedFilter);
-            setCurrentPage(1);
-            responseText = `> FILTER_PROTOCOL_ENGAGED: [${matchedFilter.toUpperCase()}]`;
+            toggleFilter(matchedFilter);
+            responseText = `> FILTER_PROTOCOL_TOGGLED: [${matchedFilter.toUpperCase()}]`;
             responseType = 'success';
           } else {
              responseText = `ERR: Invalid filter target '${filterParam}'`;
@@ -617,7 +620,7 @@ function App() {
   // Sync state to URL (Deep Linking)
   useEffect(() => {
     const params = new URLSearchParams();
-    if (activeFilter !== 'All') params.set('filter', activeFilter);
+    if (activeFilters.length > 0) params.set('filters', activeFilters.join(','));
     if (searchQuery) params.set('q', searchQuery);
     if (sortOption !== 'Featured') params.set('sort', sortOption);
     if (displayMode !== 'grid') params.set('view', displayMode);
@@ -627,7 +630,7 @@ function App() {
 
     // Use replaceState to update URL without cluttering history stack
     window.history.replaceState(null, '', newUrl);
-  }, [activeFilter, searchQuery, sortOption, displayMode]);
+  }, [activeFilters, searchQuery, sortOption, displayMode]);
 
   const searchInputRef = useRef(null);
 
@@ -684,14 +687,14 @@ function App() {
           if (document.startViewTransition) {
             document.startViewTransition(() => {
               flushSync(() => {
-                setActiveFilter('All');
+                setActiveFilters([]);
                 setSearchQuery('');
                 setSortOption('Featured');
                 setCurrentPage(1);
               });
             });
           } else {
-            setActiveFilter('All');
+            setActiveFilters([]);
             setSearchQuery('');
             setSortOption('Featured');
             setCurrentPage(1);
@@ -770,23 +773,27 @@ function App() {
     });
   }, [searchQuery]);
 
-  // Calculate the current parent category based on the active filter
-  // This allows us to show the relevant sub-tags even when a specific tag is selected
-  const currentCategory = useMemo(() => {
-    if (activeFilter === 'All') return null;
-    if (CATEGORIES[activeFilter]) return activeFilter;
-    // Find category for the active tag
-    const categories = TAG_TO_CATEGORIES[activeFilter];
-    return categories ? categories[0] : null;
-  }, [activeFilter]);
+  // Calculate active categories based on the active filters to display relevant sub-tags
+  const activeCategories = useMemo(() => {
+    if (activeFilters.length === 0) return [];
+    const cats = new Set();
+    activeFilters.forEach(f => {
+      if (CATEGORIES[f]) cats.add(f);
+      else {
+        const mapped = TAG_TO_CATEGORIES[f];
+        if (mapped) mapped.forEach(c => cats.add(c));
+      }
+    });
+    return Array.from(cats);
+  }, [activeFilters]);
 
-  // Determine the active color theme based on the current category context
+  // Determine the active color theme based on the first active category
   const currentTheme = useMemo(() => {
-    if (currentCategory && CATEGORY_THEMES[currentCategory]) {
-      return CATEGORY_THEMES[currentCategory];
+    if (activeCategories.length > 0 && CATEGORY_THEMES[activeCategories[0]]) {
+      return CATEGORY_THEMES[activeCategories[0]];
     }
     return CATEGORY_THEMES['default'];
-  }, [currentCategory]);
+  }, [activeCategories]);
 
   // Single-pass calculation of all category and tag counts
   const counts = useMemo(() => {
@@ -843,34 +850,57 @@ function App() {
   }, []);
 
 
-  const handleTagClick = (tag) => {
+  const toggleFilter = (filterParam) => {
+    const updateState = () => {
+      if (filterParam === 'All') {
+        setActiveFilters([]);
+      } else {
+        setActiveFilters(prev => {
+          if (prev.includes(filterParam)) {
+            return prev.filter(f => f !== filterParam);
+          }
+          return [...prev, filterParam];
+        });
+      }
+      setCurrentPage(1);
+    };
+
     if (document.startViewTransition) {
       document.startViewTransition(() => {
-        flushSync(() => {
-            setActiveFilter(tag);
-            setCurrentPage(1);
-        });
+        flushSync(updateState);
       });
     } else {
-      setActiveFilter(tag);
-      setCurrentPage(1);
+      updateState();
     }
   };
 
-  const filteredProjects = useMemo(() => {
-    const categorySet = CATEGORY_SETS[activeFilter];
+  const handleTagClick = (tag) => {
+    toggleFilter(tag);
+  };
 
+  const filteredProjects = useMemo(() => {
     return projectsMatchingQuery.filter(project => {
-      if (activeFilter === 'All') return true;
-      if (activeFilter === 'Favorites') return favorites.includes(project.id);
-      if (categorySet) {
-        // It's a Category: Match if project has ANY tag in this category (O(1) membership check)
-        return project.tags.some(tag => categorySet.has(tag));
+      if (activeFilters.length === 0) return true;
+
+      // If 'Favorites' is selected, must be a favorite
+      if (activeFilters.includes('Favorites') && !favorites.includes(project.id)) {
+        return false;
       }
-      // It's a specific Tag
-      return project.tags.includes(activeFilter);
+
+      const regularFilters = activeFilters.filter(f => f !== 'Favorites');
+      if (regularFilters.length === 0) return true;
+
+      // Project must satisfy ALL selected non-favorite filters (Categories or Tags)
+      return regularFilters.every(filter => {
+        if (CATEGORY_SETS[filter]) {
+          // If filter is a Category, project must have ANY tag within this category
+          return project.tags.some(tag => CATEGORY_SETS[filter].has(tag));
+        }
+        // If filter is a specific Tag, project must have this tag
+        return project.tags.includes(filter);
+      });
     });
-  }, [activeFilter, projectsMatchingQuery, favorites]);
+  }, [activeFilters, projectsMatchingQuery, favorites]);
 
   const favoriteCount = useMemo(() => {
     return projectsMatchingQuery.filter(project => favorites.includes(project.id)).length;
@@ -905,7 +935,7 @@ function App() {
       case 'Featured':
       default:
         // Returns original array order from projectData (assumed to be featured order)
-        if (activeFilter === 'Favorites') {
+        if (activeFilters.includes('Favorites') && activeFilters.length === 1) {
           return projects.sort((a, b) => {
             const indexA = favorites.indexOf(a.id);
             const indexB = favorites.indexOf(b.id);
@@ -914,7 +944,7 @@ function App() {
         }
         return projects;
     }
-  }, [filteredProjects, sortOption, randomSeed, activeFilter, favorites]);
+  }, [filteredProjects, sortOption, randomSeed, activeFilters, favorites]);
 
   const totalPages = Math.ceil(sortedProjects.length / itemsPerPage);
 
@@ -1313,27 +1343,18 @@ function App() {
                <span className="animate-pulse">⚡</span> Trending:
              </span>
              <div className="flex gap-2 overflow-x-auto scrollbar-hide py-1 px-1 mobile-scroll-mask snap-x">
-               {suggestedTags.map((tag) => (
+               {suggestedTags.map((tag) => {
+                 const isActive = activeFilters.includes(tag);
+                 return (
                  <button
                    key={tag}
                    onClick={() => {
-                     if (document.startViewTransition) {
-                        document.startViewTransition(() => {
-                          flushSync(() => {
-                            setSearchQuery('');
-                            setActiveFilter(tag);
-                            setCurrentPage(1);
-                          });
-                        });
-                      } else {
-                        setSearchQuery('');
-                        setActiveFilter(tag);
-                        setCurrentPage(1);
-                      }
+                     setSearchQuery('');
+                     toggleFilter(tag);
                    }}
                    className={`
                      px-3 py-1 text-xs font-medium rounded transition-all duration-300 backdrop-blur-md border whitespace-nowrap snap-center shrink-0
-                     ${activeFilter === tag
+                     ${isActive
                        ? CATEGORY_BUTTON_STYLES[TAG_TO_CATEGORIES[tag]?.[0]]?.tagClass || CATEGORY_BUTTON_STYLES['default'].tagClass
                        : 'bg-white/5 text-gray-400 border-white/10 hover:bg-accent-500/10 hover:text-accent-200 hover:border-accent-500/30 hover:scale-105'
                      }
@@ -1341,7 +1362,8 @@ function App() {
                  >
                    {tag}
                  </button>
-               ))}
+                 );
+               })}
              </div>
           </div>
 
@@ -1362,7 +1384,7 @@ function App() {
                 <span className="font-mono text-sm tracking-widest uppercase font-bold text-accent-100">Filter Protocols</span>
 
                 {/* Active Indicator */}
-                {(activeFilter !== 'All' || sortOption !== 'Featured') && (
+                {(activeFilters.length > 0 || sortOption !== 'Featured') && (
                   <span className="flex h-2 w-2 relative ml-1">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-500"></span>
@@ -1392,22 +1414,10 @@ function App() {
           <div className="flex overflow-x-auto md:flex-wrap md:justify-center gap-4 pb-2 md:pb-0 scrollbar-hide mobile-scroll-mask px-4 md:px-0 snap-x">
             {/* 'All' Button */}
             <button
-              onClick={() => {
-                if (document.startViewTransition) {
-                  document.startViewTransition(() => {
-                    flushSync(() => {
-                        setActiveFilter('All');
-                        setCurrentPage(1);
-                    });
-                  });
-                } else {
-                  setActiveFilter('All');
-                  setCurrentPage(1);
-                }
-              }}
+              onClick={() => toggleFilter('All')}
               className={`
                 px-6 py-2 rounded-full font-medium transition-all duration-300 backdrop-blur-md border flex items-center gap-2 snap-center shrink-0
-                ${activeFilter === 'All'
+                ${activeFilters.length === 0
                   ? CATEGORY_BUTTON_STYLES['All'].activeClass
                   : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/30'
                 }
@@ -1415,29 +1425,17 @@ function App() {
             >
               <span>🌌</span>
               <span>All</span>
-              <span className={`text-xs ml-1 ${activeFilter === 'All' ? 'text-accent-200' : 'text-gray-500'}`}>
+              <span className={`text-xs ml-1 ${activeFilters.length === 0 ? 'text-accent-200' : 'text-gray-500'}`}>
                 ({projectsMatchingQuery.length})
               </span>
             </button>
 
             {/* 'Favorites' Button */}
             <button
-              onClick={() => {
-                if (document.startViewTransition) {
-                  document.startViewTransition(() => {
-                    flushSync(() => {
-                        setActiveFilter('Favorites');
-                        setCurrentPage(1);
-                    });
-                  });
-                } else {
-                  setActiveFilter('Favorites');
-                  setCurrentPage(1);
-                }
-              }}
+              onClick={() => toggleFilter('Favorites')}
               className={`
                 px-6 py-2 rounded-full font-medium transition-all duration-300 backdrop-blur-md border flex items-center gap-2 snap-center shrink-0
-                ${activeFilter === 'Favorites'
+                ${activeFilters.includes('Favorites')
                   ? 'bg-pink-500/80 text-white border-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.5)] scale-105 animate-pulse-glow'
                   : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-pink-300 hover:border-pink-500/30'
                 }
@@ -1445,14 +1443,14 @@ function App() {
             >
               <span>💖</span>
               <span>Favorites</span>
-              <span className={`text-xs ml-1 ${activeFilter === 'Favorites' ? 'text-pink-200' : 'text-gray-500'}`}>
+              <span className={`text-xs ml-1 ${activeFilters.includes('Favorites') ? 'text-pink-200' : 'text-gray-500'}`}>
                 ({favoriteCount})
               </span>
             </button>
 
             {/* Category Buttons */}
             {Object.keys(CATEGORIES).map((category) => {
-              const isActive = activeFilter === category || (CATEGORY_SETS[category] && CATEGORY_SETS[category].has(activeFilter));
+              const isActive = activeFilters.includes(category) || activeFilters.some(f => CATEGORY_SETS[category] && CATEGORY_SETS[category].has(f));
               const count = counts.categoryCounts[category];
 
               // Hide category if search yields 0 results for it, unless it's active
@@ -1461,19 +1459,7 @@ function App() {
               return (
                 <button
                   key={category}
-                  onClick={() => {
-                    if (document.startViewTransition) {
-                      document.startViewTransition(() => {
-                        flushSync(() => {
-                            setActiveFilter(category);
-                            setCurrentPage(1);
-                        });
-                      });
-                    } else {
-                      setActiveFilter(category);
-                      setCurrentPage(1);
-                    }
-                  }}
+                  onClick={() => toggleFilter(category)}
                   className={`
                     px-5 py-2 rounded-full font-medium transition-all duration-300 backdrop-blur-md border flex items-center gap-2 snap-center shrink-0
                     ${isActive
@@ -1493,13 +1479,16 @@ function App() {
           </div>
 
           {/* Sub-Category Tags Section */}
-          {currentCategory && (
+          {activeCategories.length > 0 && (
             <div className="flex overflow-x-auto md:flex-wrap md:justify-center gap-2 animate-fade-in pb-2 md:pb-0 scrollbar-hide mobile-scroll-mask px-4 md:px-0 snap-x">
-              {CATEGORIES[currentCategory].map((tag, index) => {
-                const isActive = activeFilter === tag;
+              {Array.from(new Set(activeCategories.flatMap(cat => CATEGORIES[cat]))).map((tag, index) => {
+                const isActive = activeFilters.includes(tag);
                 const count = counts.tagCounts[tag];
 
                 if (count === 0 && !isActive) return null;
+
+                // For tag styles, fall back to its primary category's theme
+                const tagTheme = TAG_TO_CATEGORIES[tag]?.[0] || 'default';
 
                 return (
                   <button
@@ -1509,7 +1498,7 @@ function App() {
                     className={`
                       px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 border flex items-center gap-2 animate-fade-in snap-center shrink-0
                       ${isActive
-                        ? CATEGORY_BUTTON_STYLES[currentCategory]?.tagClass || CATEGORY_BUTTON_STYLES['default'].tagClass
+                        ? CATEGORY_BUTTON_STYLES[tagTheme]?.tagClass || CATEGORY_BUTTON_STYLES['default'].tagClass
                         : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10 hover:text-white hover:border-white/20'
                       }
                     `}
@@ -1679,22 +1668,23 @@ function App() {
           <div id="project-grid" className="scroll-mt-24">
             <div className={displayMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-2 mb-12" : "flex flex-col gap-3 px-2 mb-12 max-w-4xl mx-auto w-full"}>
             {paginatedProjects.map((project, index) => {
-              // Determine which tags to highlight based on active filter
+              // Determine which tags to highlight based on active filters
               let highlightedTags = [];
-              const activeCategorySet = CATEGORY_SETS[activeFilter];
-              if (activeCategorySet) {
-                // Active filter is a Category: Highlight all tags that belong to this category
-                highlightedTags = project.tags.filter(tag => activeCategorySet.has(tag));
-              } else if (activeFilter !== 'All') {
-                // Active filter is a specific Tag: Highlight just that tag
-                if (project.tags.includes(activeFilter)) {
-                  highlightedTags = [activeFilter];
+              activeFilters.forEach(filter => {
+                if (CATEGORY_SETS[filter]) {
+                  project.tags.forEach(t => {
+                    if (CATEGORY_SETS[filter].has(t) && !highlightedTags.includes(t)) {
+                      highlightedTags.push(t);
+                    }
+                  });
+                } else if (project.tags.includes(filter) && !highlightedTags.includes(filter)) {
+                  highlightedTags.push(filter);
                 }
-              }
+              });
 
               return (
                 <Card
-                  key={`${activeFilter}-${sortOption}-${currentPage}-${project.id}-${displayMode}`}
+                  key={`${activeFilters.join('-')}-${sortOption}-${currentPage}-${project.id}-${displayMode}`}
                   project={project}
                   index={index}
                   layout={displayMode}
@@ -1705,7 +1695,7 @@ function App() {
                   onToggleFavorite={toggleFavorite}
                   onCopyLink={handleCopyLink}
                   onProjectClick={handleProjectSelect}
-                  draggable={activeFilter === 'Favorites' && sortOption === 'Featured'}
+                  draggable={activeFilters.includes('Favorites') && activeFilters.length === 1 && sortOption === 'Featured'}
                   isDragged={draggedFavoriteId === project.id}
                   isDragOver={dragOverFavoriteId === project.id}
                   onDragStart={(e) => handleDragStart(e, project.id)}
@@ -1770,7 +1760,7 @@ function App() {
                       VOID DETECTED
                    </h3>
                    <div className="text-accent-300/80 font-mono text-sm bg-black/30 p-4 rounded border border-accent-500/20 w-full text-left">
-                      <p className="mb-2">{`> SEARCH_QUERY: "${searchQuery || activeFilter}"`}</p>
+                      <p className="mb-2">{`> SEARCH_QUERY: "${searchQuery || activeFilters.join(', ')}"`}</p>
                       <p className="mb-2">{`> STATUS: NO_RESULTS_FOUND`}</p>
                       <p className="animate-pulse mb-4">{`> RECOMMENDATION: TRY_DIFFERENT_KEYWORDS_OR_TAGS`}</p>
 
@@ -1782,19 +1772,8 @@ function App() {
                             <button
                               key={tag}
                               onClick={() => {
-                                if (document.startViewTransition) {
-                                  document.startViewTransition(() => {
-                                    flushSync(() => {
-                                      setSearchQuery('');
-                                      setActiveFilter(tag);
-                                      setCurrentPage(1);
-                                    });
-                                  });
-                                } else {
-                                  setSearchQuery('');
-                                  setActiveFilter(tag);
-                                  setCurrentPage(1);
-                                }
+                                setSearchQuery('');
+                                toggleFilter(tag);
                               }}
                               className="px-3 py-1 bg-accent-900/40 hover:bg-accent-500/20 border border-accent-500/30 text-accent-200 text-xs rounded transition-all duration-300 hover:shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.3)]"
                             >
@@ -1809,13 +1788,13 @@ function App() {
                        if (document.startViewTransition) {
                          document.startViewTransition(() => {
                            flushSync(() => {
-                             setActiveFilter('All');
+                             setActiveFilters([]);
                              setSearchQuery('');
                              setCurrentPage(1);
                            });
                          });
                        } else {
-                         setActiveFilter('All');
+                         setActiveFilters([]);
                          setSearchQuery('');
                          setCurrentPage(1);
                        }
