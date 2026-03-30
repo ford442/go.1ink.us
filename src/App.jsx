@@ -3,6 +3,7 @@ import { flushSync } from 'react-dom';
 import Card from './Card';
 import Starfield from './Starfield';
 import CustomCursor from './CustomCursor';
+import Clock from './Clock';
 import projectData from './projectData';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
 import './App.css';
@@ -89,7 +90,6 @@ function App() {
 
   // Command Center Header State
   const [systemStats, setSystemStats] = useState({
-    time: `${new Date().toLocaleTimeString('en-US', { hour12: false })}.${new Date().getMilliseconds().toString().padStart(3, '0')}`,
     uptime: 999990, // Random high start
     connections: 1337,
     memory: 42
@@ -117,16 +117,8 @@ function App() {
       });
     }, 1000);
 
-    const fastTimer = setInterval(() => {
-      setSystemStats(prev => ({
-        ...prev,
-        time: `${new Date().toLocaleTimeString('en-US', { hour12: false })}.${new Date().getMilliseconds().toString().padStart(3, '0')}`
-      }));
-    }, 50);
-
     return () => {
       clearInterval(slowTimer);
-      clearInterval(fastTimer);
     };
   }, []);
 
@@ -1151,9 +1143,7 @@ function App() {
                 <div className={`w-1 h-3 ${systemStats.connections >= 2000 ? 'bg-accent-400' : 'bg-accent-900/50'}`}></div>
              </div>
           </div>
-          <div className="text-accent-300 font-bold tracking-widest drop-shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.8)] font-mono tabular-nums min-w-[110px] text-right">
-            {systemStats.time}
-          </div>
+          <Clock />
         </div>
       </div>
 
