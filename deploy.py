@@ -99,7 +99,7 @@ def upload_directory(sftp_client, local_path, remote_path):
         
         # Use ThreadPoolExecutor for concurrency
         # Adjust max_workers as needed (5-10 is usually safe for SFTP)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             futures = [
                 executor.submit(upload_single_file, transport, local, remote)
                 for local, remote in files_to_upload
