@@ -300,6 +300,11 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
              </Tooltip>
           </div>
 
+          {/* Holographic Scanline on Hover */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10">
+            <div className="scanline" style={{ animationDuration: '2s' }}></div>
+          </div>
+
           {/* Holographic sweep effect for matrix row */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg z-0">
              <div className="glass-reflection opacity-50" />
@@ -521,9 +526,9 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
           }}
         />
 
-        {/* Neon Spotlight Border */}
+        {/* Neon Spotlight Border (with Pulse) */}
         <div
-          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl"
+          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 animate-pulse transition-opacity duration-500 rounded-xl"
           style={{
             zIndex: 15,
             transform: 'translateZ(60px)',
@@ -536,6 +541,11 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
             mixBlendMode: 'screen' // Added for better blending
           }}
         />
+
+        {/* 🌌 CURATOR FEATURE: Holographic Scanline on Hover */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20" style={{ transform: 'translateZ(70px)' }}>
+          <div className="scanline" style={{ animationDuration: '2s' }}></div>
+        </div>
 
         {/* 🌌 CURATOR FEATURE: Sweeping Glass Reflection */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl z-20" style={{ transform: 'translateZ(70px)' }}>
