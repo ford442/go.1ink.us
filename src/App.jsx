@@ -289,9 +289,72 @@ function App() {
     { type: 'system', text: 'CURATOR_OS v1.0.4 - TERMINAL INITIALIZED' },
     { type: 'system', text: 'Type "help" for a list of commands.' }
   ]);
+  const [commandHistory, setCommandHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const [terminalInput, setTerminalInput] = useState('');
   const terminalInputRef = useRef(null);
   const terminalEndRef = useRef(null);
+
+  const handleTerminalKeyDown = (e) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (commandHistory.length > 0) {
+        const newIndex = historyIndex === -1 ? commandHistory.length - 1 : Math.max(0, historyIndex - 1);
+        setHistoryIndex(newIndex);
+        setTerminalInput(commandHistory[newIndex]);
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIndex !== -1) {
+        const newIndex = historyIndex + 1;
+        if (newIndex >= commandHistory.length) {
+          setHistoryIndex(-1);
+          setTerminalInput('');
+        } else {
+          setHistoryIndex(newIndex);
+          setTerminalInput(commandHistory[newIndex]);
+        }
+      }
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      const input = terminalInput.trimStart();
+      if (!input) return;
+
+      const words = input.split(' ');
+      const cmd = words[0].toLowerCase();
+      const commands = ['help', 'filter', 'view', 'sort', 'ls', 'open', 'fav', 'theme', 'clear', 'exit'];
+
+      if (words.length === 1) {
+        const matches = commands.filter(c => c.startsWith(cmd));
+        if (matches.length === 1) {
+          setTerminalInput(matches[0] + ' ');
+        }
+      } else if (words.length === 2) {
+        const arg = words[1].toLowerCase();
+        if (cmd === 'theme') {
+          const themes = ['cyan', 'purple', 'emerald'];
+          const matches = themes.filter(t => t.startsWith(arg));
+          if (matches.length === 1) setTerminalInput(`${cmd} ${matches[0]}`);
+        } else if (cmd === 'view') {
+          const views = ['grid', 'matrix'];
+          const matches = views.filter(v => v.startsWith(arg));
+          if (matches.length === 1) setTerminalInput(`${cmd} ${matches[0]}`);
+        } else if (cmd === 'sort') {
+          const sorts = ['featured', 'newest', 'a-z', 'random', 'complex'];
+          // Remove hyphens for easier matching, e.g., 'a' matches 'a-z'
+          const matches = sorts.filter(s => s.replace('-', '').startsWith(arg.replace('-', '')));
+          if (matches.length === 1) setTerminalInput(`${cmd} ${matches[0]}`);
+        } else if (cmd === 'filter') {
+          const filters = ['all', 'favorites', ...Object.keys(CATEGORIES).map(c => c.toLowerCase())];
+          const matches = filters.filter(f => f.startsWith(arg));
+          if (matches.length === 1) {
+             const originalCat = Object.keys(CATEGORIES).find(c => c.toLowerCase() === matches[0]);
+             setTerminalInput(`${cmd} ${originalCat || matches[0]}`);
+          }
+        }
+      }
+    }
+  };
 
   // Terminal Command Processor
   const handleTerminalSubmit = (e) => {
@@ -300,6 +363,9 @@ function App() {
 
     const commandStr = terminalInput.trim();
     const [command, ...args] = commandStr.split(/\s+/);
+
+    setCommandHistory(prev => [...prev, commandStr]);
+    setHistoryIndex(-1);
 
     // Echo command
     const newHistory = [...terminalHistory, { type: 'user', text: `root@curator:~# ${commandStr}` }];
@@ -2031,6 +2097,7 @@ function App() {
                  type="text"
                  value={terminalInput}
                  onChange={(e) => setTerminalInput(e.target.value)}
+                 onKeyDown={handleTerminalKeyDown}
                  className="flex-1 bg-transparent border-none outline-none text-white focus:ring-0 p-0 placeholder-gray-600"
                  placeholder="Type 'help' for available protocols..."
                  autoComplete="off"
@@ -2098,3 +2165,5 @@ export default App;
 // CURATOR'S JOURNAL - UX LOG
 // - Added 'Most Complex' sorting option and visual indicator.
 // - Insight: Sorting by complexity gives users a way to instantly find the most sophisticated projects. The visual meter adds a nice touch of "sci-fi dashboard" feel without cluttering the UI.
+// - Added Terminal Power-Up: Command history cycling via Up/Down arrows and auto-completion via Tab.
+// - Insight: Bringing native OS CLI behavior to the simulated terminal creates an immersive "power user" experience, matching the sci-fi command center aesthetic perfectly.
