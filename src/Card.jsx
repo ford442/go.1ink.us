@@ -88,9 +88,15 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
       // Includes the lift (translateY) and scale that matches the CSS hover state intention
       card.style.transform = `translateY(-10px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
 
+      // Calculate percentage for glare
+      const percentX = (x / rect.width) * 100;
+      const percentY = (y / rect.height) * 100;
+
       // Set CSS variables for the spotlight effect and parallax
       card.style.setProperty('--mouse-x', `${x}px`);
       card.style.setProperty('--mouse-y', `${y}px`);
+      card.style.setProperty('--mouse-percent-x', `${percentX}%`);
+      card.style.setProperty('--mouse-percent-y', `${percentY}%`);
       card.style.setProperty('--parallax-x', `${parallaxX}px`);
       card.style.setProperty('--parallax-y', `${parallaxY}px`);
 
@@ -309,6 +315,22 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
           <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg z-0">
              <div className="glass-reflection opacity-50" />
           </div>
+
+          {/* 🌌 CURATOR FEATURE: Dynamic Mouse-Follow Glare (Matrix) */}
+          <div
+            className="absolute inset-0 pointer-events-none rounded-lg z-[15] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            style={{
+              background: `radial-gradient(circle at var(--mouse-percent-x, 50%) var(--mouse-percent-y, 50%), rgba(255,255,255,0.1) 0%, transparent 40%)`,
+              mixBlendMode: 'overlay'
+            }}
+          />
+          <div
+            className="absolute inset-0 pointer-events-none rounded-lg z-[15] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            style={{
+              background: `radial-gradient(circle at var(--mouse-percent-x, 50%) var(--mouse-percent-y, 50%), rgba(var(--rgb-accent-400), 0.05) 0%, transparent 30%)`,
+              mixBlendMode: 'screen'
+            }}
+          />
         </div>
       </div>
     );
@@ -554,6 +576,24 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
 
         {/* 🌌 CURATOR FEATURE: True Holographic Glass Effects */}
         <div className="holo-overlay absolute inset-0 pointer-events-none rounded-xl z-10" style={{ transform: 'translateZ(20px)' }}></div>
+
+        {/* 🌌 CURATOR FEATURE: Dynamic Mouse-Follow Glare */}
+        <div
+          className="absolute inset-0 pointer-events-none rounded-xl z-[15] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          style={{
+            background: `radial-gradient(circle at var(--mouse-percent-x, 50%) var(--mouse-percent-y, 50%), rgba(255,255,255,0.15) 0%, transparent 60%)`,
+            mixBlendMode: 'overlay',
+            transform: 'translateZ(30px)'
+          }}
+        />
+        <div
+          className="absolute inset-0 pointer-events-none rounded-xl z-[15] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          style={{
+            background: `radial-gradient(circle at var(--mouse-percent-x, 50%) var(--mouse-percent-y, 50%), rgba(var(--rgb-accent-400), 0.1) 0%, transparent 50%)`,
+            mixBlendMode: 'screen',
+            transform: 'translateZ(30px)'
+          }}
+        />
       </div>
     </div>
   );
