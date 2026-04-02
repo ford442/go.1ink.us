@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import Tooltip from './Tooltip';
+import DecryptText from './DecryptText';
 
 // Helper to highlight matching text moved outside to avoid re-allocation on every render
 const highlightMatch = (text, query, regex) => {
@@ -18,6 +19,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
   const [isInteractive, setIsInteractive] = useState(false);
   const rafRef = useRef(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     // Check if device supports hover and user doesn't prefer reduced motion
@@ -45,6 +47,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
   }, []);
 
   const handleMouseEnter = () => {
+    setIsHovered(true);
     if (!cardRef.current) return;
     // Set fast transition for tilt responsiveness on hover enter
     // This avoids setting style on every mousemove event, improving performance
@@ -105,6 +108,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
   };
 
   const handleMouseLeave = () => {
+    setIsHovered(false);
     if (!cardRef.current) return;
 
     // Cancel any pending animation frame
@@ -204,11 +208,17 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
              )}
           </div>
 
+          {/* Target Lock Hover Brackets */}
+          <div className="target-bracket target-bracket-tl"></div>
+          <div className="target-bracket target-bracket-tr"></div>
+          <div className="target-bracket target-bracket-bl"></div>
+          <div className="target-bracket target-bracket-br"></div>
+
           {/* Info */}
           <div className="flex-1 flex flex-col min-w-0 z-10 pointer-events-none justify-center">
              <div className="flex items-center gap-2">
                <h3 className="text-sm md:text-base font-bold text-white truncate group-hover:text-accent-300 transition-colors duration-300">
-                 {highlightMatch(project.title, searchQuery, regex)}
+                 <DecryptText text={project.title} isHovered={isHovered} searchQuery={searchQuery} regex={regex} />
                </h3>
                {/* Tech badges inline (hide on very small screens) */}
                <div className="hidden sm:flex gap-1 overflow-hidden">
@@ -438,6 +448,12 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
             </div>
           )}
 
+          {/* Target Lock Hover Brackets */}
+          <div className="target-bracket target-bracket-tl"></div>
+          <div className="target-bracket target-bracket-tr"></div>
+          <div className="target-bracket target-bracket-bl"></div>
+          <div className="target-bracket target-bracket-br"></div>
+
           <div
             className="p-6 flex-1 flex flex-col relative z-10 transition-transform duration-100 ease-out"
             style={{
@@ -448,7 +464,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
               {project.image && <div className="text-2xl mr-3 transform transition-transform duration-300 group-hover:rotate-12 filter drop-shadow">{project.icon}</div>}
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white tracking-wide group-hover:text-blue-300 transition-colors duration-300 flex items-center justify-between">
-                  <span>{highlightMatch(project.title, searchQuery, regex)}</span>
+                  <DecryptText text={project.title} isHovered={isHovered} searchQuery={searchQuery} regex={regex} />
 
                   {/* Complexity Meter */}
                   <div className="flex gap-0.5 ml-3" title={`Complexity: ${complexityScore}/5`}>
