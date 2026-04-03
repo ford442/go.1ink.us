@@ -6,6 +6,7 @@ import CustomCursor from './CustomCursor';
 import Clock from './Clock';
 import projectData from './projectData';
 import TelemetryGraph from './TelemetryGraph';
+import soundSystem from './SoundSystem';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
 import './App.css';
 
@@ -68,6 +69,35 @@ function App() {
       clearInterval(logInterval);
     };
   }, [isBooting]);
+
+  useEffect(() => {
+     // Wait till boot finishes (or if already booted) to play boot sound
+     if (!isBooting && showBootScreen) {
+        soundSystem.playBoot();
+     }
+  }, [isBooting, showBootScreen]);
+
+  // Sound System State
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('curator_sound');
+      if (stored !== null) {
+        return stored === 'true';
+      }
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('curator_sound', soundEnabled);
+      if (soundEnabled) {
+        soundSystem.enable();
+      } else {
+        soundSystem.disable();
+      }
+    }
+  }, [soundEnabled]);
 
   // Theme State
   const [theme, setTheme] = useState(() => {
@@ -194,6 +224,9 @@ function App() {
   const handleProjectSelect = (project) => {
     setModalImageLoaded(false);
     setSelectedProject(project);
+    if (project) {
+        soundSystem.playClick();
+    }
   };
 
   useEffect(() => {
@@ -322,7 +355,7 @@ function App() {
 
       const words = input.split(' ');
       const cmd = words[0].toLowerCase();
-      const commands = ['help', 'filter', 'view', 'sort', 'ls', 'open', 'fav', 'theme', 'clear', 'exit'];
+      const commands = ['help', 'filter', 'view', 'sort', 'ls', 'open', 'fav', 'theme', 'sound', 'clear', 'exit'];
 
       if (words.length === 1) {
         const matches = commands.filter(c => c.startsWith(cmd));
@@ -334,6 +367,10 @@ function App() {
         if (cmd === 'theme') {
           const themes = ['cyan', 'purple', 'emerald'];
           const matches = themes.filter(t => t.startsWith(arg));
+          if (matches.length === 1) setTerminalInput(`${cmd} ${matches[0]}`);
+        } else if (cmd === 'sound') {
+          const states = ['on', 'off'];
+          const matches = states.filter(s => s.startsWith(arg));
           if (matches.length === 1) setTerminalInput(`${cmd} ${matches[0]}`);
         } else if (cmd === 'view') {
           const views = ['grid', 'matrix'];
@@ -384,9 +421,33 @@ function App() {
           `  open <id>    - Initialize view for specific project ID\n` +
           `  fav <id>     - Toggle favorite status for project ID\n` +
           `  theme <val>  - Change OS theme (cyan, purple, emerald)\n` +
+          `  sound <val>  - Toggle UI audio feedback (on, off)\n` +
           `  stats        - View system diagnostics\n` +
           `  clear        - Flush terminal buffer\n` +
           `  exit / close - Terminate command session`;
+        break;
+
+      case 'sound':
+        if (args.length === 0) {
+          responseText = 'ERR: Missing parameter. Usage: sound <on|off>';
+          responseType = 'error';
+        } else {
+          const stateParam = args[0].toLowerCase();
+          if (stateParam === 'on') {
+            setSoundEnabled(true);
+            soundSystem.enable();
+            responseText = `> AUDIO_FEEDBACK_SYSTEM: ONLINE`;
+            responseType = 'success';
+          } else if (stateParam === 'off') {
+            setSoundEnabled(false);
+            soundSystem.disable();
+            responseText = `> AUDIO_FEEDBACK_SYSTEM: OFFLINE`;
+            responseType = 'success';
+          } else {
+            responseText = `ERR: Invalid state '${stateParam}'`;
+            responseType = 'error';
+          }
+        }
         break;
 
       case 'stats': {
@@ -618,6 +679,14 @@ function App() {
     const id = Date.now() + Math.random().toString(36).substr(2, 9);
     setToasts(prev => [...prev, { id, message, type }]);
 
+    if (type === 'error') {
+      soundSystem.playError();
+    } else if (type === 'success') {
+      soundSystem.playSuccess();
+    } else {
+      soundSystem.playClick();
+    }
+
     // Auto-remove after 3 seconds
     setTimeout(() => {
       removeToast(id);
@@ -714,12 +783,14 @@ function App() {
         e.preventDefault();
         if (isTerminalOpen) {
           setIsTerminalClosing(true);
+          soundSystem.playClick();
           setTimeout(() => {
             setIsTerminalOpen(false);
             setIsTerminalClosing(false);
           }, 300); // Wait for animation
         } else {
           setIsTerminalOpen(true);
+          soundSystem.playSuccess();
         }
         return;
       }
@@ -1245,6 +1316,23 @@ function App() {
 
         <div className="flex items-center gap-4">
 
+          {/* Sound Toggle */}
+          <div className="hidden sm:flex items-center gap-2 border-r border-accent-500/30 pr-4">
+             <button
+               onClick={() => {
+                 setSoundEnabled(prev => !prev);
+                 if (!soundEnabled) {
+                   soundSystem.enable();
+                   soundSystem.playClick();
+                 }
+               }}
+               className={`text-xs font-mono transition-colors ${soundEnabled ? 'text-accent-400' : 'text-gray-500 hover:text-white'}`}
+               aria-label="Toggle Sound"
+             >
+               AUDIO: {soundEnabled ? 'ON' : 'OFF'}
+             </button>
+          </div>
+
           <div className="hidden lg:flex items-center gap-2 border-r border-accent-500/30 pr-4">
              <span className="opacity-50 text-accent-200/70 mr-1">THEME:</span>
              <button onClick={() => changeTheme('cyan')} className={`w-3 h-3 rounded-full bg-cyan-400 ${theme === 'cyan' ? 'ring-2 ring-white scale-125' : 'opacity-50 hover:opacity-100'} transition-all`} aria-label="Cyan Theme"></button>
@@ -1356,6 +1444,7 @@ function App() {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
+                  onInput={() => soundSystem.playTyping()}
                   onKeyDown={(e) => {
                     if (e.key === 'ArrowDown' || e.key === 'Enter') {
                       const firstCard = document.querySelector('.card-link');
@@ -2097,6 +2186,7 @@ function App() {
                  type="text"
                  value={terminalInput}
                  onChange={(e) => setTerminalInput(e.target.value)}
+                 onInput={() => soundSystem.playTyping()}
                  onKeyDown={handleTerminalKeyDown}
                  className="flex-1 bg-transparent border-none outline-none text-white focus:ring-0 p-0 placeholder-gray-600"
                  placeholder="Type 'help' for available protocols..."
