@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import Tooltip from './Tooltip';
 import DecryptText from './DecryptText';
+import soundSystem from './SoundSystem';
 
 // Helper to highlight matching text moved outside to avoid re-allocation on every render
 const highlightMatch = (text, query, regex) => {
@@ -47,6 +48,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
   }, []);
 
   const handleMouseEnter = () => {
+    soundSystem.playHoverSound();
     setIsHovered(true);
     if (!cardRef.current) return;
     // Set fast transition for tilt responsiveness on hover enter
@@ -169,6 +171,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
           <button
             onClick={(e) => {
               e.preventDefault();
+              soundSystem.playClickSound();
               if (onProjectClick) onProjectClick(project);
             }}
             className="card-link absolute inset-0 z-0 focus:outline-none focus:ring-2 focus:ring-accent-400 focus:shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.4)] rounded-lg transition-all duration-300"
@@ -244,6 +247,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
                    onClick={(e) => {
                      e.preventDefault();
                      e.stopPropagation();
+                     soundSystem.playClickSound();
                      if (onTagClick) onTagClick(tag);
                    }}
                    className={`text-[9px] px-2 py-0.5 rounded-full border transition-all duration-300 whitespace-nowrap
@@ -284,6 +288,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
                  onClick={(e) => {
                    e.preventDefault();
                    e.stopPropagation();
+                     soundSystem.playClickSound();
                    if (onToggleFavorite) onToggleFavorite(project);
                  }}
                  className={`p-1.5 rounded-md transition-all duration-300
@@ -304,6 +309,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
                  onClick={(e) => {
                    e.preventDefault();
                    e.stopPropagation();
+                     soundSystem.playClickSound();
                    if (onCopyLink) onCopyLink(project);
                  }}
                  className="p-1.5 rounded-md text-gray-500 hover:text-accent-300 hover:bg-accent-500/20 hover:border-accent-400/30 border border-transparent transition-all duration-300"
@@ -372,6 +378,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
         <button
           onClick={(e) => {
             e.preventDefault();
+            soundSystem.playClickSound();
             if (onProjectClick) onProjectClick(project);
           }}
           className="card-link absolute inset-0 z-0 focus:outline-none focus:ring-4 focus:ring-accent-400 focus:shadow-[0_0_25px_rgba(var(--rgb-accent-400),0.6)] rounded-xl transition-all duration-300"
@@ -385,6 +392,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                soundSystem.playClickSound();
                 if (onToggleFavorite) onToggleFavorite(project);
               }}
               className={`p-2 rounded-full transition-all duration-300 backdrop-blur-md
@@ -407,6 +415,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                soundSystem.playClickSound();
                 if (onCopyLink) onCopyLink(project);
               }}
               className="p-2 rounded-full transition-all duration-300 backdrop-blur-md bg-black/30 text-white/50 opacity-0 group-hover:opacity-100 border border-white/10 hover:bg-accent-500/20 hover:text-accent-300 hover:border-accent-400/50 hover:scale-110"
@@ -516,6 +525,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
+                      soundSystem.playClickSound();
                       if (onTagClick) onTagClick(tag);
                     }}
                     className={`px-3 py-1 text-xs font-semibold tracking-wider border rounded-full transition-all duration-300 cursor-pointer z-20

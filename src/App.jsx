@@ -7,10 +7,26 @@ import Clock from './Clock';
 import projectData from './projectData';
 import TelemetryGraph from './TelemetryGraph';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
+import soundSystem from './SoundSystem';
 import './App.css';
 
 
 function App() {
+
+  // Audio State
+  const [audioEnabled, setAudioEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('curator_audio') === 'true';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    soundSystem.setEnabled(audioEnabled);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('curator_audio', audioEnabled);
+    }
+  }, [audioEnabled]);
 
   // Boot Sequence State
   const [isBooting, setIsBooting] = useState(() => {
@@ -59,6 +75,10 @@ function App() {
           setIsBooting(false);
           if (typeof window !== 'undefined') {
             sessionStorage.setItem('curator_booted', 'true');
+            if (audioEnabled && !sessionStorage.getItem('curator_booted_sound')) {
+              soundSystem.playBootSound();
+              sessionStorage.setItem('curator_booted_sound', 'true');
+            }
           }
         }, 800);
       }
@@ -67,7 +87,18 @@ function App() {
     return () => {
       clearInterval(logInterval);
     };
-  }, [isBooting]);
+  }, [isBooting, audioEnabled]);
+
+  const toggleAudio = () => {
+    setAudioEnabled(prev => !prev);
+    if (!audioEnabled) {
+      soundSystem.setEnabled(true);
+      soundSystem.playSuccessSound();
+      addToast(`> SYS_UPDATE: AUDIO_PROTOCOL_ENABLED`, 'success');
+    } else {
+      addToast(`> SYS_UPDATE: AUDIO_PROTOCOL_DISABLED`, 'warning');
+    }
+  };
 
   // Theme State
   const [theme, setTheme] = useState(() => {
@@ -322,7 +353,7 @@ function App() {
 
       const words = input.split(' ');
       const cmd = words[0].toLowerCase();
-      const commands = ['help', 'filter', 'view', 'sort', 'ls', 'open', 'fav', 'theme', 'clear', 'exit'];
+      const commands = ['help', 'filter', 'view', 'sort', 'ls', 'open', 'fav', 'theme', 'audio', 'clear', 'exit'];
 
       if (words.length === 1) {
         const matches = commands.filter(c => c.startsWith(cmd));
@@ -343,6 +374,10 @@ function App() {
           const sorts = ['featured', 'newest', 'a-z', 'random', 'complex'];
           // Remove hyphens for easier matching, e.g., 'a' matches 'a-z'
           const matches = sorts.filter(s => s.replace('-', '').startsWith(arg.replace('-', '')));
+          if (matches.length === 1) setTerminalInput(`${cmd} ${matches[0]}`);
+        } else if (cmd === 'audio') {
+          const states = ['on', 'off'];
+          const matches = states.filter(s => s.startsWith(arg));
           if (matches.length === 1) setTerminalInput(`${cmd} ${matches[0]}`);
         } else if (cmd === 'filter') {
           const filters = ['all', 'favorites', ...Object.keys(CATEGORIES).map(c => c.toLowerCase())];
@@ -384,6 +419,7 @@ function App() {
           `  open <id>    - Initialize view for specific project ID\n` +
           `  fav <id>     - Toggle favorite status for project ID\n` +
           `  theme <val>  - Change OS theme (cyan, purple, emerald)\n` +
+          `  audio <val>  - Toggle Audio Protocol (on, off)\n` +
           `  stats        - View system diagnostics\n` +
           `  clear        - Flush terminal buffer\n` +
           `  exit / close - Terminate command session`;
@@ -543,6 +579,29 @@ function App() {
           } else {
             responseText = `ERR: Instance ID ${args[0]} not found in database.`;
             responseType = 'error';
+          }
+        }
+        break;
+
+      case 'audio':
+         if (args.length === 0) {
+          responseText = 'ERR: Missing parameter. Usage: audio <on|off>';
+          responseType = 'error';
+        } else {
+          const state = args[0].toLowerCase();
+          if (state === 'on' || state === 'true') {
+             setAudioEnabled(true);
+             responseText = `> AUDIO_PROTOCOL_ENABLED`;
+             responseType = 'success';
+             soundSystem.setEnabled(true);
+             soundSystem.playSuccessSound();
+          } else if (state === 'off' || state === 'false') {
+             setAudioEnabled(false);
+             responseText = `> AUDIO_PROTOCOL_DISABLED`;
+             responseType = 'warning';
+          } else {
+             responseText = `ERR: Invalid audio state '${state}'`;
+             responseType = 'error';
           }
         }
         break;
@@ -1246,6 +1305,26 @@ function App() {
         <div className="flex items-center gap-4">
 
           <div className="hidden lg:flex items-center gap-2 border-r border-accent-500/30 pr-4">
+             <span className="opacity-50 text-accent-200/70 mr-1">AUDIO:</span>
+             <button
+                onClick={toggleAudio}
+                className={`p-1 rounded transition-colors ${audioEnabled ? 'text-green-400 bg-green-400/10' : 'text-gray-500 hover:text-white'}`}
+                title="Toggle Audio Protocol"
+                aria-label="Toggle Audio Protocol"
+             >
+                {audioEnabled ? (
+                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                     <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
+                   </svg>
+                ) : (
+                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                     <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                   </svg>
+                )}
+             </button>
+          </div>
+
+          <div className="hidden lg:flex items-center gap-2 border-r border-accent-500/30 pr-4">
              <span className="opacity-50 text-accent-200/70 mr-1">THEME:</span>
              <button onClick={() => changeTheme('cyan')} className={`w-3 h-3 rounded-full bg-cyan-400 ${theme === 'cyan' ? 'ring-2 ring-white scale-125' : 'opacity-50 hover:opacity-100'} transition-all`} aria-label="Cyan Theme"></button>
              <button onClick={() => changeTheme('purple')} className={`w-3 h-3 rounded-full bg-purple-400 ${theme === 'purple' ? 'ring-2 ring-white scale-125' : 'opacity-50 hover:opacity-100'} transition-all`} aria-label="Purple Theme"></button>
@@ -1619,7 +1698,7 @@ function App() {
             {/* View Mode Toggle */}
             <div className="hidden md:flex items-center gap-1 bg-black/40 p-1 rounded-lg border border-white/5 shrink-0">
               <button
-                onClick={() => setDisplayMode('grid')}
+                onClick={() => { setDisplayMode('grid'); soundSystem.playClickSound(); }}
                 className={`p-1.5 rounded transition-all duration-300 ${displayMode === 'grid' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)] scale-105' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                 aria-label="Grid View"
                 title="Grid Protocol"
@@ -1627,7 +1706,7 @@ function App() {
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg>
               </button>
               <button
-                onClick={() => setDisplayMode('matrix')}
+                onClick={() => { setDisplayMode('matrix'); soundSystem.playClickSound(); }}
                 className={`p-1.5 rounded transition-all duration-300 ${displayMode === 'matrix' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)] scale-105' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                 aria-label="Matrix View"
                 title="Matrix Protocol"
