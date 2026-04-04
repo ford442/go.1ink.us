@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import Tooltip from './Tooltip';
 import DecryptText from './DecryptText';
+import SoundSystem from './SoundSystem';
 
 // Helper to highlight matching text moved outside to avoid re-allocation on every render
 const highlightMatch = (text, query, regex) => {
@@ -48,6 +49,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
 
   const handleMouseEnter = () => {
     setIsHovered(true);
+    SoundSystem.playHover();
     if (!cardRef.current) return;
     // Set fast transition for tilt responsiveness on hover enter
     // This avoids setting style on every mousemove event, improving performance
@@ -169,6 +171,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
           <button
             onClick={(e) => {
               e.preventDefault();
+              SoundSystem.playSelect();
               if (onProjectClick) onProjectClick(project);
             }}
             className="card-link absolute inset-0 z-0 focus:outline-none focus:ring-2 focus:ring-accent-400 focus:shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.4)] rounded-lg transition-all duration-300"
@@ -372,6 +375,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
         <button
           onClick={(e) => {
             e.preventDefault();
+            SoundSystem.playSelect();
             if (onProjectClick) onProjectClick(project);
           }}
           className="card-link absolute inset-0 z-0 focus:outline-none focus:ring-4 focus:ring-accent-400 focus:shadow-[0_0_25px_rgba(var(--rgb-accent-400),0.6)] rounded-xl transition-all duration-300"
