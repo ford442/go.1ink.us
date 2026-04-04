@@ -15,7 +15,7 @@ class ProceduralSoundSystem {
 
             this.audioContext = new AudioContextClass();
             this.masterGain = this.audioContext.createGain();
-            this.masterGain.gain.value = 0.25; // Balanced global volume (was 0.2)
+            this.masterGain.gain.value = 0.25; // Balanced master volume
             this.masterGain.connect(this.audioContext.destination);
 
             this.initialized = true;
@@ -36,7 +36,16 @@ class ProceduralSoundSystem {
         this.isEnabled = false;
     }
 
-    // Enhanced tone helper (best of both branches)
+    // Compatibility layer for older curator-audio-protocol code that calls setEnabled
+    setEnabled(enabled) {
+        if (enabled) {
+            this.enable();
+        } else {
+            this.disable();
+        }
+    }
+
+    // Enhanced tone engine (combines slide/sweep from curator + masterGain from main)
     playTone(frequency, type = 'sine', duration = 0.1, volume = 1, sweep = 1) {
         if (!this.isEnabled || !this.audioContext) return;
 
@@ -65,40 +74,36 @@ class ProceduralSoundSystem {
             osc.start(now);
             osc.stop(now + duration);
         } catch {
-            // Silently ignore audio errors (safe for all browsers)
+            // Silently ignore audio errors (safe across all browsers)
         }
     }
 
-    // ──────── UI FEEDBACK SOUNDS ────────
+    // ──────── UI FEEDBACK SOUNDS (best of both branches) ────────
 
     playHover() {
-        this.playTone(800, 'sine', 0.05, 0.06);
+        this.playTone(820, 'sine', 0.04, 0.06);
     }
 
     playClick() {
-        // Sharp mechanical click (from feature)
-        this.playTone(1200, 'square', 0.08, 0.03, 0.6);
+        this.playTone(1250, 'square', 0.06, 0.04, 0.7); // crisp with slight slide
     }
 
     playSelect() {
-        // Double high-pitched select (from main + feature polish)
-        this.playTone(1100, 'square', 0.08, 0.04);
-        setTimeout(() => this.playTone(1600, 'square', 0.08, 0.03), 40);
+        this.playTone(1150, 'square', 0.07, 0.035);
+        setTimeout(() => this.playTone(1650, 'square', 0.09, 0.025), 35);
     }
 
     playKeystroke() {
-        // Terminal-style typing (from main)
-        this.playTone(400 + Math.random() * 120, 'triangle', 0.04, 0.025);
+        this.playTone(520 + Math.random() * 140, 'triangle', 0.035, 0.022);
     }
 
     playAlert() {
-        // System toast / notification (kept from main, slightly richer)
-        this.playTone(600, 'sawtooth', 0.18, 0.07);
-        setTimeout(() => this.playTone(900, 'sawtooth', 0.35, 0.05), 90);
+        this.playTone(620, 'sawtooth', 0.18, 0.065);
+        setTimeout(() => this.playTone(920, 'sawtooth', 0.32, 0.055), 85);
     }
 
     playSuccess() {
-        // Pleasant ascending chime (from feature)
+        // Pleasant ascending chime – precise envelope version (from main)
         if (!this.isEnabled || !this.audioContext) return;
         const now = this.audioContext.currentTime;
         const playNote = (freq, delay) => {
@@ -120,9 +125,8 @@ class ProceduralSoundSystem {
     }
 
     playError() {
-        // Harsh descending tone (combined best of both)
-        this.playTone(320, 'sawtooth', 0.35, 0.09, 0.4);
-        setTimeout(() => this.playTone(180, 'sawtooth', 0.45, 0.08), 120);
+        this.playTone(280, 'sawtooth', 0.25, 0.09, 0.45);
+        setTimeout(() => this.playTone(160, 'sawtooth', 0.4, 0.08), 110);
     }
 
     playBoot() {
@@ -133,15 +137,15 @@ class ProceduralSoundSystem {
             const osc = this.audioContext.createOscillator();
             const gain = this.audioContext.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(140, now);
-            osc.frequency.exponentialRampToValueAtTime(820, now + 1.4);
+            osc.frequency.setValueAtTime(120, now);
+            osc.frequency.exponentialRampToValueAtTime(780, now + 1.35);
             gain.gain.setValueAtTime(0, now);
-            gain.gain.linearRampToValueAtTime(0.12, now + 0.45);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+            gain.gain.linearRampToValueAtTime(0.11, now + 0.4);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.7);
             osc.connect(gain);
             gain.connect(this.masterGain);
             osc.start(now);
-            osc.stop(now + 1.8);
+            osc.stop(now + 1.7);
         } catch {}
     }
 }
