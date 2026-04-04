@@ -9,6 +9,7 @@ import TelemetryGraph from './TelemetryGraph';
 import soundSystem from './SoundSystem';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
 import './App.css';
+import SoundSystem from './SoundSystem';
 
 
 function App() {
@@ -29,6 +30,31 @@ function App() {
     }
     return true;
   });
+
+  // Audio State
+  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('curator_sound') === 'true';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('curator_sound', isSoundEnabled);
+      if (isSoundEnabled) {
+        SoundSystem.enable();
+      } else {
+        SoundSystem.disable();
+      }
+    }
+  }, [isSoundEnabled]);
+
+  useEffect(() => {
+    if (isBooting && isSoundEnabled) {
+      SoundSystem.playBoot();
+    }
+  }, [isBooting, isSoundEnabled]);
 
   useEffect(() => {
     if (!isBooting) {
@@ -621,6 +647,29 @@ function App() {
           } else {
              responseText = `ERR: Unsupported color matrix '${args[0]}'`;
              responseType = 'error';
+          }
+        }
+        break;
+
+      case 'sound':
+        if (args.length === 0) {
+          responseText = 'ERR: Missing parameter. Usage: sound <on|off>';
+          responseType = 'error';
+        } else {
+          const soundParam = args[0].toLowerCase();
+          if (soundParam === 'on') {
+            setIsSoundEnabled(true);
+            SoundSystem.enable(); // Ensure enabled synchronously before playing
+            SoundSystem.playAlert();
+            responseText = `> AUDIO_PROTOCOL_ENABLED`;
+            responseType = 'success';
+          } else if (soundParam === 'off') {
+            setIsSoundEnabled(false);
+            responseText = `> AUDIO_PROTOCOL_DISABLED`;
+            responseType = 'success';
+          } else {
+            responseText = `ERR: Unsupported audio state '${args[0]}'`;
+            responseType = 'error';
           }
         }
         break;
@@ -1334,6 +1383,32 @@ function App() {
           </div>
 
           <div className="hidden lg:flex items-center gap-2 border-r border-accent-500/30 pr-4">
+             <span className="opacity-50 text-accent-200/70 mr-1">AUDIO:</span>
+             <button
+               onClick={() => {
+                 const newState = !isSoundEnabled;
+                 setIsSoundEnabled(newState);
+                 if (newState) {
+                   SoundSystem.enable(); // Synchronous enable for immediate playback
+                   SoundSystem.playAlert();
+                 }
+               }}
+               className={`text-accent-400 hover:text-white transition-colors ${!isSoundEnabled ? 'opacity-50' : ''}`}
+               aria-label="Toggle Audio"
+             >
+               {isSoundEnabled ? (
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                   <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
+                 </svg>
+               ) : (
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                   <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                 </svg>
+               )}
+             </button>
+          </div>
+
+          <div className="hidden lg:flex items-center gap-2 border-r border-accent-500/30 pr-4">
              <span className="opacity-50 text-accent-200/70 mr-1">THEME:</span>
              <button onClick={() => changeTheme('cyan')} className={`w-3 h-3 rounded-full bg-cyan-400 ${theme === 'cyan' ? 'ring-2 ring-white scale-125' : 'opacity-50 hover:opacity-100'} transition-all`} aria-label="Cyan Theme"></button>
              <button onClick={() => changeTheme('purple')} className={`w-3 h-3 rounded-full bg-purple-400 ${theme === 'purple' ? 'ring-2 ring-white scale-125' : 'opacity-50 hover:opacity-100'} transition-all`} aria-label="Purple Theme"></button>
@@ -1424,11 +1499,15 @@ function App() {
           </div>
         </header>
 
-        {/* Command Center: Filter Bar & Search */}
-        <div className="max-w-7xl mx-auto mb-16 space-y-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+        {/* Main Content Layout: Sidebar + Grid */}
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 lg:gap-12 animate-fade-in relative" style={{ animationDelay: '0.2s' }}>
+
+          {/* SIDEBAR: Command Center (Filters & Search) */}
+          <aside className="w-full lg:w-72 shrink-0 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto scrollbar-hide flex flex-col gap-8 pb-4">
+
           {/* Search Input Section */}
-          <div className="flex justify-center">
-            <div className="relative w-full max-w-lg group">
+          <div className="flex w-full">
+            <div className="relative w-full group">
               <div className="absolute inset-0 bg-accent-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative flex items-center">
                 <div className="absolute left-4 text-accent-500/50 group-focus-within:text-accent-400 transition-colors duration-300">
@@ -1455,10 +1534,10 @@ function App() {
                       }
                     }
                   }}
-                  placeholder="Search projects by title, description, or tag..."
+                  placeholder="Search projects..."
                   autoComplete="off"
                   spellCheck="false"
-                  className="w-full bg-black/40 backdrop-blur-md border border-white/10 text-white pl-12 pr-32 py-4 rounded-full focus:outline-none focus:border-accent-500/50 focus:bg-black/60 transition-all duration-300 shadow-lg placeholder-gray-500"
+                  className="w-full bg-black/40 backdrop-blur-md border border-white/10 text-white pl-10 pr-24 py-3 rounded-xl focus:outline-none focus:border-accent-500/50 focus:bg-black/60 transition-all duration-300 shadow-lg placeholder-gray-500 text-sm"
                 />
 
                 {/* Right Actions: Results Count or Shortcut Hint */}
@@ -1492,33 +1571,22 @@ function App() {
             </div>
           </div>
 
-          {/* Quick Filter / Trending Tags */}
-          <div className="flex justify-center items-center gap-3 mb-6 animate-fade-in px-4" style={{ animationDelay: '0.1s' }}>
-             <span className="text-accent-400 text-xs font-bold tracking-wider uppercase drop-shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.5)] flex items-center gap-1 whitespace-nowrap">
-               <span className="animate-pulse">⚡</span> Trending:
-             </span>
-             <div className="flex gap-2 overflow-x-auto scrollbar-hide py-1 px-1 mobile-scroll-mask snap-x">
-               {suggestedTags.map((tag) => {
-                 const isActive = activeFilters.includes(tag);
-                 return (
+          {/* Trending Tags (Moved below search, simplified) */}
+          <div className="hidden lg:flex flex-col gap-2 px-1">
+             <span className="text-accent-500/70 text-[10px] font-mono tracking-widest uppercase">Quick Protocols:</span>
+             <div className="flex flex-wrap gap-1.5">
+               {suggestedTags.slice(0, 4).map((tag) => (
                  <button
                    key={tag}
                    onClick={() => {
                      setSearchQuery('');
                      toggleFilter(tag);
                    }}
-                   className={`
-                     px-3 py-1 text-xs font-medium rounded transition-all duration-300 backdrop-blur-md border whitespace-nowrap snap-center shrink-0
-                     ${isActive
-                       ? CATEGORY_BUTTON_STYLES[TAG_TO_CATEGORIES[tag]?.[0]]?.tagClass || CATEGORY_BUTTON_STYLES['default'].tagClass
-                       : 'bg-white/5 text-gray-400 border-white/10 hover:bg-accent-500/10 hover:text-accent-200 hover:border-accent-500/30 hover:scale-105'
-                     }
-                   `}
+                   className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-gray-400 border border-white/10 hover:bg-accent-500/10 hover:text-accent-300 hover:border-accent-500/30 transition-colors"
                  >
                    {tag}
                  </button>
-                 );
-               })}
+               ))}
              </div>
           </div>
 
@@ -1561,27 +1629,31 @@ function App() {
             </button>
           </div>
 
-          {/* Collapsible Filter Container (Desktop: Always visible, Mobile: Grid Transition) */}
-          <div className={`grid transition-all duration-300 ease-in-out md:grid-rows-[1fr] md:opacity-100 ${isMobileFiltersOpen ? 'grid-rows-[1fr] opacity-100 mb-8' : 'grid-rows-[0fr] opacity-0 mb-0 md:mb-8'}`}>
-            <div className="overflow-hidden flex flex-col gap-6">
+          {/* Collapsible Filter Container */}
+          <div className={`grid transition-all duration-300 ease-in-out lg:grid-rows-[1fr] lg:opacity-100 ${isMobileFiltersOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 lg:mb-0'}`}>
+            <div className="overflow-hidden flex flex-col gap-6 lg:gap-8">
 
           {/* Category Filter Section */}
-          <div className="flex overflow-x-auto md:flex-wrap md:justify-center gap-4 pb-2 md:pb-0 scrollbar-hide mobile-scroll-mask px-4 md:px-0 snap-x">
+          <div className="flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible gap-3 pb-2 lg:pb-0 scrollbar-hide snap-x lg:snap-none mobile-scroll-mask lg:[mask-image:none]">
+            <div className="lg:mb-2 text-accent-500/70 text-[10px] font-mono tracking-widest uppercase hidden lg:block border-b border-accent-500/20 pb-1">Primary Categories</div>
+
             {/* 'All' Button */}
             <button
               onClick={() => toggleFilter('All')}
               className={`
-                px-6 py-2 rounded-full font-medium transition-all duration-300 backdrop-blur-md border flex items-center gap-2 snap-center shrink-0
+                px-4 py-2 lg:py-1.5 lg:px-3 rounded-full lg:rounded-lg text-sm lg:text-base font-medium transition-all duration-300 backdrop-blur-md border flex items-center justify-between gap-2 snap-center shrink-0 lg:w-full group
                 ${activeFilters.length === 0
                   ? CATEGORY_BUTTON_STYLES['All'].activeClass
                   : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/30'
                 }
               `}
             >
-              <span>🌌</span>
-              <span>All</span>
-              <span className={`text-xs ml-1 ${activeFilters.length === 0 ? 'text-accent-200' : 'text-gray-500'}`}>
-                ({projectsMatchingQuery.length})
+              <div className="flex items-center gap-2">
+                <span>🌌</span>
+                <span>All</span>
+              </div>
+              <span className={`text-xs font-mono bg-black/30 px-1.5 rounded ${activeFilters.length === 0 ? 'text-accent-200 border border-accent-500/30' : 'text-gray-500 group-hover:text-gray-300'}`}>
+                {projectsMatchingQuery.length}
               </span>
             </button>
 
@@ -1589,17 +1661,19 @@ function App() {
             <button
               onClick={() => toggleFilter('Favorites')}
               className={`
-                px-6 py-2 rounded-full font-medium transition-all duration-300 backdrop-blur-md border flex items-center gap-2 snap-center shrink-0
+                px-4 py-2 lg:py-1.5 lg:px-3 rounded-full lg:rounded-lg text-sm lg:text-base font-medium transition-all duration-300 backdrop-blur-md border flex items-center justify-between gap-2 snap-center shrink-0 lg:w-full group
                 ${activeFilters.includes('Favorites')
                   ? 'bg-pink-500/80 text-white border-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.5)] scale-105 animate-pulse-glow'
                   : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-pink-300 hover:border-pink-500/30'
                 }
               `}
             >
-              <span>💖</span>
-              <span>Favorites</span>
-              <span className={`text-xs ml-1 ${activeFilters.includes('Favorites') ? 'text-pink-200' : 'text-gray-500'}`}>
-                ({favoriteCount})
+              <div className="flex items-center gap-2">
+                <span>💖</span>
+                <span>Favorites</span>
+              </div>
+              <span className={`text-xs font-mono bg-black/30 px-1.5 rounded ${activeFilters.includes('Favorites') ? 'text-pink-200 border border-pink-500/30' : 'text-gray-500 group-hover:text-gray-300'}`}>
+                {favoriteCount}
               </span>
             </button>
 
@@ -1616,17 +1690,19 @@ function App() {
                   key={category}
                   onClick={() => toggleFilter(category)}
                   className={`
-                    px-5 py-2 rounded-full font-medium transition-all duration-300 backdrop-blur-md border flex items-center gap-2 snap-center shrink-0
+                    px-4 py-2 lg:py-1.5 lg:px-3 rounded-full lg:rounded-lg text-sm lg:text-base font-medium transition-all duration-300 backdrop-blur-md border flex items-center justify-between gap-2 snap-center shrink-0 lg:w-full group
                     ${isActive
                       ? CATEGORY_BUTTON_STYLES[category]?.activeClass || CATEGORY_BUTTON_STYLES['default'].activeClass
                       : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/30'
                     }
                   `}
                 >
-                  <span>{CATEGORY_ICONS[category]}</span>
-                  <span>{category}</span>
-                  <span className={`text-xs ml-1 ${isActive ? 'text-accent-200' : 'text-gray-500'}`}>
-                    ({count})
+                  <div className="flex items-center gap-2">
+                    <span>{CATEGORY_ICONS[category]}</span>
+                    <span>{category}</span>
+                  </div>
+                  <span className={`text-xs font-mono bg-black/30 px-1.5 rounded ${isActive ? 'text-accent-200 border border-accent-500/30' : 'text-gray-500 group-hover:text-gray-300'}`}>
+                    {count}
                   </span>
                 </button>
               );
@@ -1635,7 +1711,8 @@ function App() {
 
           {/* Sub-Category Tags Section */}
           {activeCategories.length > 0 && (
-            <div className="flex overflow-x-auto md:flex-wrap md:justify-center gap-2 animate-fade-in pb-2 md:pb-0 scrollbar-hide mobile-scroll-mask px-4 md:px-0 snap-x">
+            <div className="flex flex-row lg:flex-row lg:flex-wrap overflow-x-auto lg:overflow-x-visible gap-2 animate-fade-in pb-2 lg:pb-0 scrollbar-hide snap-x lg:snap-none mobile-scroll-mask lg:[mask-image:none]">
+              <div className="lg:w-full text-accent-500/70 text-[10px] font-mono tracking-widest uppercase hidden lg:block border-b border-accent-500/20 pb-1 mb-1">Sub-Protocols</div>
               {Array.from(new Set(activeCategories.flatMap(cat => CATEGORIES[cat]))).map((tag, index) => {
                 const isActive = activeFilters.includes(tag);
                 const count = counts.tagCounts[tag];
@@ -1666,12 +1743,10 @@ function App() {
             </div>
           )}
 
-          {/* Controls: Sort & View Toggle */}
-          <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-4xl mx-auto pt-4 border-t border-accent-500/10 animate-fade-in px-4 gap-4">
-            {/* Sort Controls */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-              <span className="text-xs font-mono text-accent-500/70 tracking-widest uppercase whitespace-nowrap">Sort By:</span>
-              <div className="flex overflow-x-auto w-full sm:w-auto scrollbar-hide snap-x mobile-scroll-mask gap-2 pb-2 sm:pb-0">
+          {/* Controls: Sort */}
+          <div className="flex flex-col gap-2 pt-4 border-t border-accent-500/20 animate-fade-in">
+             <div className="text-accent-500/70 text-[10px] font-mono tracking-widest uppercase hidden lg:block mb-1">Sorting Matrix</div>
+             <div className="flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible gap-2 pb-2 lg:pb-0 scrollbar-hide snap-x lg:snap-none mobile-scroll-mask lg:[mask-image:none]">
                 {['Featured', 'Newest', 'A-Z', 'Most Complex', 'Random'].map((option) => (
                   <button
                     key={option}
@@ -1692,44 +1767,69 @@ function App() {
                       }
                     }}
                     className={`
-                      px-4 py-1 rounded text-xs font-mono transition-all duration-300 border snap-center shrink-0 whitespace-nowrap
+                      px-3 py-1.5 lg:px-3 lg:py-1.5 rounded-lg text-xs font-mono transition-all duration-300 border snap-center shrink-0 whitespace-nowrap lg:w-full text-left flex justify-between items-center group
                       ${sortOption === option
                         ? 'bg-accent-500/20 text-accent-200 border-accent-400 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]'
                         : 'bg-black/30 text-gray-500 border-white/5 hover:bg-accent-500/10 hover:text-accent-400 hover:border-accent-500/30'
                       }
                     `}
                   >
-                    {option === 'Random' ? '🎲 Random' : option}
+                    <span>{option === 'Random' ? '🎲 Random' : option}</span>
+                    {sortOption === option && <span className="text-[10px] hidden lg:inline">●</span>}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* View Mode Toggle */}
-            <div className="hidden md:flex items-center gap-1 bg-black/40 p-1 rounded-lg border border-white/5 shrink-0">
-              <button
-                onClick={() => setDisplayMode('grid')}
-                className={`p-1.5 rounded transition-all duration-300 ${displayMode === 'grid' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)] scale-105' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-                aria-label="Grid View"
-                title="Grid Protocol"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg>
-              </button>
-              <button
-                onClick={() => setDisplayMode('matrix')}
-                className={`p-1.5 rounded transition-all duration-300 ${displayMode === 'matrix' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)] scale-105' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-                aria-label="Matrix View"
-                title="Matrix Protocol"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z"/></svg>
-              </button>
             </div>
           </div>
+          </aside>
 
-            </div>
-          </div>
+          {/* MAIN CONTENT AREA */}
+          <main className="flex-1 w-full min-w-0">
 
-        </div>
+             {/* Top Control Bar (Desktop) */}
+             <div className="hidden lg:flex items-center justify-between mb-6 pb-4 border-b border-white/5">
+                <div className="flex items-center gap-3">
+                   <span className="text-xs font-mono text-gray-500 uppercase tracking-widest">Active Filters:</span>
+                   {activeFilters.length === 0 && !searchQuery ? (
+                     <span className="text-xs font-bold text-accent-400 bg-accent-500/10 px-2 py-1 rounded border border-accent-500/20">ALL PROTOCOLS</span>
+                   ) : (
+                     <div className="flex flex-wrap gap-1">
+                       {searchQuery && (
+                         <span className="text-xs font-bold text-blue-300 bg-blue-500/20 px-2 py-1 rounded border border-blue-500/30 shadow-[0_0_8px_rgba(59,130,246,0.2)]">
+                           "{searchQuery}"
+                         </span>
+                       )}
+                       {activeFilters.map(filter => (
+                         <span key={filter} className="text-xs font-bold text-accent-300 bg-accent-500/20 px-2 py-1 rounded border border-accent-500/30 shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.2)]">
+                           {filter}
+                         </span>
+                       ))}
+                     </div>
+                   )}
+                </div>
+
+                {/* View Mode Toggle */}
+                <div className="flex items-center gap-1 bg-black/40 p-1 rounded-lg border border-white/5 shrink-0">
+                  <button
+                    onClick={() => setDisplayMode('grid')}
+                    className={`p-1.5 rounded transition-all duration-300 ${displayMode === 'grid' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)] scale-105' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                    aria-label="Grid View"
+                    title="Grid Protocol"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg>
+                  </button>
+                  <button
+                    onClick={() => setDisplayMode('matrix')}
+                    className={`p-1.5 rounded transition-all duration-300 ${displayMode === 'matrix' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)] scale-105' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                    aria-label="Matrix View"
+                    title="Matrix Protocol"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z"/></svg>
+                  </button>
+                </div>
+             </div>
 
         {/* Custom Context Menu Overlay */}
         {contextMenu && (
@@ -1820,8 +1920,8 @@ function App() {
 
         {/* Projects Grid */}
         {filteredProjects.length > 0 ? (
-          <div id="project-grid" className="scroll-mt-24">
-            <div className={displayMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-2 mb-12" : "flex flex-col gap-3 px-2 mb-12 max-w-4xl mx-auto w-full"}>
+          <div id="project-grid" className="scroll-mt-24 w-full">
+            <div className={displayMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8 px-2 mb-12" : "flex flex-col gap-3 px-2 mb-12 w-full"}>
             {paginatedProjects.map((project, index) => {
               // Determine which tags to highlight based on active filters
               let highlightedTags = [];
@@ -1962,6 +2062,8 @@ function App() {
              </div>
           </div>
         )}
+          </main>
+        </div>
         
         <footer className="mt-24 mb-8 flex flex-col justify-center items-center gap-4">
           <img

@@ -1,134 +1,150 @@
 // src/SoundSystem.js
-
-class SciFiSoundSystem {
-  constructor() {
-    this.audioCtx = null;
-    this.enabled = false;
-    this.initialized = false;
-  }
-
-  init() {
-    if (this.initialized) return;
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      this.audioCtx = new AudioContext();
-      this.initialized = true;
-      // Unlock audio context on mobile/browsers requiring user gesture
-      if (this.audioCtx.state === 'suspended') {
-        this.audioCtx.resume();
-      }
-    } catch (e) {
-      console.warn("Web Audio API not supported", e);
-    }
-  }
-
-  enable() {
-    this.enabled = true;
-    if (!this.initialized) this.init();
-    if (this.audioCtx && this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume();
-    }
-  }
-
-  disable() {
-    this.enabled = false;
-  }
-
-  _playTone(frequency, type, duration, vol, sweep = 0) {
-    if (!this.enabled || !this.audioCtx) return;
-
-    const osc = this.audioCtx.createOscillator();
-    const gainNode = this.audioCtx.createGain();
-
-    osc.type = type;
-    osc.connect(gainNode);
-    gainNode.connect(this.audioCtx.destination);
-
-    const now = this.audioCtx.currentTime;
-
-    osc.frequency.setValueAtTime(frequency, now);
-    if (sweep !== 0) {
-      osc.frequency.exponentialRampToValueAtTime(frequency * sweep, now + duration);
+class ProceduralSoundSystem {
+    constructor() {
+        this.audioContext = null;
+        this.isEnabled = false;
+        this.masterGain = null;
+        this.initialized = false;
     }
 
-    gainNode.gain.setValueAtTime(0, now);
-    gainNode.gain.linearRampToValueAtTime(vol, now + duration * 0.1);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
+    init() {
+        if (this.initialized) return;
+        try {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return;
 
-    osc.start(now);
-    osc.stop(now + duration);
-  }
+            this.audioContext = new AudioContextClass();
+            this.masterGain = this.audioContext.createGain();
+            this.masterGain.gain.value = 0.25; // Balanced global volume (was 0.2)
+            this.masterGain.connect(this.audioContext.destination);
 
-  playHover() {
-    // Soft, quick high-pitched blip
-    this._playTone(800, 'sine', 0.05, 0.03);
-  }
+            this.initialized = true;
+        } catch (e) {
+            console.warn('Web Audio API not supported', e);
+        }
+    }
 
-  playClick() {
-    // Sharp, short mechanical click
-    this._playTone(1200, 'square', 0.08, 0.02, 0.5);
-  }
+    enable() {
+        this.isEnabled = true;
+        if (!this.initialized) this.init();
+        if (this.audioContext && this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
+    }
 
-  playTyping() {
-    // Very short, quiet click for typing
-    this._playTone(1500, 'triangle', 0.03, 0.01, 0.8);
-  }
+    disable() {
+        this.isEnabled = false;
+    }
 
-  playSuccess() {
-    // Pleasant ascending chime
-    if (!this.enabled || !this.audioCtx) return;
-    const now = this.audioCtx.currentTime;
+    // Enhanced tone helper (best of both branches)
+    playTone(frequency, type = 'sine', duration = 0.1, volume = 1, sweep = 1) {
+        if (!this.isEnabled || !this.audioContext) return;
 
-    const playNote = (freq, delay) => {
-      const osc = this.audioCtx.createOscillator();
-      const gain = this.audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
+        if (this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
 
-      osc.connect(gain);
-      gain.connect(this.audioCtx.destination);
+        try {
+            const now = this.audioContext.currentTime;
+            const osc = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
 
-      gain.gain.setValueAtTime(0, now + delay);
-      gain.gain.linearRampToValueAtTime(0.05, now + delay + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.3);
+            osc.type = type;
+            osc.frequency.setValueAtTime(frequency, now);
 
-      osc.start(now + delay);
-      osc.stop(now + delay + 0.3);
-    };
+            if (sweep !== 1) {
+                osc.frequency.exponentialRampToValueAtTime(frequency * sweep, now + duration);
+            }
 
-    playNote(600, 0);
-    playNote(800, 0.1);
-    playNote(1200, 0.2);
-  }
+            gainNode.gain.setValueAtTime(volume, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
-  playError() {
-    // Harsh descending tone
-    this._playTone(300, 'sawtooth', 0.4, 0.03, 0.5);
-  }
+            osc.connect(gainNode);
+            gainNode.connect(this.masterGain);
 
-  playBoot() {
-    // Long sweeping sci-fi boot sound
-    if (!this.enabled || !this.audioCtx) return;
-    const now = this.audioCtx.currentTime;
+            osc.start(now);
+            osc.stop(now + duration);
+        } catch {
+            // Silently ignore audio errors (safe for all browsers)
+        }
+    }
 
-    const osc = this.audioCtx.createOscillator();
-    const gain = this.audioCtx.createGain();
+    // ──────── UI FEEDBACK SOUNDS ────────
 
-    osc.type = 'sine';
-    osc.connect(gain);
-    gain.connect(this.audioCtx.destination);
+    playHover() {
+        this.playTone(800, 'sine', 0.05, 0.06);
+    }
 
-    osc.frequency.setValueAtTime(100, now);
-    osc.frequency.exponentialRampToValueAtTime(800, now + 1.5);
+    playClick() {
+        // Sharp mechanical click (from feature)
+        this.playTone(1200, 'square', 0.08, 0.03, 0.6);
+    }
 
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(0.05, now + 0.5);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+    playSelect() {
+        // Double high-pitched select (from main + feature polish)
+        this.playTone(1100, 'square', 0.08, 0.04);
+        setTimeout(() => this.playTone(1600, 'square', 0.08, 0.03), 40);
+    }
 
-    osc.start(now);
-    osc.stop(now + 1.5);
-  }
+    playKeystroke() {
+        // Terminal-style typing (from main)
+        this.playTone(400 + Math.random() * 120, 'triangle', 0.04, 0.025);
+    }
+
+    playAlert() {
+        // System toast / notification (kept from main, slightly richer)
+        this.playTone(600, 'sawtooth', 0.18, 0.07);
+        setTimeout(() => this.playTone(900, 'sawtooth', 0.35, 0.05), 90);
+    }
+
+    playSuccess() {
+        // Pleasant ascending chime (from feature)
+        if (!this.isEnabled || !this.audioContext) return;
+        const now = this.audioContext.currentTime;
+        const playNote = (freq, delay) => {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            gain.gain.setValueAtTime(0, now + delay);
+            gain.gain.linearRampToValueAtTime(0.08, now + delay + 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.35);
+            osc.start(now + delay);
+            osc.stop(now + delay + 0.35);
+        };
+        playNote(620, 0);
+        playNote(820, 0.08);
+        playNote(1250, 0.18);
+    }
+
+    playError() {
+        // Harsh descending tone (combined best of both)
+        this.playTone(320, 'sawtooth', 0.35, 0.09, 0.4);
+        setTimeout(() => this.playTone(180, 'sawtooth', 0.45, 0.08), 120);
+    }
+
+    playBoot() {
+        // Classic sci-fi boot sweep (feature + masterGain safety)
+        if (!this.isEnabled || !this.audioContext) return;
+        const now = this.audioContext.currentTime;
+        try {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(140, now);
+            osc.frequency.exponentialRampToValueAtTime(820, now + 1.4);
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.12, now + 0.45);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 1.8);
+        } catch {}
+    }
 }
 
-const soundSystem = new SciFiSoundSystem();
-export default soundSystem;
+const SoundSystem = new ProceduralSoundSystem();
+export default SoundSystem;
