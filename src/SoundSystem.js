@@ -103,16 +103,25 @@ class ProceduralSoundSystem {
     }
 
     playSuccess() {
+        // Pleasant ascending chime – precise envelope version (from main)
         if (!this.isEnabled || !this.audioContext) return;
         const now = this.audioContext.currentTime;
-        const playNote = (freq, delay, vol = 0.06) => {
-            setTimeout(() => {
-                this.playTone(freq, 'sine', 0.28, vol);
-            }, delay * 1000);
+        const playNote = (freq, delay) => {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            gain.gain.setValueAtTime(0, now + delay);
+            gain.gain.linearRampToValueAtTime(0.08, now + delay + 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.35);
+            osc.start(now + delay);
+            osc.stop(now + delay + 0.35);
         };
-        playNote(520, 0);
-        playNote(720, 0.08);
-        playNote(980, 0.18);
+        playNote(620, 0);
+        playNote(820, 0.08);
+        playNote(1250, 0.18);
     }
 
     playError() {
@@ -121,6 +130,7 @@ class ProceduralSoundSystem {
     }
 
     playBoot() {
+        // Classic sci-fi boot sweep (feature + masterGain safety)
         if (!this.isEnabled || !this.audioContext) return;
         const now = this.audioContext.currentTime;
         try {
