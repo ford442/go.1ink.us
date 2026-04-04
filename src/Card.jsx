@@ -50,6 +50,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
   const handleMouseEnter = () => {
     soundSystem.playHoverSound();
     setIsHovered(true);
+    SoundSystem.playHover();
     if (!cardRef.current) return;
     // Set fast transition for tilt responsiveness on hover enter
     // This avoids setting style on every mousemove event, improving performance
