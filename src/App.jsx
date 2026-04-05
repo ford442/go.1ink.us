@@ -391,7 +391,7 @@ function App() {
       } else if (words.length === 2) {
         const arg = words[1].toLowerCase();
         if (cmd === 'theme') {
-          const themes = ['cyan', 'purple', 'emerald'];
+          const themes = ['cyan', 'purple', 'emerald', 'gold'];
           const matches = themes.filter(t => t.startsWith(arg));
           if (matches.length === 1) setTerminalInput(`${cmd} ${matches[0]}`);
         } else if (cmd === 'sound') {
@@ -446,7 +446,7 @@ function App() {
           `  ls           - List active projects by ID\n` +
           `  open <id>    - Initialize view for specific project ID\n` +
           `  fav <id>     - Toggle favorite status for project ID\n` +
-          `  theme <val>  - Change OS theme (cyan, purple, emerald)\n` +
+          `  theme <val>  - Change OS theme (cyan, purple, emerald, gold)\n` +
           `  sound <val>  - Toggle UI audio feedback (on, off)\n` +
           `  stats        - View system diagnostics\n` +
           `  clear        - Flush terminal buffer\n` +
@@ -636,10 +636,10 @@ function App() {
 
       case 'theme':
          if (args.length === 0) {
-          responseText = 'ERR: Missing parameter. Usage: theme <cyan|purple|emerald>';
+          responseText = 'ERR: Missing parameter. Usage: theme <cyan|purple|emerald|gold>';
           responseType = 'error';
         } else {
-          const validThemes = ['cyan', 'purple', 'emerald'];
+          const validThemes = ['cyan', 'purple', 'emerald', 'gold'];
           if (validThemes.includes(args[0].toLowerCase())) {
              changeTheme(args[0].toLowerCase());
              responseText = `> COLOR_PROTOCOL_UPDATED`;
@@ -647,29 +647,6 @@ function App() {
           } else {
              responseText = `ERR: Unsupported color matrix '${args[0]}'`;
              responseType = 'error';
-          }
-        }
-        break;
-
-      case 'sound':
-        if (args.length === 0) {
-          responseText = 'ERR: Missing parameter. Usage: sound <on|off>';
-          responseType = 'error';
-        } else {
-          const soundParam = args[0].toLowerCase();
-          if (soundParam === 'on') {
-            setIsSoundEnabled(true);
-            SoundSystem.enable(); // Ensure enabled synchronously before playing
-            SoundSystem.playAlert();
-            responseText = `> AUDIO_PROTOCOL_ENABLED`;
-            responseType = 'success';
-          } else if (soundParam === 'off') {
-            setIsSoundEnabled(false);
-            responseText = `> AUDIO_PROTOCOL_DISABLED`;
-            responseType = 'success';
-          } else {
-            responseText = `ERR: Unsupported audio state '${args[0]}'`;
-            responseType = 'error';
           }
         }
         break;
@@ -1413,6 +1390,7 @@ function App() {
              <button onClick={() => changeTheme('cyan')} className={`w-3 h-3 rounded-full bg-cyan-400 ${theme === 'cyan' ? 'ring-2 ring-white scale-125' : 'opacity-50 hover:opacity-100'} transition-all`} aria-label="Cyan Theme"></button>
              <button onClick={() => changeTheme('purple')} className={`w-3 h-3 rounded-full bg-purple-400 ${theme === 'purple' ? 'ring-2 ring-white scale-125' : 'opacity-50 hover:opacity-100'} transition-all`} aria-label="Purple Theme"></button>
              <button onClick={() => changeTheme('emerald')} className={`w-3 h-3 rounded-full bg-emerald-400 ${theme === 'emerald' ? 'ring-2 ring-white scale-125' : 'opacity-50 hover:opacity-100'} transition-all`} aria-label="Emerald Theme"></button>
+             <button onClick={() => changeTheme('gold')} className={`w-3 h-3 rounded-full bg-amber-400 ${theme === 'gold' ? 'ring-2 ring-white scale-125' : 'opacity-50 hover:opacity-100'} transition-all`} aria-label="Gold Theme"></button>
           </div>
 
           <div className="hidden md:flex items-center gap-2 text-accent-200/70 border-r border-accent-500/30 pr-4">
@@ -1648,13 +1626,282 @@ function App() {
                 }
               `}
             >
-                <path
-                    fillRule="evenodd"
-                    d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z"
-                    clipRule="evenodd"
-                />
-            </svg>
-        ) : (
+              <span className="flex items-center gap-2">
+                <span className="text-xl lg:text-base">{CATEGORY_ICONS['All']}</span>
+                <span>All Protocols</span>
+              </span>
+              <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${activeFilters.length === 0 ? 'bg-white/20' : 'bg-black/30'}`}>
+                {projectData.length}
+              </span>
+            </button>
+
+            {/* Categories */}
+            {Object.entries(CATEGORIES).map(([category]) => {
+              const isActive = activeFilters.includes(category);
+              const count = counts.categoryCounts[category] || 0;
+              const style = CATEGORY_BUTTON_STYLES[category] || CATEGORY_BUTTON_STYLES['default'];
+              const icon = CATEGORY_ICONS[category] || '📁';
+
+              if (count === 0 && !isActive) return null;
+
+              return (
+                <button
+                  key={category}
+                  onClick={() => toggleFilter(category)}
+                  className={`
+                    px-4 py-2 lg:py-1.5 lg:px-3 rounded-full lg:rounded-lg text-sm lg:text-base font-medium transition-all duration-300 backdrop-blur-md border flex items-center justify-between gap-2 snap-center shrink-0 lg:w-full group
+                    ${isActive
+                      ? style.activeClass
+                      : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/30'
+                    }
+                  `}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="text-xl lg:text-base group-hover:scale-110 transition-transform">{icon}</span>
+                    <span className="whitespace-nowrap">{category}</span>
+                  </span>
+                  <span className={`text-xs font-mono px-2 py-0.5 rounded-full transition-colors ${isActive ? 'bg-white/20' : 'bg-black/30'}`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+
+            {/* Favorites Button in Primary List */}
+            <button
+              onClick={() => toggleFilter('Favorites')}
+              className={`
+                px-4 py-2 lg:py-1.5 lg:px-3 rounded-full lg:rounded-lg text-sm lg:text-base font-medium transition-all duration-300 backdrop-blur-md border flex items-center justify-between gap-2 snap-center shrink-0 lg:w-full group
+                ${activeFilters.includes('Favorites')
+                  ? CATEGORY_BUTTON_STYLES['Favorites'].activeClass
+                  : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/30'
+                }
+              `}
+            >
+              <span className="flex items-center gap-2">
+                <span className="text-xl lg:text-base group-hover:scale-110 transition-transform">💖</span>
+                <span>Favorites</span>
+              </span>
+              <span className={`text-xs font-mono px-2 py-0.5 rounded-full transition-colors ${activeFilters.includes('Favorites') ? 'bg-white/20' : 'bg-black/30'}`}>
+                {favoriteCount}
+              </span>
+            </button>
+          </div>
+
+          {/* Dynamic Sub-Tags Section based on Active Categories */}
+          {activeCategories.length > 0 && (
+            <div className="animate-fade-in lg:mt-2 hidden lg:block">
+              <div className="text-accent-500/70 text-[10px] font-mono tracking-widest uppercase mb-3 border-b border-accent-500/20 pb-1 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent-500 animate-pulse"></span>
+                Active Sub-Protocols
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {activeCategories.flatMap(cat => CATEGORIES[cat]).map(tag => {
+                  const count = counts.tagCounts[tag] || 0;
+                  const isActive = activeFilters.includes(tag);
+
+                  if (count === 0 && !isActive) return null;
+
+                  return (
+                    <button
+                      key={tag}
+                      onClick={(e) => {
+                         e.stopPropagation();
+                         handleTagClick(tag);
+                      }}
+                      className={`
+                        text-[11px] font-mono px-2.5 py-1 rounded-md border flex items-center gap-1.5 transition-all duration-300
+                        ${isActive
+                          ? 'bg-accent-500/20 text-accent-300 border-accent-500/50 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]'
+                          : 'bg-black/40 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/30'
+                        }
+                      `}
+                    >
+                      <span>{tag}</span>
+                      <span className="opacity-50 text-[9px]">{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          </div>
+          </div>
+          </aside>
+
+          {/* MAIN GRID */}
+          <main className="flex-1 w-full min-w-0">
+            {/* Active Filters Summary */}
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-2">
+                 <span className="text-gray-500 text-sm font-mono mr-2">SYS_VIEW:</span>
+                 {activeFilters.length === 0 ? (
+                   <span className="text-white text-sm font-bold bg-white/10 px-3 py-1 rounded-full border border-white/20">All Protocols</span>
+                 ) : (
+                   activeFilters.map(filter => (
+                     <span key={filter} className="text-white text-sm font-bold bg-accent-500/20 px-3 py-1 rounded-full border border-accent-500/30 flex items-center gap-2 animate-fade-in shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]">
+                       {CATEGORY_ICONS[filter] || '🏷️'} {filter}
+                       <button onClick={() => toggleFilter(filter)} className="ml-1 hover:text-red-400 transition-colors p-0.5" aria-label={`Remove ${filter} filter`}>
+                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                           <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                         </svg>
+                       </button>
+                     </span>
+                   ))
+                 )}
+              </div>
+
+              {/* View & Sort Controls */}
+              <div className="flex items-center gap-3">
+                 {/* Display Mode Toggle */}
+                 <div className="bg-black/40 backdrop-blur-md rounded-lg border border-white/10 p-1 flex">
+                    <button
+                      onClick={() => setDisplayMode('grid')}
+                      className={`p-1.5 rounded transition-all ${displayMode === 'grid' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
+                      aria-label="Grid View"
+                      title="Grid Protocol"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setDisplayMode('matrix')}
+                      className={`p-1.5 rounded transition-all ${displayMode === 'matrix' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
+                      aria-label="Matrix View"
+                      title="Matrix Protocol"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                      </svg>
+                    </button>
+                 </div>
+
+                 <select
+                   value={sortOption}
+                   onChange={(e) => {
+                     if (e.target.value === 'Random') {
+                       setRandomSeed(Math.random());
+                     }
+                     setSortOption(e.target.value);
+                     setCurrentPage(1);
+                   }}
+                   className="bg-black/40 backdrop-blur-md border border-white/10 text-white py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:border-accent-500/50 appearance-none text-sm cursor-pointer hover:bg-black/60 transition-colors shadow-lg"
+                   style={{
+                     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                     backgroundRepeat: 'no-repeat',
+                     backgroundPosition: 'right 0.5rem center',
+                     backgroundSize: '1.2em'
+                   }}
+                 >
+                   <option value="Featured">Sort: Featured</option>
+                   <option value="Newest">Sort: Newest</option>
+                   <option value="A-Z">Sort: A-Z</option>
+                   <option value="Most Complex">Sort: Complexity</option>
+                   <option value="Random">Sort: Random (Shuffle)</option>
+                 </select>
+              </div>
+            </div>
+
+            {filteredProjects.length > 0 ? (
+              <>
+                <div
+                  id="project-grid"
+                  className={`grid gap-6 md:gap-8 ${
+                    displayMode === 'grid'
+                      ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3'
+                      : 'grid-cols-1'
+                  }`}
+                >
+                  {paginatedProjects.map((project, index) => (
+                    <div
+                       key={`${activeFilters.join('-')}-${sortOption}-${currentPage}-${project.id}`}
+                       className="animate-slide-in-up"
+                       style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      <Card
+                        project={project}
+                        onTagClick={handleTagClick}
+                        activeFilters={activeFilters}
+                        searchQuery={searchQuery}
+                        onQuickView={() => handleProjectSelect(project)}
+                        isFavorite={favorites.includes(project.id)}
+                        onToggleFavorite={() => toggleFavorite(project)}
+                        onContextMenu={(e) => handleContextMenu(e, project)}
+                        layout={displayMode}
+
+                        // Drag and drop props (only active when sorting favorites)
+                        draggable={sortOption === 'Featured' && activeFilters.includes('Favorites')}
+                        onDragStart={(e) => handleDragStart(e, project.id)}
+                        onDragOver={(e) => handleDragOver(e, project.id)}
+                        onDragEnd={handleDragEnd}
+                        onDrop={(e) => handleDrop(e, project.id)}
+                        isDragged={draggedFavoriteId === project.id}
+                        isDragOver={dragOverFavoriteId === project.id}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="mt-16 flex justify-center items-center gap-4 border-t border-white/10 pt-8 animate-fade-in">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="p-2 rounded-lg bg-black/40 border border-white/10 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
+                      aria-label="Previous Page"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+
+                    <div className="flex items-center gap-2">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                        // Show first, last, current, and +/- 1 pages
+                        if (
+                          page === 1 ||
+                          page === totalPages ||
+                          (page >= currentPage - 1 && page <= currentPage + 1)
+                        ) {
+                          return (
+                            <button
+                              key={page}
+                              onClick={() => handlePageChange(page)}
+                              className={`w-10 h-10 rounded-lg text-sm font-mono font-bold transition-all ${
+                                currentPage === page
+                                  ? 'bg-accent-500/20 text-accent-300 border border-accent-500/50 shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)]'
+                                  : 'bg-black/40 text-gray-400 border border-white/10 hover:bg-white/10 hover:text-white'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          );
+                        } else if (
+                          page === currentPage - 2 ||
+                          page === currentPage + 2
+                        ) {
+                          return <span key={page} className="text-gray-600">...</span>;
+                        }
+                        return null;
+                      })}
+                    </div>
+
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="p-2 rounded-lg bg-black/40 border border-white/10 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
+                      aria-label="Next Page"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
           <div className="max-w-2xl mx-auto mt-10 animate-fade-in">
              <div className="relative overflow-hidden rounded-xl p-8 backdrop-blur-md bg-accent-900/5 border border-accent-500/30 shadow-[0_0_30px_rgba(var(--rgb-accent-400),0.1),inset_0_0_20px_rgba(var(--rgb-accent-400),0.05)]">
                 <div className="scanline"></div>
@@ -1987,12 +2234,16 @@ function App() {
               className={`${toast.fadingOut ? 'animate-fade-out-right' : 'animate-slide-in-right'} bg-black/80 backdrop-blur-md border ${borderClass} rounded flex items-center gap-3 px-4 py-3 pointer-events-auto cursor-pointer hover:bg-black/90 transition-colors`}
               onClick={() => removeToast(toast.id)}
             >
-                <path
-                    fillRule="evenodd"
-                    d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                />
-            </svg>
-        )}
-    </button>
-</div>
+              <div className="text-lg">{icon}</div>
+              <div className={`font-mono text-sm tracking-wide ${textClass}`}>
+                {toast.message}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export default App;

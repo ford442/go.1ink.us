@@ -146,7 +146,9 @@ class ProceduralSoundSystem {
             gain.connect(this.masterGain);
             osc.start(now);
             osc.stop(now + 1.7);
-        } catch {}
+        } catch {
+            // Ignore errors
+        }
     }
 }
 
