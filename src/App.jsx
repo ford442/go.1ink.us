@@ -6,6 +6,7 @@ import CustomCursor from './CustomCursor';
 import Clock from './Clock';
 import projectData from './projectData';
 import TelemetryGraph from './TelemetryGraph';
+import ActivityFeed from './ActivityFeed';
 import soundSystem from './SoundSystem';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
 import './App.css';
@@ -1725,6 +1726,9 @@ function App() {
               </div>
             </div>
           )}
+          <div className="hidden lg:block mt-6">
+            <ActivityFeed />
+          </div>
           </div>
           </div>
           </aside>
