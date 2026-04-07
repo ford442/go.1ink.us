@@ -193,8 +193,10 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
           {/* Thumbnail */}
           <div className="w-20 h-14 rounded border border-white/10 bg-black/50 overflow-hidden shrink-0 relative z-10 pointer-events-none group-hover:border-accent-500/50 transition-colors duration-300">
              {!imageLoaded && project.image && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm z-10">
-                   <div className="w-1.5 h-1.5 rounded-full bg-accent-400 animate-pulse shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.8)]"></div>
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm z-10 overflow-hidden">
+                   <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(to right, rgba(var(--rgb-accent-400), 0.3) 1px, transparent 1px), linear-gradient(to bottom, rgba(var(--rgb-accent-400), 0.3) 1px, transparent 1px)', backgroundSize: '10px 10px' }}></div>
+                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent-500/30 to-transparent -translate-x-full animate-[skeleton-sweep_1s_infinite_linear]"></div>
+                   <div className="w-1.5 h-1.5 bg-accent-400 animate-pulse shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.8)] relative z-10"></div>
                 </div>
              )}
              {project.image ? (
@@ -434,13 +436,15 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
           {project.image ? (
             <div className="h-48 overflow-hidden rounded-t-xl relative border-b border-white/5 shrink-0 bg-black/40" style={{ transform: 'translateZ(30px)' }}>
               {!imageLoaded && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/80 backdrop-blur-sm z-10">
-                  <div className="relative w-12 h-12 flex items-center justify-center mb-2">
-                    <div className="absolute inset-0 rounded-full border-t-2 border-accent-500/80 border-r-2 border-transparent animate-spin"></div>
-                    <div className="absolute inset-2 rounded-full border-b-2 border-purple-500/80 border-l-2 border-transparent animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
-                    <div className="w-2 h-2 rounded-full bg-accent-400 animate-pulse shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.8)]"></div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/80 backdrop-blur-sm z-10 overflow-hidden">
+                  <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(to right, rgba(var(--rgb-accent-400), 0.3) 1px, transparent 1px), linear-gradient(to bottom, rgba(var(--rgb-accent-400), 0.3) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent-500/20 to-transparent -translate-x-full animate-[skeleton-sweep_1.5s_infinite_linear]"></div>
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="w-10 h-10 border border-accent-500/30 bg-black/40 mb-3 flex items-center justify-center shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.2)]">
+                      <div className="w-2 h-2 bg-accent-400 animate-pulse"></div>
+                    </div>
+                    <span className="text-[10px] font-mono text-accent-400 tracking-widest uppercase animate-pulse">CONSTRUCTING_GEOMETRY...</span>
                   </div>
-                  <span className="text-[10px] font-mono text-accent-400 tracking-widest uppercase animate-pulse">LOADING_ASSET</span>
                 </div>
               )}
               <img

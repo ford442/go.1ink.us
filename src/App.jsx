@@ -1993,18 +1993,19 @@ function App() {
               {selectedProject.image ? (
                 <div className="w-full h-64 md:h-full relative overflow-hidden group">
                   {!modalImageLoaded && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 backdrop-blur-md z-10 border-r border-accent-500/20">
-                      <div className="relative w-20 h-20 flex items-center justify-center mb-6">
-                        <div className="absolute inset-0 rounded-full border-t-2 border-b-2 border-accent-500/80 animate-spin" style={{ animationDuration: '3s' }}></div>
-                        <div className="absolute inset-2 rounded-full border-l-2 border-r-2 border-pink-500/80 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '2s' }}></div>
-                        <div className="absolute inset-4 rounded-full border-t-2 border-emerald-500/80 animate-spin" style={{ animationDuration: '1s' }}></div>
-                        <div className="text-2xl animate-pulse glitch-text" data-text="⚡">⚡</div>
-                      </div>
-                      <div className="font-mono text-accent-400 text-sm tracking-[0.3em] uppercase animate-pulse">
-                        DECRYPTING_VISUALS...
-                      </div>
-                      <div className="w-48 h-1 bg-black/50 rounded-full mt-4 overflow-hidden border border-accent-500/20">
-                        <div className="h-full bg-accent-500/50 rounded-full w-1/2 animate-ping" style={{ animationDuration: '1.5s' }}></div>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 backdrop-blur-md z-10 border-r border-accent-500/20 overflow-hidden">
+                      <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(to right, rgba(var(--rgb-accent-400), 0.3) 1px, transparent 1px), linear-gradient(to bottom, rgba(var(--rgb-accent-400), 0.3) 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent-500/20 to-transparent -translate-x-full animate-[skeleton-sweep_2s_infinite_linear]"></div>
+                      <div className="relative z-10 flex flex-col items-center">
+                        <div className="w-20 h-20 border border-accent-500/30 bg-black/40 mb-6 flex items-center justify-center shadow-[0_0_20px_rgba(var(--rgb-accent-400),0.2)]">
+                          <div className="w-4 h-4 bg-accent-400 animate-pulse"></div>
+                        </div>
+                        <div className="font-mono text-accent-400 text-sm tracking-[0.3em] uppercase animate-pulse mb-4">
+                          CONSTRUCTING_GEOMETRY...
+                        </div>
+                        <div className="w-48 h-1 bg-black/50 overflow-hidden border border-accent-500/20">
+                          <div className="h-full bg-accent-500/50 w-full animate-[skeleton-sweep_1.5s_infinite_linear]"></div>
+                        </div>
                       </div>
                     </div>
                   )}
