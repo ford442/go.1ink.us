@@ -562,7 +562,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
         <div
           className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-60 transition-opacity duration-500"
           style={{
-            background: `conic-gradient(from 225deg at var(--mouse-x, 50%) var(--mouse-y, 50%), transparent 0deg, rgba(var(--rgb-accent-400),0.2) 60deg, rgba(168, 85, 247, 0.2) 120deg, transparent 180deg)`,
+            background: `conic-gradient(from calc(var(--mouse-percent-x, 50) * 3.6deg) at var(--mouse-x, 50%) var(--mouse-y, 50%), transparent 0deg, rgba(var(--rgb-accent-400),0.4) 60deg, rgba(168, 85, 247, 0.4) 120deg, transparent 180deg)`,
             zIndex: 4,
             mixBlendMode: 'color-dodge',
             filter: 'blur(10px)'
@@ -573,7 +573,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
         <div
           className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"
           style={{
-            background: `radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.06), transparent 40%)`,
+            background: `radial-gradient(1000px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.15), transparent 50%)`,
             zIndex: 3,
             mixBlendMode: 'overlay'
           }}
@@ -606,7 +606,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
         </div>
 
         {/* 🌌 CURATOR FEATURE: True Holographic Glass Effects */}
-        <div className="holo-overlay absolute inset-0 pointer-events-none rounded-xl z-10" style={{ transform: 'translateZ(20px)' }}></div>
+        <div className="holo-overlay absolute inset-0 pointer-events-none rounded-xl z-10" style={{ transform: 'translateZ(20px)', backgroundPosition: 'calc(var(--mouse-percent-x, 50%) * 2) calc(var(--mouse-percent-y, 50%) * 2)' }}></div>
 
         {/* 🌌 CURATOR FEATURE: Dynamic Mouse-Follow Glare */}
         <div
