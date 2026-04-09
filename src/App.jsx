@@ -1267,6 +1267,11 @@ function App() {
       // Viewport coordinates (for spotlight fixed background)
       pageMouseX = e.clientX;
       pageMouseY = e.clientY;
+
+      const px = targetMouseX / (window.innerWidth / 2);
+      const py = targetMouseY / (window.innerHeight / 2);
+      document.documentElement.style.setProperty('--parallax-x', px);
+      document.documentElement.style.setProperty('--parallax-y', py);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -1415,7 +1420,16 @@ function App() {
 
       {/* Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <Starfield ref={starfieldRef} />
+        <div style={{
+          transform: 'translate(calc(var(--parallax-x, 0) * -2%), calc(var(--parallax-y, 0) * -2%))',
+          transition: 'transform 0.1s ease-out',
+          position: 'absolute',
+          inset: '-5%',
+          width: '110%',
+          height: '110%'
+        }}>
+          <Starfield ref={starfieldRef} />
+        </div>
 
         {/* Animated Blobs with Parallax Wrapper */}
         <div ref={blob1Ref} className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] will-change-transform">
@@ -1436,12 +1450,14 @@ function App() {
 
         {/* Base Grid Pattern Overlay */}
         <div
-          className="absolute inset-0 opacity-50"
+          className="absolute inset-[-5%] w-[110%] h-[110%] opacity-50"
           style={{
             backgroundSize: '60px 60px',
             backgroundImage: 'linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
             maskImage: 'radial-gradient(circle at center, black 10%, transparent 80%)',
-            WebkitMaskImage: 'radial-gradient(circle at center, black 10%, transparent 80%)'
+            WebkitMaskImage: 'radial-gradient(circle at center, black 10%, transparent 80%)',
+            transform: 'translate(calc(var(--parallax-x, 0) * -1%), calc(var(--parallax-y, 0) * -1%))',
+            transition: 'transform 0.1s ease-out'
           }}
         ></div>
 
