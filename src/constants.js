@@ -58,6 +58,10 @@ export const CATEGORY_BUTTON_STYLES = {
     activeClass: 'bg-accent-500/80 text-white border-accent-400 shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.5)] scale-105 animate-pulse-glow',
     tagClass: 'bg-accent-500/20 text-accent-200 border-accent-500/50 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.3)] animate-pulse-glow'
   },
+  'Favorites': {
+    activeClass: 'bg-pink-500/80 text-white border-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.5)] scale-105 animate-pulse-glow',
+    tagClass: 'bg-pink-500/20 text-pink-200 border-pink-500/50 shadow-[0_0_10px_rgba(236,72,153,0.3)] animate-pulse-glow'
+  },
   'default': {
     activeClass: 'bg-accent-500/80 text-white border-accent-400 shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.5)] scale-105 animate-pulse-glow',
     tagClass: 'bg-accent-500/20 text-accent-200 border-accent-500/50 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.3)] animate-pulse-glow'

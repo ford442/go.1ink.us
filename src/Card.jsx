@@ -158,7 +158,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
   if (layout === 'matrix') {
     return (
       <div
-        className={`perspective-container animate-slide-in-up transition-all duration-300 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 z-50 rounded-lg' : ''}`}
+        className={`perspective-container animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 z-50 rounded-lg' : ''}`}
         style={{ viewTransitionName: `project-${project.id}`, animationDelay: `${index * 50}ms` }}
         draggable={draggable}
         onDragStart={onDragStart}
@@ -358,7 +358,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
   // Grid Layout (Default)
   return (
     <div
-      className={`perspective-container animate-slide-in-up transition-all duration-300 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 scale-105 z-50' : ''}`}
+      className={`perspective-container animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 scale-105 z-50' : ''}`}
       style={{ viewTransitionName: `project-${project.id}`, animationDelay: `${index * 100}ms` }}
       draggable={draggable}
       onDragStart={onDragStart}
@@ -452,7 +452,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
                 alt={project.title}
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
-                className={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-100' : 'opacity-0'} group-hover:scale-110 delay-100 group-hover:delay-700`}
+                className={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-100' : 'opacity-0'} group-hover:scale-110 delay-100 group-hover:delay-[700ms]`}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300"></div>
             </div>
