@@ -1925,19 +1925,44 @@ function App() {
           <div className="max-w-2xl mx-auto mt-10 animate-fade-in">
              <div className="relative overflow-hidden rounded-xl p-8 backdrop-blur-md bg-accent-900/5 border border-accent-500/30 shadow-[0_0_30px_rgba(var(--rgb-accent-400),0.1),inset_0_0_20px_rgba(var(--rgb-accent-400),0.05)]">
                 <div className="scanline"></div>
-                <div className="flex flex-col items-center justify-center text-center space-y-4 relative z-10">
-                   <div className="text-6xl mb-2 opacity-80 glitch-text" data-text="👻">👻</div>
+                <div className="flex flex-col items-center justify-center text-center space-y-6 relative z-10">
+                   {/* Radar / Scanner Visual */}
+                   <div className="relative w-32 h-32 flex items-center justify-center mb-2">
+                      <div className="absolute inset-0 border-2 border-accent-500/30 rounded-full animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]"></div>
+                      <div className="absolute inset-4 border border-accent-500/20 rounded-full"></div>
+                      <div className="absolute inset-8 border border-accent-500/10 rounded-full"></div>
+                      <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_70%,rgba(var(--rgb-accent-400),0.4)_100%)] rounded-full animate-spin [animation-duration:3s]"></div>
+                      <div className="absolute w-1/2 h-[2px] bg-accent-500/50 origin-right top-1/2 left-0 animate-spin [animation-duration:3s]"></div>
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#000_100%)] rounded-full"></div>
+                      <svg className="w-10 h-10 text-accent-400/80 absolute z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                   </div>
+
                    <h3 className="text-2xl font-bold text-accent-200 uppercase tracking-widest glitch-text" data-text="VOID DETECTED">
                       VOID DETECTED
                    </h3>
-                   <div className="text-accent-300/80 font-mono text-sm bg-black/30 p-4 rounded border border-accent-500/20 w-full text-left">
-                      <p className="mb-2">{`> SEARCH_QUERY: "${searchQuery || activeFilters.join(', ')}"`}</p>
-                      <p className="mb-2">{`> STATUS: NO_RESULTS_FOUND`}</p>
-                      <p className="animate-pulse mb-4">{`> RECOMMENDATION: TRY_DIFFERENT_KEYWORDS_OR_TAGS`}</p>
+
+                   <div className="text-accent-300/80 font-mono text-sm bg-black/40 p-5 rounded border border-accent-500/30 w-full text-left shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.1)] backdrop-blur-md">
+                      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-accent-500/20">
+                         <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                         <span className="text-accent-400/80 text-xs">SYSTEM_SCAN_REPORT</span>
+                      </div>
+
+                      {searchQuery && (
+                        <p className="mb-2 break-all"><span className="text-white/50">{`> SEARCH_QUERY:`}</span> <span className="text-accent-200">"{searchQuery}"</span></p>
+                      )}
+
+                      {activeFilters.length > 0 && (
+                        <p className="mb-2"><span className="text-white/50">{`> ACTIVE_TAGS:`}</span> <span className="text-accent-200">[{activeFilters.join(', ')}]</span></p>
+                      )}
+
+                      <p className="mb-2"><span className="text-white/50">{`> STATUS:`}</span> <span className="text-red-400">NO_RESULTS_FOUND</span></p>
+                      <p className="animate-pulse mb-6 mt-4 text-accent-400/70">{`> RECOMMENDATION: INITIATE_PROTOCOL_OVERRIDE`}</p>
 
                       {/* Suggested Protocols */}
-                      <div className="flex flex-col items-center gap-2 pt-2 border-t border-accent-500/30">
-                        <p className="text-xs uppercase opacity-70 mb-1">Suggested Protocols:</p>
+                      <div className="flex flex-col items-center gap-3 pt-4 border-t border-accent-500/20">
+                        <p className="text-xs uppercase opacity-70">Suggested Override Protocols:</p>
                         <div className="flex flex-wrap justify-center gap-2">
                           {suggestedTags.map(tag => (
                             <button
@@ -1946,7 +1971,7 @@ function App() {
                                 setSearchQuery('');
                                 toggleFilter(tag);
                               }}
-                              className="px-3 py-1 bg-accent-900/40 hover:bg-accent-500/20 border border-accent-500/30 text-accent-200 text-xs rounded transition-all duration-300 hover:shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.3)]"
+                              className="px-3 py-1 bg-accent-900/40 hover:bg-accent-500/20 border border-accent-500/30 text-accent-200 text-xs rounded transition-all duration-300 hover:shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.3)] hover:-translate-y-0.5"
                             >
                               {tag}
                             </button>
@@ -1954,26 +1979,71 @@ function App() {
                         </div>
                       </div>
                    </div>
-                   <button
-                     onClick={() => {
-                       if (document.startViewTransition) {
-                         document.startViewTransition(() => {
-                           flushSync(() => {
-                             setActiveFilters([]);
+
+                   <div className="flex flex-wrap justify-center gap-3 mt-4 w-full">
+                     {searchQuery && (
+                       <button
+                         onClick={() => {
+                           if (document.startViewTransition) {
+                             document.startViewTransition(() => {
+                               flushSync(() => {
+                                 setSearchQuery('');
+                                 setCurrentPage(1);
+                               });
+                             });
+                           } else {
                              setSearchQuery('');
                              setCurrentPage(1);
+                           }
+                         }}
+                         className="flex-1 min-w-[140px] px-4 py-2.5 bg-accent-900/40 hover:bg-accent-500/20 border border-accent-500/40 text-accent-200 rounded transition-all duration-300 hover:shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)] uppercase text-xs font-bold tracking-wider"
+                       >
+                         Clear Search
+                       </button>
+                     )}
+
+                     {activeFilters.length > 0 && (
+                       <button
+                         onClick={() => {
+                           if (document.startViewTransition) {
+                             document.startViewTransition(() => {
+                               flushSync(() => {
+                                 setActiveFilters([]);
+                                 setCurrentPage(1);
+                               });
+                             });
+                           } else {
+                             setActiveFilters([]);
+                             setCurrentPage(1);
+                           }
+                         }}
+                         className="flex-1 min-w-[140px] px-4 py-2.5 bg-accent-900/40 hover:bg-accent-500/20 border border-accent-500/40 text-accent-200 rounded transition-all duration-300 hover:shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)] uppercase text-xs font-bold tracking-wider"
+                       >
+                         Clear Tags
+                       </button>
+                     )}
+
+                     <button
+                       onClick={() => {
+                         if (document.startViewTransition) {
+                           document.startViewTransition(() => {
+                             flushSync(() => {
+                               setActiveFilters([]);
+                               setSearchQuery('');
+                               setCurrentPage(1);
+                             });
                            });
-                         });
-                       } else {
-                         setActiveFilters([]);
-                         setSearchQuery('');
-                         setCurrentPage(1);
-                       }
-                     }}
-                     className="mt-4 px-6 py-2 bg-accent-500/10 hover:bg-accent-500/20 border border-accent-500/50 text-accent-200 rounded-full transition-all duration-300 hover:shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.4)] uppercase text-sm font-bold tracking-wider"
-                   >
-                     Reset Protocol
-                   </button>
+                         } else {
+                           setActiveFilters([]);
+                           setSearchQuery('');
+                           setCurrentPage(1);
+                         }
+                       }}
+                       className="w-full sm:flex-1 min-w-[200px] px-4 py-2.5 bg-accent-500/20 hover:bg-accent-500/30 border border-accent-500/60 text-accent-100 rounded transition-all duration-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)] hover:shadow-[0_0_20px_rgba(var(--rgb-accent-400),0.5)] uppercase text-xs font-bold tracking-wider"
+                     >
+                       System Reset
+                     </button>
+                   </div>
                 </div>
              </div>
           </div>
