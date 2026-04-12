@@ -924,18 +924,40 @@ function App() {
   const starfieldRef = useRef(null);
   const canvasRef = useRef(null); // Canvas for cursor trail effect
 
+  // Pre-process project data to add Sets for O(1) lookups during filtering
+  const enhancedProjects = useMemo(() => {
+    return projectData.map(project => {
+      const tagSet = new Set(project.tags || []);
+      const categorySet = new Set();
+      (project.tags || []).forEach(tag => {
+        const categories = TAG_TO_CATEGORIES[tag];
+        if (categories) {
+          categories.forEach(cat => categorySet.add(cat));
+        }
+      });
+      return {
+        ...project,
+        tagSet,
+        categorySet
+      };
+    });
+  }, [projectData]);
+
+  // O(1) lookup for favorites
+  const favoritesSet = useMemo(() => new Set(favorites), [favorites]);
+
   // Memoize projects that match the search query (basis for filtering and counts)
   const projectsMatchingQuery = useMemo(() => {
-    if (!searchQuery || searchQuery.trim() === '') return projectData;
+    if (!searchQuery || searchQuery.trim() === '') return enhancedProjects;
     const terms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
-    return projectData.filter(project => {
+    return enhancedProjects.filter(project => {
       return terms.every(term =>
         project.title.toLowerCase().includes(term) ||
         project.description.toLowerCase().includes(term) ||
         (project.tags && project.tags.some(tag => tag.toLowerCase().includes(term)))
       );
     });
-  }, [searchQuery]);
+  }, [searchQuery, enhancedProjects]);
 
   // Calculate active categories based on the active filters to display relevant sub-tags
   const activeCategories = useMemo(() => {
@@ -973,23 +995,15 @@ function App() {
     });
 
     projectsMatchingQuery.forEach(project => {
-      const projectCategories = new Set();
-      const projectTags = new Set(project.tags);
-
-      projectTags.forEach(tag => {
+      project.tagSet.forEach(tag => {
         // Increment tag count if it's one of our tracked tags
         if (tagCounts[tag] !== undefined) {
           tagCounts[tag]++;
         }
-        // Add categories this tag belongs to
-        const categories = TAG_TO_CATEGORIES[tag];
-        if (categories) {
-          categories.forEach(cat => projectCategories.add(cat));
-        }
       });
 
       // Increment category counts once per project
-      projectCategories.forEach(cat => {
+      project.categorySet.forEach(cat => {
         categoryCounts[cat]++;
       });
     });
@@ -1043,32 +1057,34 @@ function App() {
   };
 
   const filteredProjects = useMemo(() => {
-    return projectsMatchingQuery.filter(project => {
-      if (activeFilters.length === 0) return true;
+    const hasFavoritesFilter = activeFilters.includes('Favorites');
+    const regularFilters = activeFilters.filter(f => f !== 'Favorites');
 
+    if (!hasFavoritesFilter && regularFilters.length === 0) return projectsMatchingQuery;
+
+    return projectsMatchingQuery.filter(project => {
       // If 'Favorites' is selected, must be a favorite
-      if (activeFilters.includes('Favorites') && !favorites.includes(project.id)) {
+      if (hasFavoritesFilter && !favoritesSet.has(project.id)) {
         return false;
       }
 
-      const regularFilters = activeFilters.filter(f => f !== 'Favorites');
       if (regularFilters.length === 0) return true;
 
       // Project must satisfy ALL selected non-favorite filters (Categories or Tags)
       return regularFilters.every(filter => {
         if (CATEGORY_SETS[filter]) {
           // If filter is a Category, project must have ANY tag within this category
-          return project.tags.some(tag => CATEGORY_SETS[filter].has(tag));
+          return project.categorySet.has(filter);
         }
         // If filter is a specific Tag, project must have this tag
-        return project.tags.includes(filter);
+        return project.tagSet.has(filter);
       });
     });
-  }, [activeFilters, projectsMatchingQuery, favorites]);
+  }, [activeFilters, projectsMatchingQuery, favoritesSet]);
 
   const favoriteCount = useMemo(() => {
-    return projectsMatchingQuery.filter(project => favorites.includes(project.id)).length;
-  }, [projectsMatchingQuery, favorites]);
+    return projectsMatchingQuery.filter(project => favoritesSet.has(project.id)).length;
+  }, [projectsMatchingQuery, favoritesSet]);
 
   const sortedProjects = useMemo(() => {
     const projects = [...filteredProjects];
