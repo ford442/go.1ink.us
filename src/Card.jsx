@@ -167,7 +167,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
         onDrop={onDrop}
         onContextMenu={onContextMenu}
       >
-        <div className="glass-card relative group flex items-center p-3 gap-4 rounded-lg hover:bg-white/5 hover:border-accent-500/50 transition-colors h-20">
+        <div className="glass-card relative group flex items-center p-3 gap-4 rounded-lg hover:bg-white/5 hover:gold-glow transition-colors h-20">
           {/* Click area */}
           <button
             onClick={(e) => {
@@ -191,9 +191,9 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
           </div>
 
           {/* Thumbnail */}
-          <div className="w-20 h-14 rounded border border-white/10 bg-black/50 overflow-hidden shrink-0 relative z-10 pointer-events-none group-hover:border-accent-500/50 transition-colors duration-300">
+          <div className="w-20 h-14 rounded border border-white/10 tinted-glass shifting-glass overflow-hidden shrink-0 relative z-10 pointer-events-none group-hover:gold-glow transition-colors duration-300">
              {!imageLoaded && project.image && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm z-10 overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center tinted-glass shifting-glass z-10 overflow-hidden">
                    <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(to right, rgba(var(--rgb-accent-400), 0.3) 1px, transparent 1px), linear-gradient(to bottom, rgba(var(--rgb-accent-400), 0.3) 1px, transparent 1px)', backgroundSize: '10px 10px' }}></div>
                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent-500/30 to-transparent -translate-x-full animate-[skeleton-sweep_1s_infinite_linear]"></div>
                    <div className="w-1.5 h-1.5 bg-accent-400 animate-pulse shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.8)] relative z-10"></div>
@@ -215,10 +215,10 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
           </div>
 
           {/* Target Lock Hover Brackets */}
-          <div className="target-bracket target-bracket-tl"></div>
-          <div className="target-bracket target-bracket-tr"></div>
-          <div className="target-bracket target-bracket-bl"></div>
-          <div className="target-bracket target-bracket-br"></div>
+          <div className="target-bracket target-bracket-tl target-bracket-gold"></div>
+          <div className="target-bracket target-bracket-tr target-bracket-gold"></div>
+          <div className="target-bracket target-bracket-bl target-bracket-gold"></div>
+          <div className="target-bracket target-bracket-br target-bracket-gold"></div>
 
           {/* Info */}
           <div className="flex-1 flex flex-col min-w-0 z-10 pointer-events-none justify-center">
@@ -369,7 +369,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
     >
       <div
         ref={cardRef}
-        className={`glass-card card-3d block rounded-xl flex flex-col h-full relative group will-change-transform`}
+        className={`glass-card card-3d block rounded-xl flex flex-col h-full relative group will-change-transform animate-float-idle`}
         onMouseEnter={handleMouseEnter}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
@@ -436,7 +436,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
           {project.image ? (
             <div className="h-48 overflow-hidden rounded-t-xl relative border-b border-white/5 shrink-0 bg-black/40" style={{ transform: 'translateZ(30px)' }}>
               {!imageLoaded && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/80 backdrop-blur-sm z-10 overflow-hidden">
+                <div className="absolute inset-0 flex flex-col items-center justify-center tinted-glass shifting-glass z-10 overflow-hidden">
                   <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(to right, rgba(var(--rgb-accent-400), 0.3) 1px, transparent 1px), linear-gradient(to bottom, rgba(var(--rgb-accent-400), 0.3) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent-500/20 to-transparent -translate-x-full animate-[skeleton-sweep_1.5s_infinite_linear]"></div>
                   <div className="relative z-10 flex flex-col items-center">
@@ -463,10 +463,10 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
           )}
 
           {/* Target Lock Hover Brackets */}
-          <div className="target-bracket target-bracket-tl"></div>
-          <div className="target-bracket target-bracket-tr"></div>
-          <div className="target-bracket target-bracket-bl"></div>
-          <div className="target-bracket target-bracket-br"></div>
+          <div className="target-bracket target-bracket-tl target-bracket-gold"></div>
+          <div className="target-bracket target-bracket-tr target-bracket-gold"></div>
+          <div className="target-bracket target-bracket-bl target-bracket-gold"></div>
+          <div className="target-bracket target-bracket-br target-bracket-gold"></div>
 
           <div
             className="p-6 flex-1 flex flex-col relative z-10 transition-transform duration-100 ease-out"
@@ -512,7 +512,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
                   {project.tech.map((techItem, index) => (
                     <span
                       key={index}
-                      className="text-[10px] font-mono px-2 py-0.5 rounded border border-white/10 bg-black/40 text-gray-400 hover:text-accent-300 hover:border-accent-500/50 hover:bg-accent-900/40 transition-colors duration-300"
+                      className="text-[10px] font-mono px-2 py-0.5 rounded border border-white/10 bg-black/40 text-gray-400 hover:text-accent-300 hover:gold-glow hover:bg-accent-900/40 transition-colors duration-300"
                     >
                       {highlightMatch(techItem, searchQuery, regex)}
                     </span>
@@ -536,7 +536,7 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
                     className={`px-3 py-1 text-xs font-semibold tracking-wider border rounded-full transition-all duration-300 cursor-pointer z-20
                       ${isHighlighted
                         ? 'bg-accent-500/80 text-white border-accent-300 shadow-[0_0_12px_rgba(var(--rgb-accent-400),0.6)] scale-105 ring-1 ring-accent-200'
-                        : 'text-accent-200 bg-accent-900/30 border-accent-500/20 hover:bg-accent-800/50 hover:text-white hover:border-accent-400 hover:scale-105 group-hover:border-accent-400/50 group-hover:shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]'
+                        : 'text-accent-200 bg-accent-900/30 border-accent-500/20 hover:bg-accent-800/50 hover:text-white hover:border-accent-400 hover:scale-105 group-hover:gold-glow group-hover:shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]'
                       }
                     `}
                   >

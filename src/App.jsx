@@ -941,7 +941,7 @@ function App() {
         categorySet
       };
     });
-  }, [projectData]);
+  }, []);
 
   // O(1) lookup for favorites
   const favoritesSet = useMemo(() => new Set(favorites), [favorites]);
@@ -1350,7 +1350,7 @@ function App() {
       )}
 
       {/* Command Center Status Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-md border-b border-accent-500/30 text-xs font-mono py-1.5 px-4 flex justify-between items-center shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.15)] drop-shadow">
+      <div className="fixed top-0 left-0 right-0 z-50 tinted-glass backdrop-blur-xl border-b border-accent-500/30 text-xs font-mono py-1.5 px-4 flex justify-between items-center shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.15)] drop-shadow">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]"></div>
@@ -1548,7 +1548,7 @@ function App() {
                   placeholder="Search projects..."
                   autoComplete="off"
                   spellCheck="false"
-                  className="w-full bg-black/40 backdrop-blur-md border border-white/10 text-white pl-10 pr-24 py-3 rounded-xl focus:outline-none focus:border-accent-500/50 focus:bg-black/60 transition-all duration-300 shadow-lg placeholder-gray-500 text-sm"
+                  className="w-full bg-black/20 backdrop-blur-xl border border-white/10 text-white pl-10 pr-24 py-3 rounded-xl focus:outline-none focus:gold-glow focus:bg-black/40 transition-all duration-300 shadow-lg placeholder-gray-500 text-sm"
                 />
 
                 {/* Right Actions: Results Count or Shortcut Hint */}
@@ -1790,7 +1790,7 @@ function App() {
               {/* View & Sort Controls */}
               <div className="flex items-center gap-3">
                  {/* Display Mode Toggle */}
-                 <div className="bg-black/40 backdrop-blur-md rounded-lg border border-white/10 p-1 flex">
+                 <div className="bg-black/20 backdrop-blur-xl rounded-lg border border-white/10 p-1 flex">
                     <button
                       onClick={() => setDisplayMode('grid')}
                       className={`p-1.5 rounded transition-all ${displayMode === 'grid' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
@@ -1822,7 +1822,7 @@ function App() {
                      setSortOption(e.target.value);
                      setCurrentPage(1);
                    }}
-                   className="bg-black/40 backdrop-blur-md border border-white/10 text-white py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:border-accent-500/50 appearance-none text-sm cursor-pointer hover:bg-black/60 transition-colors shadow-lg"
+                   className="bg-black/20 backdrop-blur-xl border border-white/10 text-white py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:border-accent-500/50 appearance-none text-sm cursor-pointer hover:bg-black/60 transition-colors shadow-lg"
                    style={{
                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
                      backgroundRepeat: 'no-repeat',
@@ -1939,7 +1939,7 @@ function App() {
               </>
             ) : (
           <div className="max-w-2xl mx-auto mt-10 animate-fade-in">
-             <div className="relative overflow-hidden rounded-xl p-8 backdrop-blur-md bg-accent-900/5 border border-accent-500/30 shadow-[0_0_30px_rgba(var(--rgb-accent-400),0.1),inset_0_0_20px_rgba(var(--rgb-accent-400),0.05)]">
+             <div className="relative overflow-hidden rounded-xl p-8 backdrop-blur-md tinted-glass shifting-glass border border-accent-500/30 shadow-[0_0_30px_rgba(var(--rgb-accent-400),0.1),inset_0_0_20px_rgba(var(--rgb-accent-400),0.05)]">
                 <div className="scanline"></div>
                 <div className="flex flex-col items-center justify-center text-center space-y-6 relative z-10">
                    {/* Radar / Scanner Visual */}
@@ -2086,7 +2086,7 @@ function App() {
           ></div>
 
           {/* Modal Content */}
-          <div className="relative w-full max-w-4xl bg-gray-900/90 border border-accent-500/30 rounded-2xl shadow-[0_0_40px_rgba(var(--rgb-accent-400),0.15)] overflow-hidden flex flex-col md:flex-row transform transition-all">
+          <div className="relative w-full max-w-4xl tinted-glass shifting-glass border-accent-500/30 rounded-2xl shadow-[0_0_40px_rgba(var(--rgb-accent-400),0.15)] overflow-hidden flex flex-col md:flex-row transform transition-all">
             {/* Scanline Effect */}
             <div className="scanline"></div>
 
@@ -2132,7 +2132,7 @@ function App() {
               )}
 
               {/* Category Icon Badge */}
-              <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-lg">
+              <div className="absolute top-4 left-4 tinted-glass backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-lg">
                 <span className="text-xl">{selectedProject.icon}</span>
                 <span className="text-xs font-mono text-accent-300 font-bold uppercase tracking-wider">
                   {TAG_TO_CATEGORIES[selectedProject.tags[0]]?.[0] || 'Project'}
