@@ -59,7 +59,7 @@ const ActivityFeed = () => {
   }, [logs]);
 
   return (
-    <div className="flex flex-col h-full bg-black/40 backdrop-blur-md border border-white/5 rounded-lg overflow-hidden relative group">
+    <div className="flex flex-col h-full tinted-glass shifting-glass border border-white/5 rounded-lg overflow-hidden relative group">
       {/* Radar Scanner Visual */}
       <div className="h-16 border-b border-white/5 relative overflow-hidden bg-accent-900/10 flex items-center justify-center">
          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--rgb-accent-400),0.1)_0,transparent_70%)]"></div>

@@ -625,3 +625,69 @@ body.custom-cursor-active textarea * {
     background-position: -200% 50%;
   }
 }
+/* New Glassmorphism & Gold Accent Utilities */
+
+/* Subtle floating animation for cards */
+@keyframes float-idle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-float-idle {
+  animation: float-idle 6s ease-in-out infinite;
+}
+
+/* Tinted glassmorphism panel */
+.tinted-glass {
+  background: linear-gradient(
+    135deg,
+    rgba(10, 10, 10, 0.6) 0%,
+    rgba(20, 20, 25, 0.4) 100%
+  );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Shifting animated glass gradient */
+@keyframes shift-glass {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.shifting-glass {
+  background: linear-gradient(
+    270deg,
+    rgba(var(--rgb-accent-400), 0.05),
+    rgba(251, 191, 36, 0.05), /* Gold accent */
+    rgba(var(--rgb-accent-500), 0.05)
+  );
+  background-size: 200% 200%;
+  animation: shift-glass 10s ease infinite;
+}
+
+/* Gold accent glow */
+.gold-glow {
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.3), inset 0 0 10px rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.5);
+}
+
+.gold-glow:hover {
+  box-shadow: 0 0 25px rgba(251, 191, 36, 0.6), inset 0 0 15px rgba(251, 191, 36, 0.3);
+  border-color: rgba(251, 191, 36, 0.8);
+}
+
+/* Gold target brackets */
+.target-bracket-gold {
+  border-color: rgba(251, 191, 36, 0.8) !important;
+}
+
+.group:hover .target-bracket-gold {
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.5) !important;
+}
