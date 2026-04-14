@@ -244,6 +244,7 @@ function App() {
   // Quick View Modal State
   const [selectedProject, setSelectedProject] = useState(null);
   const selectedProjectRef = useRef(null);
+  const modalRef = useRef(null);
   const [modalImageLoaded, setModalImageLoaded] = useState(false);
 
   // Wrapper to handle project selection and reset image loaded state
@@ -261,6 +262,46 @@ function App() {
     // Body Scroll Lock for Modal
     if (selectedProject) {
       document.body.style.overflow = 'hidden';
+
+      // Focus Trap for Accessibility
+      const handleTab = (e) => {
+        if (e.key === 'Tab' && modalRef.current) {
+          const focusableElements = modalRef.current.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+          if (focusableElements.length > 0) {
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+
+            if (e.shiftKey) {
+              if (document.activeElement === firstElement || document.activeElement === document.body) {
+                lastElement.focus();
+                e.preventDefault();
+              }
+            } else {
+              if (document.activeElement === lastElement) {
+                firstElement.focus();
+                e.preventDefault();
+              }
+            }
+          }
+        }
+      };
+
+      window.addEventListener('keydown', handleTab);
+
+      // Set initial focus
+      setTimeout(() => {
+        if (modalRef.current) {
+          const focusableElements = modalRef.current.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+          if (focusableElements.length > 0) {
+            focusableElements[0].focus();
+          }
+        }
+      }, 100);
+
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleTab);
+      };
     } else {
       document.body.style.overflow = '';
     }
@@ -1859,7 +1900,7 @@ function App() {
                         onTagClick={handleTagClick}
                         activeFilters={activeFilters}
                         searchQuery={searchQuery}
-                        onQuickView={() => handleProjectSelect(project)}
+                        onProjectClick={() => handleProjectSelect(project)}
                         isFavorite={favorites.includes(project.id)}
                         onToggleFavorite={() => toggleFavorite(project)}
                         onContextMenu={(e) => handleContextMenu(e, project)}
@@ -2077,7 +2118,7 @@ function App() {
 
       {/* Project Quick View Modal */}
       {selectedProject && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-fade-in">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-fade-in" ref={modalRef}>
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
