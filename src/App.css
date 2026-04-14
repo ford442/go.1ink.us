@@ -561,7 +561,8 @@ body.custom-cursor-active textarea * {
   transform: translate(10px, 10px);
 }
 
-.group:hover .target-bracket-tl {
+.group:hover .target-bracket-tl,
+.group:focus-within .target-bracket-tl {
   top: 10px;
   left: 10px;
   opacity: 1;
@@ -569,7 +570,8 @@ body.custom-cursor-active textarea * {
   box-shadow: -2px -2px 10px rgba(var(--rgb-accent-400), 0.5);
 }
 
-.group:hover .target-bracket-tr {
+.group:hover .target-bracket-tr,
+.group:focus-within .target-bracket-tr {
   top: 10px;
   right: 10px;
   opacity: 1;
@@ -577,7 +579,8 @@ body.custom-cursor-active textarea * {
   box-shadow: 2px -2px 10px rgba(var(--rgb-accent-400), 0.5);
 }
 
-.group:hover .target-bracket-bl {
+.group:hover .target-bracket-bl,
+.group:focus-within .target-bracket-bl {
   bottom: 10px;
   left: 10px;
   opacity: 1;
@@ -585,7 +588,8 @@ body.custom-cursor-active textarea * {
   box-shadow: -2px 2px 10px rgba(var(--rgb-accent-400), 0.5);
 }
 
-.group:hover .target-bracket-br {
+.group:hover .target-bracket-br,
+.group:focus-within .target-bracket-br {
   bottom: 10px;
   right: 10px;
   opacity: 1;
@@ -613,7 +617,8 @@ body.custom-cursor-active textarea * {
   transition: opacity 0.5s ease;
 }
 
-.group:hover .holo-overlay {
+.group:hover .holo-overlay,
+.group:focus-within .holo-overlay {
   opacity: 1;
 }
 
@@ -688,6 +693,7 @@ body.custom-cursor-active textarea * {
   border-color: rgba(251, 191, 36, 0.8) !important;
 }
 
-.group:hover .target-bracket-gold {
+.group:hover .target-bracket-gold,
+.group:focus-within .target-bracket-gold {
   box-shadow: 0 0 10px rgba(251, 191, 36, 0.5) !important;
 }

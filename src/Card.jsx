@@ -443,7 +443,12 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
                     <div className="w-10 h-10 border border-accent-500/30 bg-black/40 mb-3 flex items-center justify-center shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.2)]">
                       <div className="w-2 h-2 bg-accent-400 animate-pulse"></div>
                     </div>
-                    <span className="text-[10px] font-mono text-accent-400 tracking-widest uppercase animate-pulse">CONSTRUCTING_GEOMETRY...</span>
+                    <div className="font-mono text-accent-400 text-[10px] tracking-[0.2em] uppercase animate-pulse mb-2">
+                      CONSTRUCTING_GEOMETRY...
+                    </div>
+                    <div className="w-32 h-0.5 bg-black/50 overflow-hidden border border-accent-500/20">
+                      <div className="h-full bg-accent-500/50 w-full animate-[skeleton-sweep_1.5s_infinite_linear]"></div>
+                    </div>
                   </div>
                 </div>
               )}
