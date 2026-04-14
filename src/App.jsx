@@ -10,7 +10,6 @@ import ActivityFeed from './ActivityFeed';
 import soundSystem from './SoundSystem';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
 import './App.css';
-import SoundSystem from './SoundSystem';
 
 
 function App() {
@@ -44,16 +43,16 @@ function App() {
     if (typeof window !== 'undefined') {
       localStorage.setItem('curator_sound', isSoundEnabled);
       if (isSoundEnabled) {
-        SoundSystem.enable();
+        soundSystem.enable();
       } else {
-        SoundSystem.disable();
+        soundSystem.disable();
       }
     }
   }, [isSoundEnabled]);
 
   useEffect(() => {
     if (isBooting && isSoundEnabled) {
-      SoundSystem.playBoot();
+      soundSystem.playBoot();
     }
   }, [isBooting, isSoundEnabled]);
 
@@ -1388,8 +1387,8 @@ function App() {
                  const newState = !isSoundEnabled;
                  setIsSoundEnabled(newState);
                  if (newState) {
-                   SoundSystem.enable(); // Synchronous enable for immediate playback
-                   SoundSystem.playAlert();
+                   soundSystem.enable(); // Synchronous enable for immediate playback
+                   soundSystem.playAlert();
                  }
                }}
                className={`text-accent-400 hover:text-white transition-colors ${!isSoundEnabled ? 'opacity-50' : ''}`}
