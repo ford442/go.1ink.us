@@ -4,6 +4,7 @@ import Card from './Card';
 import Starfield from './Starfield';
 import CustomCursor from './CustomCursor';
 import Clock from './Clock';
+import Screensaver from './Screensaver';
 import projectData from './projectData';
 import TelemetryGraph from './TelemetryGraph';
 import ActivityFeed from './ActivityFeed';
@@ -246,6 +247,38 @@ function App() {
   const selectedProjectRef = useRef(null);
   const modalRef = useRef(null);
   const [modalImageLoaded, setModalImageLoaded] = useState(false);
+
+  // System Idle Protocol State
+  const [isIdle, setIsIdle] = useState(false);
+  const lastActivityRef = useRef(Date.now());
+
+  // System Idle Protocol Logic
+  useEffect(() => {
+    const updateActivity = () => {
+      lastActivityRef.current = Date.now();
+      if (isIdle) {
+        setIsIdle(false);
+        soundSystem.playBeep(600, 'sine', 0.05); // Play a subtle sound when waking up
+      }
+    };
+
+    // Attach to window
+    const events = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'];
+    events.forEach(event => window.addEventListener(event, updateActivity, { passive: true }));
+
+    const idleCheckInterval = setInterval(() => {
+      const currentTime = Date.now();
+      // 60 seconds (60000ms) of inactivity triggers idle mode
+      if (currentTime - lastActivityRef.current > 60000 && !isIdle && !isBooting) {
+        setIsIdle(true);
+      }
+    }, 1000);
+
+    return () => {
+      events.forEach(event => window.removeEventListener(event, updateActivity));
+      clearInterval(idleCheckInterval);
+    };
+  }, [isIdle, isBooting]);
 
   // Wrapper to handle project selection and reset image loaded state
   const handleProjectSelect = (project) => {
@@ -2346,6 +2379,9 @@ function App() {
            <div className="scanline opacity-20 pointer-events-none"></div>
         </div>
       )}
+
+      {/* System Idle Screensaver */}
+      {isIdle && !isBooting && <Screensaver />}
 
       {/* Toast Notifications Container */}
       <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-3 pointer-events-none">
