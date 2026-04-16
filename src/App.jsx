@@ -1916,16 +1916,16 @@ function App() {
               <>
                 <div
                   id="project-grid"
-                  className={`grid gap-6 md:gap-8 ${
+                  className={
                     displayMode === 'grid'
-                      ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3'
-                      : 'grid-cols-1'
-                  }`}
+                      ? 'columns-1 md:columns-2 lg:columns-2 xl:columns-3 gap-6 md:gap-8'
+                      : 'grid grid-cols-1 gap-6 md:gap-8'
+                  }
                 >
                   {paginatedProjects.map((project, index) => (
                     <div
                        key={`${activeFilters.join('-')}-${sortOption}-${currentPage}-${project.id}`}
-                       className="animate-slide-in-up"
+                       className={`animate-slide-in-up ${displayMode === 'grid' ? 'break-inside-avoid inline-block w-full mb-6 md:mb-8' : ''}`}
                        style={{ animationDelay: `${index * 100}ms` }}
                     >
                       <Card
