@@ -1086,15 +1086,16 @@ function App() {
 
   // Calculate global tag counts to use for suggestions when search yields no results
   const suggestedTags = useMemo(() => {
-    const globalTagCounts = {};
-    projectData.forEach(p => {
-      p.tags.forEach(t => {
-        globalTagCounts[t] = (globalTagCounts[t] || 0) + 1;
-      });
-    });
+    const globalTagCounts = new Map();
+    for (const project of projectData) {
+      if (!project.tags) continue;
+      for (const tag of project.tags) {
+        globalTagCounts.set(tag, (globalTagCounts.get(tag) || 0) + 1);
+      }
+    }
 
     // Return top 6 most used tags
-    return Object.entries(globalTagCounts)
+    return Array.from(globalTagCounts.entries())
       .sort(([, a], [, b]) => b - a)
       .slice(0, 6)
       .map(([tag]) => tag);
