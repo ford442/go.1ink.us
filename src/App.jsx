@@ -4,6 +4,7 @@ import Card from './Card';
 import Starfield from './Starfield';
 import CustomCursor from './CustomCursor';
 import Clock from './Clock';
+import AudioVisualizer from './AudioVisualizer';
 import Screensaver from './Screensaver';
 import projectData from './projectData';
 import TelemetryGraph from './TelemetryGraph';
@@ -1502,6 +1503,9 @@ function App() {
              <div className="ml-1 border border-accent-500/30 rounded overflow-hidden">
                 <TelemetryGraph value={systemStats.connections} max={3000} width={40} height={16} />
              </div>
+          </div>
+          <div className="hidden md:flex">
+             <AudioVisualizer theme={theme} />
           </div>
           <Clock />
         </div>
