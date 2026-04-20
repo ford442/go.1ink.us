@@ -4,6 +4,8 @@ class ProceduralSoundSystem {
         this.audioContext = null;
         this.isEnabled = false;
         this.masterGain = null;
+        this.analyser = null;
+        this.dataArray = null;
         this.initialized = false;
     }
 
@@ -16,12 +18,30 @@ class ProceduralSoundSystem {
             this.audioContext = new AudioContextClass();
             this.masterGain = this.audioContext.createGain();
             this.masterGain.gain.value = 0.25; // Balanced master volume
-            this.masterGain.connect(this.audioContext.destination);
+
+            // Add AnalyserNode for visualization
+            this.analyser = this.audioContext.createAnalyser();
+            this.analyser.fftSize = 64; // Smaller size for simple sci-fi visualization
+            const bufferLength = this.analyser.frequencyBinCount;
+            this.dataArray = new Uint8Array(bufferLength);
+
+            // Route: masterGain -> analyser -> destination
+            this.masterGain.connect(this.analyser);
+            this.analyser.connect(this.audioContext.destination);
 
             this.initialized = true;
         } catch (e) {
             console.warn('Web Audio API not supported', e);
         }
+    }
+
+    // Return the current time-domain data
+    getAudioData() {
+        if (!this.isEnabled || !this.initialized || !this.analyser) {
+            return null;
+        }
+        this.analyser.getByteTimeDomainData(this.dataArray);
+        return this.dataArray;
     }
 
     enable() {
