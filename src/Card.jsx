@@ -185,10 +185,12 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
           )}
 
           {/* ID & Status */}
-          <div className={`flex flex-col items-center justify-center gap-0.5 w-12 shrink-0 z-10 pointer-events-none ${draggable ? 'ml-2' : ''}`}>
-             <span className="text-[9px] font-mono text-accent-500 opacity-50 uppercase tracking-widest">Sys.ID</span>
-             <span className="text-xs font-mono text-accent-400 font-bold">{project.id.toString().padStart(4, '0')}</span>
-          </div>
+          <Tooltip text="SYSTEM ID">
+            <div className={`flex flex-col items-center justify-center gap-0.5 w-12 shrink-0 z-10 pointer-events-auto cursor-help ${draggable ? 'ml-2' : ''}`}>
+               <span className="text-[9px] font-mono text-accent-500 opacity-50 uppercase tracking-widest pointer-events-none">Sys.ID</span>
+               <span className="text-xs font-mono text-accent-400 font-bold pointer-events-none">{project.id.toString().padStart(4, '0')}</span>
+            </div>
+          </Tooltip>
 
           {/* Thumbnail */}
           <div className="w-20 h-14 rounded border border-white/10 tinted-glass shifting-glass overflow-hidden shrink-0 relative z-10 pointer-events-none group-hover:gold-glow transition-colors duration-300">
@@ -227,11 +229,13 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
                  <DecryptText text={project.title} isHovered={isHovered} searchQuery={searchQuery} regex={regex} />
                </h3>
                {/* Tech badges inline (hide on very small screens) */}
-               <div className="hidden sm:flex gap-1 overflow-hidden">
+               <div className="hidden sm:flex gap-1 overflow-hidden pointer-events-auto">
                   {project.tech?.slice(0, 2).map((t, i) => (
-                    <span key={i} className="text-[9px] font-mono px-1.5 rounded bg-white/5 text-gray-400 border border-white/10 whitespace-nowrap">
-                      {highlightMatch(t, searchQuery, regex)}
-                    </span>
+                    <Tooltip key={i} text={`TECH: ${t}`}>
+                      <span className="cursor-help text-[9px] font-mono px-1.5 rounded bg-white/5 text-gray-400 border border-white/10 whitespace-nowrap block">
+                        {highlightMatch(t, searchQuery, regex)}
+                      </span>
+                    </Tooltip>
                   ))}
                </div>
              </div>
@@ -486,22 +490,24 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
                   <DecryptText text={project.title} isHovered={isHovered} searchQuery={searchQuery} regex={regex} />
 
                   {/* Complexity Meter */}
-                  <div className="flex gap-0.5 ml-3" title={`Complexity: ${complexityScore}/5`}>
-                    {[1, 2, 3, 4, 5].map(level => (
-                      <div
-                        key={level}
-                        className={`w-1 h-3 rounded-sm transition-all duration-300 ${
-                          level <= complexityScore
-                            ? 'bg-accent-400 shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.8)]'
-                            : 'bg-white/10'
-                        }`}
-                        style={{
-                          height: `${8 + (level * 2)}px`,
-                          opacity: level <= complexityScore ? 1 : 0.3
-                        }}
-                      />
-                    ))}
-                  </div>
+                  <Tooltip text={`COMPLEXITY: ${complexityScore}/5`}>
+                    <div className="flex gap-0.5 ml-3 cursor-help">
+                      {[1, 2, 3, 4, 5].map(level => (
+                        <div
+                          key={level}
+                          className={`w-1 h-3 rounded-sm transition-all duration-300 ${
+                            level <= complexityScore
+                              ? 'bg-accent-400 shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.8)]'
+                              : 'bg-white/10'
+                          }`}
+                          style={{
+                            height: `${8 + (level * 2)}px`,
+                            opacity: level <= complexityScore ? 1 : 0.3
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </Tooltip>
                 </h3>
               </div>
             </div>
@@ -515,12 +521,13 @@ const Card = ({ project, index = 0, layout = 'grid', onTagClick, searchQuery, hi
               <div className="mb-4 pointer-events-auto">
                 <div className="flex flex-wrap gap-1.5">
                   {project.tech.map((techItem, index) => (
-                    <span
-                      key={index}
-                      className="text-[10px] font-mono px-2 py-0.5 rounded border border-white/10 bg-black/40 text-gray-400 hover:text-accent-300 hover:gold-glow hover:bg-accent-900/40 transition-colors duration-300"
-                    >
-                      {highlightMatch(techItem, searchQuery, regex)}
-                    </span>
+                    <Tooltip key={index} text={`TECH: ${techItem}`}>
+                      <span
+                        className="cursor-help text-[10px] font-mono px-2 py-0.5 rounded border border-white/10 bg-black/40 text-gray-400 hover:text-accent-300 hover:gold-glow hover:bg-accent-900/40 transition-colors duration-300 block"
+                      >
+                        {highlightMatch(techItem, searchQuery, regex)}
+                      </span>
+                    </Tooltip>
                   ))}
                 </div>
               </div>
