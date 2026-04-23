@@ -2164,7 +2164,7 @@ function App() {
           ></div>
 
           {/* Modal Content */}
-          <div className="relative w-full max-w-4xl tinted-glass shifting-glass border-accent-500/30 rounded-2xl shadow-[0_0_40px_rgba(var(--rgb-accent-400),0.15)] overflow-hidden flex flex-col md:flex-row transform transition-all">
+          <div className="relative w-full max-w-4xl tinted-glass shifting-glass border-accent-500/30 rounded-2xl shadow-[0_0_40px_rgba(var(--rgb-accent-400),0.15)] overflow-hidden flex flex-col md:flex-row animate-crt-turn-on">
             {/* Scanline Effect */}
             <div className="scanline"></div>
 
@@ -2193,7 +2193,7 @@ function App() {
                     src={selectedProject.image}
                     alt={selectedProject.title}
                     onLoad={() => setModalImageLoaded(true)}
-                    className={`w-full h-full object-cover transition-opacity duration-1000 ${modalImageLoaded ? 'opacity-80' : 'opacity-0'}`}
+                    className={`w-full h-full object-cover holo-image transition-opacity duration-1000 ${modalImageLoaded ? 'opacity-80' : 'opacity-0'}`}
                   />
                   {/* Holographic Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-tr from-accent-500/20 via-transparent to-purple-500/20 mix-blend-overlay"></div>
@@ -2277,6 +2277,15 @@ function App() {
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 mt-auto pt-6 border-t border-white/10">
+                <button
+                  onClick={() => addToast(`> SYS_CMD: [${selectedProject.title.toUpperCase()}] DATA_EXTRACTION_INITIATED`, 'success')}
+                  className="bg-accent-900/40 hover:bg-accent-500/20 text-accent-300 border border-accent-500/30 hover:border-accent-400 px-6 py-3 rounded-lg font-bold tracking-widest uppercase text-sm flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)] group"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Extract Data
+                </button>
                 <a
                   href={selectedProject.url}
                   target="_blank"
