@@ -249,6 +249,9 @@ function App() {
   const modalRef = useRef(null);
   const [modalImageLoaded, setModalImageLoaded] = useState(false);
 
+  // System Lockdown Protocol State
+  const [isLockdown, setIsLockdown] = useState(false);
+
   // System Idle Protocol State
   const [isIdle, setIsIdle] = useState(false);
   const lastActivityRef = useRef(Date.now());
@@ -283,6 +286,11 @@ function App() {
 
   // Wrapper to handle project selection and reset image loaded state
   const handleProjectSelect = (project) => {
+    if (isLockdown) {
+      soundSystem.playDenied();
+      addToast('> SYS_ERR: ACCESS DENIED - SYSTEM IN LOCKDOWN', 'error');
+      return;
+    }
     setModalImageLoaded(false);
     setSelectedProject(project);
     if (project) {
@@ -456,7 +464,7 @@ function App() {
 
       const words = input.split(' ');
       const cmd = words[0].toLowerCase();
-      const commands = ['help', 'filter', 'view', 'sort', 'ls', 'open', 'fav', 'theme', 'sound', 'clear', 'exit'];
+      const commands = ['help', 'filter', 'view', 'sort', 'ls', 'open', 'fav', 'theme', 'sound', 'clear', 'exit', 'lockdown', 'unlock', 'override', 'alert'];
 
       if (words.length === 1) {
         const matches = commands.filter(c => c.startsWith(cmd));
@@ -525,7 +533,29 @@ function App() {
           `  sound <val>  - Toggle UI audio feedback (on, off)\n` +
           `  stats        - View system diagnostics\n` +
           `  clear        - Flush terminal buffer\n` +
+          `  lockdown     - Engage system lockdown protocol\n` +
           `  exit / close - Terminate command session`;
+        break;
+
+      case 'lockdown':
+        setIsLockdown(true);
+        soundSystem.playAlarm();
+        responseText = `> CRITICAL: SYSTEM LOCKDOWN PROTOCOL ENGAGED`;
+        responseType = 'error';
+        break;
+
+      case 'unlock':
+      case 'override':
+        setIsLockdown(false);
+        soundSystem.playSuccess();
+        responseText = `> LOCKDOWN OVERRIDDEN. SYSTEM RESTORED`;
+        responseType = 'success';
+        break;
+
+      case 'alert':
+        soundSystem.playAlert();
+        responseText = `> SYSTEM ALERT TRIGGERED`;
+        responseType = 'warning';
         break;
 
       case 'sound':
@@ -801,6 +831,11 @@ function App() {
     }
   };
   const toggleFavorite = (project) => {
+    if (isLockdown) {
+      soundSystem.playDenied();
+      addToast('> SYS_ERR: ACCESS DENIED - SYSTEM IN LOCKDOWN', 'error');
+      return;
+    }
     const isFavorited = favorites.includes(project.id);
     if (isFavorited) {
       addToast(`> SYS_UPDATE: [${project.title.toUpperCase()}] REMOVED`, 'warning');
@@ -2396,6 +2431,16 @@ function App() {
 
       {/* System Idle Screensaver */}
       {isIdle && !isBooting && <Screensaver />}
+
+      {/* System Lockdown Overlay */}
+      {isLockdown && (
+        <div className="fixed inset-0 z-[9998] pointer-events-none flex flex-col items-center justify-center">
+          <div className="absolute inset-0 animate-pulse bg-red-900/20 shadow-[inset_0_0_100px_rgba(255,0,0,0.5)]"></div>
+          <div className="bg-red-900/80 text-white font-mono text-2xl md:text-4xl px-8 py-4 border-y-4 border-red-500 w-full text-center animate-pulse shadow-[0_0_50px_rgba(255,0,0,0.8)] backdrop-blur-sm z-10">
+            <span className="animate-pulse">⚠️ SYSTEM LOCKDOWN ACTIVE - ACCESS DENIED ⚠️</span>
+          </div>
+        </div>
+      )}
 
       {/* Toast Notifications Container */}
       <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-3 pointer-events-none">

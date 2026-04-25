@@ -122,6 +122,17 @@ class ProceduralSoundSystem {
         setTimeout(() => this.playTone(920, 'sawtooth', 0.32, 0.055), 85);
     }
 
+    playAlarm() {
+        this.playTone(400, 'sawtooth', 0.2, 0.15);
+        setTimeout(() => this.playTone(600, 'sawtooth', 0.2, 0.15), 200);
+        setTimeout(() => this.playTone(400, 'sawtooth', 0.2, 0.15), 400);
+    }
+
+    playDenied() {
+        this.playTone(150, 'sawtooth', 0.15, 0.1, 0.5);
+        setTimeout(() => this.playTone(100, 'sawtooth', 0.25, 0.1), 150);
+    }
+
     playSuccess() {
         // Pleasant ascending chime – precise envelope version (from main)
         if (!this.isEnabled || !this.audioContext) return;
