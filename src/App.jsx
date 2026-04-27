@@ -41,6 +41,9 @@ function App() {
     return false;
   });
 
+  // Data Decryption (X-Ray) Mode
+  const [isDataMode, setIsDataMode] = useState(false);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('curator_sound', isSoundEnabled);
@@ -905,9 +908,13 @@ function App() {
 
   const searchInputRef = useRef(null);
 
-  // Keyboard shortcut to focus search
+  // Global keybindings for shortcuts and modes
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Toggle Data Decryption Mode on Alt down
+      if (e.key === 'Alt') {
+        setIsDataMode(true);
+      }
       // Focus on '/' or 'Cmd+K' / 'Ctrl+K'
       if ((e.key === '/' || ((e.metaKey || e.ctrlKey) && e.key === 'k')) && document.activeElement !== searchInputRef.current) {
         e.preventDefault();
@@ -1018,8 +1025,18 @@ function App() {
       }
     };
 
+    const handleKeyUp = (e) => {
+      if (e.key === 'Alt') {
+        setIsDataMode(false);
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
   }, [isTerminalOpen]);
 
   // Refs for background blobs to implement parallax
@@ -1978,6 +1995,7 @@ function App() {
                         onToggleFavorite={() => toggleFavorite(project)}
                         onContextMenu={(e) => handleContextMenu(e, project)}
                         layout={displayMode}
+                        isDataMode={isDataMode}
 
                         // Drag and drop props (only active when sorting favorites)
                         draggable={sortOption === 'Featured' && activeFilters.includes('Favorites')}
