@@ -54,7 +54,11 @@ const ActivityFeed = () => {
 
   useEffect(() => {
     if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+      // Scroll within the activity feed container without affecting page scroll
+      const feedContainer = bottomRef.current.parentElement;
+      if (feedContainer) {
+        feedContainer.scrollTop = feedContainer.scrollHeight;
+      }
     }
   }, [logs]);
 
