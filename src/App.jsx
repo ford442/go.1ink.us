@@ -13,6 +13,24 @@ import soundSystem from './SoundSystem';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
 import './App.css';
 
+// Pre-process project data to add Sets for O(1) lookups during filtering
+// This is done at the module level as projectData is static, avoiding redundant
+// computations and memory allocations on every re-render or re-mount.
+const enhancedProjects = projectData.map(project => {
+  const tagSet = new Set(project.tags || []);
+  const categorySet = new Set();
+  (project.tags || []).forEach(tag => {
+    const categories = TAG_TO_CATEGORIES[tag];
+    if (categories) {
+      categories.forEach(cat => categorySet.add(cat));
+    }
+  });
+  return {
+    ...project,
+    tagSet,
+    categorySet
+  };
+});
 
 function App() {
 
@@ -1050,24 +1068,6 @@ function App() {
   const starfieldRef = useRef(null);
   const canvasRef = useRef(null); // Canvas for cursor trail effect
 
-  // Pre-process project data to add Sets for O(1) lookups during filtering
-  const enhancedProjects = useMemo(() => {
-    return projectData.map(project => {
-      const tagSet = new Set(project.tags || []);
-      const categorySet = new Set();
-      (project.tags || []).forEach(tag => {
-        const categories = TAG_TO_CATEGORIES[tag];
-        if (categories) {
-          categories.forEach(cat => categorySet.add(cat));
-        }
-      });
-      return {
-        ...project,
-        tagSet,
-        categorySet
-      };
-    });
-  }, []);
 
   // O(1) lookup for favorites
   const favoritesSet = useMemo(() => new Set(favorites), [favorites]);
@@ -1083,7 +1083,7 @@ function App() {
         (project.tags && project.tags.some(tag => tag.toLowerCase().includes(term)))
       );
     });
-  }, [searchQuery, enhancedProjects]);
+  }, [searchQuery]);
 
   // Calculate active categories based on the active filters to display relevant sub-tags
   const activeCategories = useMemo(() => {
