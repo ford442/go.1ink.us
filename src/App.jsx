@@ -802,10 +802,14 @@ function App() {
     setTerminalInput('');
   };
 
-  // Auto-scroll terminal
+  // Auto-scroll terminal content (but only within the terminal, not the page)
   useEffect(() => {
     if (isTerminalOpen && terminalEndRef.current) {
-      terminalEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      // Find the terminal output container and scroll it without affecting page scroll
+      const terminalContainer = terminalEndRef.current.parentElement;
+      if (terminalContainer) {
+        terminalContainer.scrollTop = terminalContainer.scrollHeight;
+      }
     }
   }, [terminalHistory, isTerminalOpen]);
 
