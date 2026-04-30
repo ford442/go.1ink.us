@@ -92,9 +92,21 @@ export default function CustomCursor() {
       />
       <div
         ref={cursorRingRef}
-        className={`fixed top-0 left-0 w-8 h-8 rounded-full border border-cyan-500/50 pointer-events-none z-[9998] transition-colors duration-200 ${isHovering ? 'bg-cyan-500/10 border-cyan-400' : ''}`}
+        className={`fixed top-0 left-0 w-8 h-8 rounded-full border border-cyan-500/50 pointer-events-none z-[9998] transition-colors duration-200 flex items-center justify-center ${isHovering ? 'bg-cyan-500/10 border-cyan-400' : ''}`}
         style={{ willChange: 'transform' }}
-      />
+      >
+        {/* Crosshairs */}
+        <div className={`absolute w-full h-[1px] bg-cyan-500/50 transition-transform duration-300 ${isHovering ? 'scale-x-50 opacity-100' : 'scale-x-125 opacity-50'}`}></div>
+        <div className={`absolute w-[1px] h-full bg-cyan-500/50 transition-transform duration-300 ${isHovering ? 'scale-y-50 opacity-100' : 'scale-y-125 opacity-50'}`}></div>
+
+        {/* Rotating brackets on hover */}
+        <div className={`absolute w-full h-full transition-all duration-500 ${isHovering ? 'opacity-100 rotate-90 scale-110' : 'opacity-0 rotate-0 scale-50'}`}>
+           <div className="absolute top-[-2px] left-[-2px] w-2 h-2 border-t-2 border-l-2 border-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]"></div>
+           <div className="absolute top-[-2px] right-[-2px] w-2 h-2 border-t-2 border-r-2 border-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]"></div>
+           <div className="absolute bottom-[-2px] left-[-2px] w-2 h-2 border-b-2 border-l-2 border-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]"></div>
+           <div className="absolute bottom-[-2px] right-[-2px] w-2 h-2 border-b-2 border-r-2 border-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]"></div>
+        </div>
+      </div>
     </>
   );
 }
