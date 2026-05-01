@@ -107,6 +107,7 @@ function App() {
         // Short delay after last log before fading out
         setTimeout(() => {
           setIsBooting(false);
+          soundSystem.speak("System Online. Welcome, Curator.");
           if (typeof window !== 'undefined') {
             sessionStorage.setItem('curator_booted', 'true');
           }
@@ -561,6 +562,7 @@ function App() {
       case 'lockdown':
         setIsLockdown(true);
         soundSystem.playAlarm();
+        soundSystem.speak("Warning. System lockdown protocol engaged. Access denied.");
         responseText = `> CRITICAL: SYSTEM LOCKDOWN PROTOCOL ENGAGED`;
         responseType = 'error';
         break;
@@ -569,6 +571,7 @@ function App() {
       case 'override':
         setIsLockdown(false);
         soundSystem.playSuccess();
+        soundSystem.speak("Lockdown overridden. System restored.");
         responseText = `> LOCKDOWN OVERRIDDEN. SYSTEM RESTORED`;
         responseType = 'success';
         break;

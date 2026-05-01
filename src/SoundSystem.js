@@ -98,6 +98,33 @@ class ProceduralSoundSystem {
         }
     }
 
+    // ──────── AI SPEECH SYNTHESIS ────────
+    speak(text) {
+        if (!this.isEnabled || !window.speechSynthesis) return;
+
+        try {
+            // Cancel any ongoing speech
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.0;
+            utterance.pitch = 0.85; // Slightly lower pitch for a more synthetic/robotic AI feel
+            utterance.volume = 0.8;
+
+            // Try to select an English voice, preferably male/robotic if possible
+            const voices = window.speechSynthesis.getVoices();
+            const preferredVoice = voices.find(v => v.lang.includes('en') && (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Daniel') || v.name.includes('Zira')));
+
+            if (preferredVoice) {
+                utterance.voice = preferredVoice;
+            }
+
+            window.speechSynthesis.speak(utterance);
+        } catch (e) {
+            console.warn('Speech Synthesis error', e);
+        }
+    }
+
     // ──────── UI FEEDBACK SOUNDS (best of both branches) ────────
 
     playHover() {
