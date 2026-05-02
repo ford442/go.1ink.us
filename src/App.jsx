@@ -34,6 +34,21 @@ const enhancedProjects = projectData.map(project => {
 
 function App() {
 
+  // Real-time Activity Logs State
+  const [userActivityLogs, setUserActivityLogs] = useState([]);
+
+  const addActivityLog = (text) => {
+    setUserActivityLogs(prev => {
+      const newLog = {
+        id: Math.random().toString(36).substr(2, 9),
+        text,
+        time: new Date().toLocaleTimeString('en-US', { hour12: false })
+      };
+      // Keep last 15 logs
+      return [...prev, newLog].slice(-15);
+    });
+  };
+
   // Boot Sequence State
   const [isBooting, setIsBooting] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -111,6 +126,7 @@ function App() {
           if (typeof window !== 'undefined') {
             sessionStorage.setItem('curator_booted', 'true');
           }
+          addActivityLog("KERNEL_INITIALIZED: ONLINE");
         }, 800);
       }
     }, 400); // 400ms between each log
@@ -166,6 +182,7 @@ function App() {
         document.documentElement.setAttribute('data-theme', theme);
       }
     }
+    addActivityLog(`SYS_THEME_UPDATED: [${theme.toUpperCase()}]`);
   }, [theme]);
 
 
@@ -317,6 +334,7 @@ function App() {
     setSelectedProject(project);
     if (project) {
         soundSystem.playClick();
+        addActivityLog(`DATA EXTRACTED: [${project.title.toUpperCase()}]`);
     }
   };
 
@@ -565,6 +583,7 @@ function App() {
         soundSystem.speak("Warning. System lockdown protocol engaged. Access denied.");
         responseText = `> CRITICAL: SYSTEM LOCKDOWN PROTOCOL ENGAGED`;
         responseType = 'error';
+        addActivityLog(`SYSTEM ALERT: LOCKDOWN PROTOCOL`);
         break;
 
       case 'unlock':
@@ -574,6 +593,7 @@ function App() {
         soundSystem.speak("Lockdown overridden. System restored.");
         responseText = `> LOCKDOWN OVERRIDDEN. SYSTEM RESTORED`;
         responseType = 'success';
+        addActivityLog(`SYSTEM ALERT: LOCKDOWN OVERRIDDEN`);
         break;
 
       case 'alert':
@@ -803,6 +823,9 @@ function App() {
 
     setTerminalHistory([...newHistory, { type: responseType, text: responseText }]);
     setTerminalInput('');
+    if (responseType !== 'error' && command !== 'clear') {
+      addActivityLog(`TERMINAL CMD: ${command} ${args.join(' ')}`);
+    }
   };
 
   // Auto-scroll terminal content (but only within the terminal, not the page)
@@ -868,9 +891,11 @@ function App() {
     if (isFavorited) {
       addToast(`> SYS_UPDATE: [${project.title.toUpperCase()}] REMOVED`, 'warning');
       setFavorites(prev => prev.filter(id => id !== project.id));
+      addActivityLog(`FAVORITE REMOVED: [${project.title.toUpperCase()}]`);
     } else {
       addToast(`> SYS_UPDATE: [${project.title.toUpperCase()}] FAVORITED`, 'success');
       setFavorites(prev => [...prev, project.id]);
+      addActivityLog(`FAVORITE ADDED: [${project.title.toUpperCase()}]`);
     }
   };
 
@@ -937,8 +962,9 @@ function App() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Toggle Data Decryption Mode on Alt down
-      if (e.key === 'Alt') {
+      if (e.key === 'Alt' && !isDataMode) {
         setIsDataMode(true);
+        addActivityLog(`PROTOCOL OVERRIDE: DATA_MODE_ACTIVE`);
       }
       // Focus on '/' or 'Cmd+K' / 'Ctrl+K'
       if ((e.key === '/' || ((e.metaKey || e.ctrlKey) && e.key === 'k')) && document.activeElement !== searchInputRef.current) {
@@ -1062,7 +1088,7 @@ function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isTerminalOpen]);
+  }, [isTerminalOpen, isDataMode]);
 
   // Refs for background blobs to implement parallax
   const blob1Ref = useRef(null);
@@ -1166,11 +1192,14 @@ function App() {
     const updateState = () => {
       if (filterParam === 'All') {
         setActiveFilters([]);
+        addActivityLog(`FILTERS CLEARED`);
       } else {
         setActiveFilters(prev => {
           if (prev.includes(filterParam)) {
+            addActivityLog(`FILTER REMOVED: [${filterParam}]`);
             return prev.filter(f => f !== filterParam);
           }
+          addActivityLog(`FILTER ADDED: [${filterParam}]`);
           return [...prev, filterParam];
         });
       }
@@ -1670,6 +1699,9 @@ function App() {
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
+                    if (e.target.value.trim().length > 2) {
+                      addActivityLog(`USER SEARCH: "${e.target.value}"`);
+                    }
                   }}
                   onInput={() => soundSystem.playTyping()}
                   onKeyDown={(e) => {
@@ -1896,7 +1928,7 @@ function App() {
             </div>
           )}
           <div className="hidden lg:block mt-6">
-            <ActivityFeed />
+            <ActivityFeed logs={userActivityLogs} />
           </div>
           </div>
           </div>
@@ -1958,6 +1990,7 @@ function App() {
                      }
                      setSortOption(e.target.value);
                      setCurrentPage(1);
+                     addActivityLog(`SORT PROTOCOL: ${e.target.value.toUpperCase()}`);
                    }}
                    className="bg-black/20 backdrop-blur-xl border border-white/10 text-white py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:border-accent-500/50 appearance-none text-sm cursor-pointer hover:bg-black/60 transition-colors shadow-lg"
                    style={{
