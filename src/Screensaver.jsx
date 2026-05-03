@@ -30,18 +30,14 @@ const Screensaver = () => {
 
     const fontSize = 16;
     let columns = Math.floor(width / fontSize);
-    let drops = [];
-    for (let x = 0; x < columns; x++) {
-      drops[x] = 1;
-    }
+    let drops = new Array(columns).fill(1);
 
     const draw = () => {
       // Handle resizing that might add columns
       if (Math.floor(width / fontSize) > columns) {
         let newColumns = Math.floor(width / fontSize);
-        for(let x = columns; x < newColumns; x++) {
-          drops[x] = 1;
-        }
+        drops.length = newColumns;
+        drops.fill(1, columns);
         columns = newColumns;
       }
 
