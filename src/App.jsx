@@ -9,6 +9,7 @@ import Screensaver from './Screensaver';
 import projectData from './projectData';
 import TelemetryGraph from './TelemetryGraph';
 import ActivityFeed from './ActivityFeed';
+import RadarHUD from './RadarHUD';
 import soundSystem from './SoundSystem';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
 import './App.css';
@@ -1951,6 +1952,9 @@ function App() {
           )}
           <div className="hidden lg:block mt-6">
             <ActivityFeed logs={userActivityLogs} />
+          </div>
+          <div className="hidden lg:block mt-6">
+            <RadarHUD projects={filteredProjects} favorites={favorites} displayMode={displayMode} />
           </div>
           </div>
           </div>
