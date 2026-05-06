@@ -204,14 +204,16 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
         onDrop={onDrop}
         onContextMenu={onContextMenu}
       >
-        <div className="glass-card relative group flex items-center p-3 gap-4 rounded-lg hover:bg-white/5 hover:gold-glow transition-colors h-20">
+        <div
+          className="glass-card relative group flex items-center p-3 gap-4 rounded-lg hover:bg-white/5 hover:gold-glow transition-colors h-20 cursor-pointer"
+          onClick={(e) => {
+            e.preventDefault();
+            soundSystem.playClickSound();
+            if (onProjectClick) onProjectClick(project);
+          }}
+        >
           {/* Click area */}
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              soundSystem.playClickSound();
-              if (onProjectClick) onProjectClick(project);
-            }}
             className="card-link absolute inset-0 z-0 focus:outline-none focus:ring-2 focus:ring-accent-400 focus:shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.4)] rounded-lg transition-all duration-300"
             aria-label={project.title}
           ></button>
@@ -410,21 +412,21 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
     >
       <div
         ref={cardRef}
-        className={`glass-card card-3d block rounded-xl flex flex-col h-full relative group will-change-transform animate-float-idle`}
+        className={`glass-card card-3d block rounded-xl flex flex-col h-full relative group will-change-transform animate-float-idle cursor-pointer`}
         onMouseEnter={handleMouseEnter}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
+        onClick={(e) => {
+          e.preventDefault();
+          soundSystem.playClickSound();
+          if (onProjectClick) onProjectClick(project);
+        }}
       >
         {/* Drag Handle Indicator */}
         {draggable && (
           <div className="absolute top-2 left-1/2 -translate-x-1/2 z-40 w-12 h-1.5 bg-white/20 rounded-full group-hover:bg-white/40 transition-colors pointer-events-none shadow-[0_0_10px_rgba(255,255,255,0.1)]"></div>
         )}
         <button
-          onClick={(e) => {
-            e.preventDefault();
-            soundSystem.playClickSound();
-            if (onProjectClick) onProjectClick(project);
-          }}
           className="card-link absolute inset-0 z-0 focus:outline-none focus:ring-4 focus:ring-accent-400 focus:shadow-[0_0_25px_rgba(var(--rgb-accent-400),0.6)] rounded-xl transition-all duration-300"
           aria-label={project.title}
         ></button>
