@@ -2053,6 +2053,7 @@ function App() {
                         activeFilters={activeFilters}
                         searchQuery={searchQuery}
                         onProjectClick={() => handleProjectSelect(project)}
+                        isSelected={selectedProject?.id === project.id}
                         isFavorite={favorites.includes(project.id)}
                         onToggleFavorite={() => toggleFavorite(project)}
                         onContextMenu={(e) => handleContextMenu(e, project)}
