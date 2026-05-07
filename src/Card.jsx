@@ -15,7 +15,7 @@ const highlightMatch = (text, query, regex) => {
   );
 };
 
-const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagClick, searchQuery, highlightedTags = [], isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick, draggable = false, isDragged = false, isDragOver = false, onDragStart, onDragOver, onDragEnd, onDrop, onContextMenu }) => {
+const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagClick, searchQuery, highlightedTags = [], isSelected = false, isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick, draggable = false, isDragged = false, isDragOver = false, onDragStart, onDragOver, onDragEnd, onDrop, onContextMenu }) => {
   const cardRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
   const rafRef = useRef(null);
@@ -159,7 +159,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
     return (
       <div
         className={`perspective-container animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 z-50 rounded-lg' : ''}`}
-        style={{ viewTransitionName: `project-${project.id}`, animationDelay: `${index * 50}ms` }}
+        style={{ viewTransitionName: isSelected ? 'none' : `project-${project.id}`, animationDelay: `${index * 50}ms` }}
         draggable={draggable}
         onDragStart={onDragStart}
         onDragOver={onDragOver}
@@ -196,7 +196,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
     return (
       <div
         className={`perspective-container animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 z-50 rounded-lg' : ''}`}
-        style={{ viewTransitionName: `project-${project.id}`, animationDelay: `${index * 50}ms` }}
+        style={{ viewTransitionName: isSelected ? 'none' : `project-${project.id}`, animationDelay: `${index * 50}ms` }}
         draggable={draggable}
         onDragStart={onDragStart}
         onDragOver={onDragOver}
@@ -402,7 +402,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   return (
     <div
       className={`perspective-container animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 scale-105 z-50' : ''}`}
-      style={{ viewTransitionName: `project-${project.id}`, animationDelay: `${index * 100}ms` }}
+      style={{ viewTransitionName: isSelected ? 'none' : `project-${project.id}`, animationDelay: `${index * 100}ms` }}
       draggable={draggable}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
