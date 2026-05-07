@@ -166,6 +166,20 @@ function App() {
     }
   }, [soundEnabled]);
 
+  // CRT Global Effect State
+  const [isCrtEnabled, setIsCrtEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('curator_crt') === 'true';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('curator_crt', isCrtEnabled);
+    }
+  }, [isCrtEnabled]);
+
   // Theme State
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -505,7 +519,7 @@ function App() {
 
       const words = input.split(' ');
       const cmd = words[0].toLowerCase();
-      const commands = ['help', 'filter', 'view', 'sort', 'ls', 'open', 'fav', 'theme', 'sound', 'clear', 'exit', 'lockdown', 'unlock', 'override', 'alert'];
+      const commands = ['help', 'filter', 'view', 'sort', 'ls', 'open', 'fav', 'theme', 'sound', 'crt', 'clear', 'exit', 'lockdown', 'unlock', 'override', 'alert'];
 
       if (words.length === 1) {
         const matches = commands.filter(c => c.startsWith(cmd));
@@ -518,7 +532,7 @@ function App() {
           const themes = ['cyan', 'purple', 'emerald', 'gold'];
           const matches = themes.filter(t => t.startsWith(arg));
           if (matches.length === 1) setTerminalInput(`${cmd} ${matches[0]}`);
-        } else if (cmd === 'sound') {
+        } else if (cmd === 'sound' || cmd === 'crt') {
           const states = ['on', 'off'];
           const matches = states.filter(s => s.startsWith(arg));
           if (matches.length === 1) setTerminalInput(`${cmd} ${matches[0]}`);
@@ -572,6 +586,7 @@ function App() {
           `  fav <id>     - Toggle favorite status for project ID\n` +
           `  theme <val>  - Change OS theme (cyan, purple, emerald, gold)\n` +
           `  sound <val>  - Toggle UI audio feedback (on, off)\n` +
+          `  crt <val>    - Toggle CRT retro effect (on, off)\n` +
           `  stats        - View system diagnostics\n` +
           `  clear        - Flush terminal buffer\n` +
           `  lockdown     - Engage system lockdown protocol\n` +
@@ -618,6 +633,27 @@ function App() {
             setSoundEnabled(false);
             soundSystem.disable();
             responseText = `> AUDIO_FEEDBACK_SYSTEM: OFFLINE`;
+            responseType = 'success';
+          } else {
+            responseText = `ERR: Invalid state '${stateParam}'`;
+            responseType = 'error';
+          }
+        }
+        break;
+
+      case 'crt':
+        if (args.length === 0) {
+          responseText = 'ERR: Missing parameter. Usage: crt <on|off>';
+          responseType = 'error';
+        } else {
+          const stateParam = args[0].toLowerCase();
+          if (stateParam === 'on') {
+            setIsCrtEnabled(true);
+            responseText = `> CRT_EFFECT_SYSTEM: ONLINE`;
+            responseType = 'success';
+          } else if (stateParam === 'off') {
+            setIsCrtEnabled(false);
+            responseText = `> CRT_EFFECT_SYSTEM: OFFLINE`;
             responseType = 'success';
           } else {
             responseText = `ERR: Invalid state '${stateParam}'`;
@@ -1468,7 +1504,13 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-indigo-950 to-slate-950 relative overflow-hidden font-sans">
+    <div className={`min-h-screen bg-gradient-to-br from-gray-950 via-indigo-950 to-slate-950 relative overflow-hidden font-sans ${isCrtEnabled ? 'crt-flicker' : ''}`}>
+      {isCrtEnabled && (
+        <>
+          <div className="crt-scanlines pointer-events-none fixed inset-0 z-[9999] mix-blend-overlay"></div>
+          <div className="crt-vignette pointer-events-none fixed inset-0 z-[9998]"></div>
+        </>
+      )}
       <CustomCursor />
       {/* SYS_BOOT Sequence Screen */}
       {showBootScreen && (
@@ -1566,6 +1608,36 @@ function App() {
                ) : (
                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                    <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                 </svg>
+               )}
+             </button>
+          </div>
+
+          <div className="hidden lg:flex items-center gap-2 border-r border-accent-500/30 pr-4">
+             <span className="opacity-50 text-accent-200/70 mr-1">CRT:</span>
+             <button
+               onClick={() => {
+                 const newState = !isCrtEnabled;
+                 setIsCrtEnabled(newState);
+                 if (newState) {
+                   soundSystem.playClick();
+                 }
+               }}
+               className={`text-accent-400 hover:text-white transition-colors ${!isCrtEnabled ? 'opacity-50' : ''}`}
+               aria-label="Toggle CRT Effect"
+             >
+               {isCrtEnabled ? (
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                   <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                   <line x1="8" y1="21" x2="16" y2="21"></line>
+                   <line x1="12" y1="17" x2="12" y2="21"></line>
+                 </svg>
+               ) : (
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                   <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                   <line x1="8" y1="21" x2="16" y2="21"></line>
+                   <line x1="12" y1="17" x2="12" y2="21"></line>
+                   <line x1="2" y1="3" x2="22" y2="17"></line>
                  </svg>
                )}
              </button>

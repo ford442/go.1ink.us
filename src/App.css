@@ -736,3 +736,33 @@ body.custom-cursor-active textarea * {
   animation: holo-flicker 4s infinite linear;
   mix-blend-mode: screen;
 }
+
+/* Global CRT Retro Effects */
+.crt-flicker {
+  animation: crt-global-flicker 0.15s infinite;
+}
+
+@keyframes crt-global-flicker {
+  0% { opacity: 0.98; }
+  50% { opacity: 1; }
+  100% { opacity: 0.99; }
+}
+
+.crt-scanlines {
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0),
+    rgba(255,255,255,0) 50%,
+    rgba(0,0,0,0.1) 50%,
+    rgba(0,0,0,0.1)
+  );
+  background-size: 100% 4px;
+}
+
+.crt-vignette {
+  background: radial-gradient(
+    circle,
+    rgba(0,0,0,0) 60%,
+    rgba(0,0,0,0.6) 100%
+  );
+}
