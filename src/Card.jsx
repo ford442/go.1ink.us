@@ -212,11 +212,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
             if (onProjectClick) onProjectClick(project);
           }}
         >
-          {/* Click area */}
-          <button
-            className="card-link absolute inset-0 z-0 focus:outline-none focus:ring-2 focus:ring-accent-400 focus:shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.4)] rounded-lg transition-all duration-300"
-            aria-label={project.title}
-          ></button>
+          {/* Click handled by parent container */}
 
           {/* Drag Handle Indicator */}
           {draggable && (
@@ -426,10 +422,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
         {draggable && (
           <div className="absolute top-2 left-1/2 -translate-x-1/2 z-40 w-12 h-1.5 bg-white/20 rounded-full group-hover:bg-white/40 transition-colors pointer-events-none shadow-[0_0_10px_rgba(255,255,255,0.1)]"></div>
         )}
-        <button
-          className="card-link absolute inset-0 z-0 focus:outline-none focus:ring-4 focus:ring-accent-400 focus:shadow-[0_0_25px_rgba(var(--rgb-accent-400),0.6)] rounded-xl transition-all duration-300"
-          aria-label={project.title}
-        ></button>
+        {/* Click handled by parent container */}
 
         <div className="absolute top-4 right-4 z-30 flex flex-col gap-2 pointer-events-auto" style={{ transform: 'translateZ(60px)' }}>
           {/* Favorite Button */}
