@@ -346,7 +346,15 @@ function App() {
       return;
     }
     setModalImageLoaded(false);
-    setSelectedProject(project);
+
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        flushSync(() => setSelectedProject(project));
+      });
+    } else {
+      setSelectedProject(project);
+    }
+
     if (project) {
         soundSystem.playClick();
         addActivityLog(`DATA EXTRACTED: [${project.title.toUpperCase()}]`);
@@ -1038,7 +1046,13 @@ function App() {
         }
 
         if (selectedProjectRef.current) {
-          setSelectedProject(null);
+          if (document.startViewTransition) {
+            document.startViewTransition(() => {
+              flushSync(() => setSelectedProject(null));
+            });
+          } else {
+            setSelectedProject(null);
+          }
           return;
         }
 
@@ -2126,7 +2140,7 @@ function App() {
                       <Card
                         project={project}
                         onTagClick={handleTagClick}
-                        activeFilters={activeFilters}
+                        highlightedTags={activeFilters}
                         searchQuery={searchQuery}
                         onProjectClick={() => handleProjectSelect(project)}
                         isSelected={selectedProject?.id === project.id}
@@ -2352,11 +2366,20 @@ function App() {
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
-            onClick={() => handleProjectSelect(null)}
+            onClick={() => {
+                  if (document.startViewTransition) {
+                    document.startViewTransition(() => {
+                      flushSync(() => setSelectedProject(null));
+                    });
+                  } else {
+                    setSelectedProject(null);
+                  }
+            }}
           ></div>
 
           {/* Modal Content */}
-          <div className="relative w-full max-w-4xl tinted-glass shifting-glass border-accent-500/30 rounded-2xl shadow-[0_0_40px_rgba(var(--rgb-accent-400),0.15)] overflow-hidden flex flex-col md:flex-row animate-crt-turn-on">
+          <div className="relative w-full max-w-4xl tinted-glass shifting-glass border-accent-500/30 rounded-2xl shadow-[0_0_40px_rgba(var(--rgb-accent-400),0.15)] overflow-hidden flex flex-col md:flex-row animate-crt-turn-on"
+            style={{ viewTransitionName: `project-container-${selectedProject.id}` }}>
             {/* Scanline Effect */}
             <div className="scanline"></div>
 
@@ -2386,6 +2409,7 @@ function App() {
                     alt={selectedProject.title}
                     onLoad={() => setModalImageLoaded(true)}
                     className={`w-full h-full object-cover holo-image transition-opacity duration-1000 ${modalImageLoaded ? 'opacity-80' : 'opacity-0'}`}
+                    style={{ viewTransitionName: `project-image-${selectedProject.id}` }}
                   />
                   {/* Holographic Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-tr from-accent-500/20 via-transparent to-purple-500/20 mix-blend-overlay"></div>
@@ -2414,7 +2438,15 @@ function App() {
             <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-between relative z-10">
               {/* Close Button */}
               <button
-                onClick={() => handleProjectSelect(null)}
+                onClick={() => {
+                  if (document.startViewTransition) {
+                    document.startViewTransition(() => {
+                      flushSync(() => setSelectedProject(null));
+                    });
+                  } else {
+                    setSelectedProject(null);
+                  }
+                }}
                 className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors border border-transparent hover:border-white/20"
                 aria-label="Close modal"
               >
