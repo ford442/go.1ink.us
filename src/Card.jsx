@@ -159,7 +159,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
     return (
       <div
         className={`perspective-container animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 z-50 rounded-lg' : ''}`}
-        style={{ viewTransitionName: isSelected ? 'none' : `project-${project.id}`, animationDelay: `${index * 50}ms` }}
+        style={{ viewTransitionName: isSelected ? 'none' : `project-container-${project.id}`, animationDelay: `${index * 50}ms` }}
         draggable={draggable}
         onDragStart={onDragStart}
         onDragOver={onDragOver}
@@ -196,7 +196,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
     return (
       <div
         className={`perspective-container animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 z-50 rounded-lg' : ''}`}
-        style={{ viewTransitionName: isSelected ? 'none' : `project-${project.id}`, animationDelay: `${index * 50}ms` }}
+        style={{ viewTransitionName: isSelected ? 'none' : `project-container-${project.id}`, animationDelay: `${index * 50}ms` }}
         draggable={draggable}
         onDragStart={onDragStart}
         onDragOver={onDragOver}
@@ -243,6 +243,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
                  loading="lazy"
                  onLoad={() => setImageLoaded(true)}
                  className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-80' : 'opacity-0'} group-hover:opacity-100`}
+                 style={{ viewTransitionName: isSelected ? 'none' : `project-image-${project.id}` }}
                />
              ) : (
                <div className="w-full h-full flex items-center justify-center text-xl bg-gradient-to-br from-indigo-900/50 to-purple-900/50 transform transition-transform duration-300 group-hover:scale-110">
@@ -398,7 +399,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   return (
     <div
       className={`perspective-container animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 scale-105 z-50' : ''}`}
-      style={{ viewTransitionName: isSelected ? 'none' : `project-${project.id}`, animationDelay: `${index * 100}ms` }}
+      style={{ viewTransitionName: isSelected ? 'none' : `project-container-${project.id}`, animationDelay: `${index * 100}ms` }}
       draggable={draggable}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
@@ -494,6 +495,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
                 className={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-100' : 'opacity-0'} group-hover:scale-110 delay-100 group-hover:delay-[700ms]`}
+                style={{ viewTransitionName: isSelected ? 'none' : `project-image-${project.id}` }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300"></div>
             </div>
