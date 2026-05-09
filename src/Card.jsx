@@ -21,6 +21,24 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   const rafRef = useRef(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [ping, setPing] = useState(0);
+
+  useEffect(() => {
+    let timeout;
+    let interval;
+    if (isHovered) {
+      timeout = setTimeout(() => {
+        setPing(Math.floor(Math.random() * 30) + 5);
+      }, 0);
+      interval = setInterval(() => {
+        setPing(prev => Math.max(2, Math.min(150, prev + (Math.floor(Math.random() * 9) - 4))));
+      }, 800);
+    }
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
+  }, [isHovered]);
 
   useEffect(() => {
     // Check if device supports hover and user doesn't prefer reduced motion
@@ -51,6 +69,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
     soundSystem.playHoverSound();
     setIsHovered(true);
     soundSystem.playHover();
+
     if (!cardRef.current) return;
     // Set fast transition for tilt responsiveness on hover enter
     // This avoids setting style on every mousemove event, improving performance
@@ -112,6 +131,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
 
   const handleMouseLeave = () => {
     setIsHovered(false);
+    setPing(0);
     if (!cardRef.current) return;
 
     // Cancel any pending animation frame
@@ -504,6 +524,23 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
                 <span className="text-6xl transform transition-transform duration-500 group-hover:scale-125 group-hover:rotate-12 drop-shadow-lg">{project.icon}</span>
             </div>
           )}
+
+          {/* 🌌 CURATOR FEATURE: Live Network Node Status */}
+          <div
+            className={`sys-on-badge absolute top-4 left-4 z-20 flex flex-col gap-1 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+            style={{ transform: 'translateZ(40px)' }}
+          >
+            <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-1 rounded border border-accent-500/30" data-testid="sys-on-badge">
+              <div className="w-1.5 h-1.5 rounded-full bg-accent-400 animate-pulse shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.8)]"></div>
+              <span className="text-[9px] font-mono font-bold text-accent-300 tracking-wider">SYS.ON</span>
+            </div>
+            {ping > 0 && (
+              <div className="flex items-center gap-1 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded border border-white/5 w-fit" data-testid="ping-indicator">
+                 <svg className="w-2.5 h-2.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                 <span className="text-[8px] font-mono text-gray-400">{ping}ms</span>
+              </div>
+            )}
+          </div>
 
           {/* Target Lock Hover Brackets */}
           <div className="target-bracket target-bracket-tl target-bracket-gold"></div>
