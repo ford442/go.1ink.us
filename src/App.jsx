@@ -11,6 +11,7 @@ import TelemetryGraph from './TelemetryGraph';
 import ActivityFeed from './ActivityFeed';
 import RadarHUD from './RadarHUD';
 import soundSystem from './SoundSystem';
+import OmniPalette from './OmniPalette';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
 import './App.css';
 
@@ -343,6 +344,9 @@ function App() {
 
   // Custom Context Menu State
   const [contextMenu, setContextMenu] = useState(null);
+
+  // Omni Command Palette State
+  const [isOmniOpen, setIsOmniOpen] = useState(false);
 
   // Quick View Modal State
   const [selectedProject, setSelectedProject] = useState(null);
@@ -1059,9 +1063,12 @@ function App() {
         addActivityLog(`PROTOCOL OVERRIDE: DATA_MODE_ACTIVE`);
       }
       // Focus on '/' or 'Cmd+K' / 'Ctrl+K'
-      if ((e.key === '/' || ((e.metaKey || e.ctrlKey) && e.key === 'k')) && document.activeElement !== searchInputRef.current) {
+      if ((e.key === '/' || ((e.metaKey || e.ctrlKey) && e.key === 'k')) && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
         e.preventDefault();
-        searchInputRef.current?.focus();
+        setIsOmniOpen(prev => {
+          if (!prev) soundSystem.playSuccess();
+          return !prev;
+        });
       }
 
       // Global Terminal Toggle
@@ -1083,6 +1090,11 @@ function App() {
 
       // Global Escape Handler
       if (e.key === 'Escape') {
+        if (isOmniOpen) {
+          setIsOmniOpen(false);
+          return;
+        }
+
         if (isTerminalOpen) {
           setIsTerminalClosing(true);
           setTimeout(() => {
@@ -1186,7 +1198,7 @@ function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isTerminalOpen, isDataMode]);
+  }, [isTerminalOpen, isDataMode, isOmniOpen]);
 
   // Refs for background blobs to implement parallax
   const blob1Ref = useRef(null);
@@ -2704,6 +2716,26 @@ function App() {
            <div className="scanline opacity-20 pointer-events-none"></div>
         </div>
       )}
+
+      {/* Omni Command Palette */}
+      <OmniPalette
+        isOpen={isOmniOpen}
+        onClose={() => setIsOmniOpen(false)}
+        projects={projectData}
+        onProjectSelect={handleProjectSelect}
+        activeFilters={activeFilters}
+        onToggleFilter={toggleFilter}
+        currentTheme={theme}
+        onChangeTheme={changeTheme}
+        isCrtEnabled={isCrtEnabled}
+        onToggleCrt={() => setIsCrtEnabled(!isCrtEnabled)}
+        isSoundEnabled={isSoundEnabled}
+        onToggleSound={() => setIsSoundEnabled(!isSoundEnabled)}
+        isLockdown={isLockdown}
+        onToggleLockdown={() => setIsLockdown(!isLockdown)}
+        displayMode={displayMode}
+        onChangeDisplayMode={setDisplayMode}
+      />
 
       {/* System Idle Screensaver */}
       {isIdle && !isBooting && <Screensaver />}
