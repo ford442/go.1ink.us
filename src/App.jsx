@@ -1203,6 +1203,9 @@ function App() {
   // O(1) lookup for favorites
   const favoritesSet = useMemo(() => new Set(favorites), [favorites]);
 
+  // O(1) lookup for active filters
+  const activeFiltersSet = useMemo(() => new Set(activeFilters), [activeFilters]);
+
   // Memoize projects that match the search query (basis for filtering and counts)
   const projectsMatchingQuery = useMemo(() => {
     if (!searchQuery || searchQuery.trim() === '') return enhancedProjects;
@@ -1318,7 +1321,7 @@ function App() {
   };
 
   const filteredProjects = useMemo(() => {
-    const hasFavoritesFilter = activeFilters.includes('Favorites');
+    const hasFavoritesFilter = activeFiltersSet.has('Favorites');
     const regularFilters = activeFilters.filter(f => f !== 'Favorites');
 
     if (!hasFavoritesFilter && regularFilters.length === 0) return projectsMatchingQuery;
@@ -1341,7 +1344,7 @@ function App() {
         return project.tagSet.has(filter);
       });
     });
-  }, [activeFilters, projectsMatchingQuery, favoritesSet]);
+  }, [activeFiltersSet, activeFilters, projectsMatchingQuery, favoritesSet]);
 
   const favoriteCount = useMemo(() => {
     return projectsMatchingQuery.filter(project => favoritesSet.has(project.id)).length;
@@ -1376,7 +1379,7 @@ function App() {
       case 'Featured':
       default:
         // Returns original array order from projectData (assumed to be featured order)
-        if (activeFilters.includes('Favorites') && activeFilters.length === 1) {
+        if (activeFiltersSet.has('Favorites') && activeFilters.length === 1) {
           return projects.sort((a, b) => {
             const indexA = favorites.indexOf(a.id);
             const indexB = favorites.indexOf(b.id);
@@ -1385,7 +1388,7 @@ function App() {
         }
         return projects;
     }
-  }, [filteredProjects, sortOption, randomSeed, activeFilters, favorites]);
+  }, [filteredProjects, sortOption, randomSeed, activeFiltersSet, activeFilters, favorites]);
 
   const totalPages = Math.ceil(sortedProjects.length / itemsPerPage);
 
@@ -2032,7 +2035,7 @@ function App() {
 
             {/* Categories */}
             {Object.entries(CATEGORIES).map(([category]) => {
-              const isActive = activeFilters.includes(category);
+              const isActive = activeFiltersSet.has(category);
               const count = counts.categoryCounts[category] || 0;
               const style = CATEGORY_BUTTON_STYLES[category] || CATEGORY_BUTTON_STYLES['default'];
               const icon = CATEGORY_ICONS[category] || '📁';
@@ -2067,7 +2070,7 @@ function App() {
               onClick={() => toggleFilter('Favorites')}
               className={`
                 px-4 py-2 lg:py-1.5 lg:px-3 rounded-full lg:rounded-lg text-sm lg:text-base font-medium transition-all duration-300 backdrop-blur-md border flex items-center justify-between gap-2 snap-center shrink-0 lg:w-full group
-                ${activeFilters.includes('Favorites')
+                ${activeFiltersSet.has('Favorites')
                   ? CATEGORY_BUTTON_STYLES['Favorites'].activeClass
                   : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/30'
                 }
@@ -2077,7 +2080,7 @@ function App() {
                 <span className="text-xl lg:text-base group-hover:scale-110 transition-transform">💖</span>
                 <span>Favorites</span>
               </span>
-              <span className={`text-xs font-mono px-2 py-0.5 rounded-full transition-colors ${activeFilters.includes('Favorites') ? 'bg-white/20' : 'bg-black/30'}`}>
+              <span className={`text-xs font-mono px-2 py-0.5 rounded-full transition-colors ${activeFiltersSet.has('Favorites') ? 'bg-white/20' : 'bg-black/30'}`}>
                 {favoriteCount}
               </span>
             </button>
@@ -2093,7 +2096,7 @@ function App() {
               <div className="flex flex-wrap gap-2">
                 {activeCategories.flatMap(cat => CATEGORIES[cat]).map(tag => {
                   const count = counts.tagCounts[tag] || 0;
-                  const isActive = activeFilters.includes(tag);
+                  const isActive = activeFiltersSet.has(tag);
 
                   if (count === 0 && !isActive) return null;
 
@@ -2235,7 +2238,7 @@ function App() {
                         isDataMode={isDataMode}
 
                         // Drag and drop props (only active when sorting favorites)
-                        draggable={sortOption === 'Featured' && activeFilters.includes('Favorites')}
+                        draggable={sortOption === 'Featured' && activeFiltersSet.has('Favorites')}
                         onDragStart={(e) => handleDragStart(e, project.id)}
                         onDragOver={(e) => handleDragOver(e, project.id)}
                         onDragEnd={handleDragEnd}
