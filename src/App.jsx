@@ -59,6 +59,38 @@ function App() {
   });
   const [bootLogs, setBootLogs] = useState([]);
 
+  // Biometric Scan State
+  const [bootStep, setBootStep] = useState(0); // 0: phase1 logs, 1: scanning, 2: phase2 logs
+  const [scanProgress, setScanProgress] = useState(0);
+  const scanIntervalRef = useRef(null);
+
+  const startScan = (e) => {
+    if (e && e.preventDefault && e.type !== 'touchstart') e.preventDefault();
+    if (bootStep !== 1) return;
+
+    soundSystem.playClick();
+
+    scanIntervalRef.current = setInterval(() => {
+      setScanProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(scanIntervalRef.current);
+          soundSystem.playSuccess();
+          soundSystem.speak("Authorization accepted.");
+          setBootStep(2);
+          return 100;
+        }
+        return prev + 2; // Fills in ~1.5s (30ms * 50 steps)
+      });
+    }, 30);
+  };
+
+  const stopScan = () => {
+    if (bootStep === 1) {
+      clearInterval(scanIntervalRef.current);
+      setScanProgress(0);
+    }
+  };
+
   // Track unmount locally to handle the case where it was already booted in a previous session
   const [showBootScreen, setShowBootScreen] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -102,40 +134,55 @@ function App() {
       return () => clearTimeout(timer);
     }
 
-    const logs = [
+    const logsPhase1 = [
       "INITIALIZING QUANTUM KERNEL...",
       "LOADING PROJECT MATRIX... OK",
       "ESTABLISHING SECURE CONNECTION... OK",
+      "AWAITING BIOMETRIC AUTHORIZATION..."
+    ];
+
+    const logsPhase2 = [
       "DECRYPTING ASSETS...",
       "WELCOME TO CURATOR OS"
     ];
 
-    let currentLog = 0;
-
-    // Add logs sequentially
-    const logInterval = setInterval(() => {
-      if (currentLog < logs.length) {
-        setBootLogs(prev => [...prev, logs[currentLog]]);
-        currentLog++;
-      } else {
-        clearInterval(logInterval);
-
-        // Short delay after last log before fading out
-        setTimeout(() => {
-          setIsBooting(false);
-          soundSystem.speak("System Online. Welcome, Curator.");
-          if (typeof window !== 'undefined') {
-            sessionStorage.setItem('curator_booted', 'true');
+    if (bootStep === 0) {
+      let currentLog = 0;
+      const logInterval = setInterval(() => {
+        if (currentLog < logsPhase1.length) {
+          setBootLogs(prev => [...prev, logsPhase1[currentLog]]);
+          currentLog++;
+          if (currentLog === logsPhase1.length) {
+            clearInterval(logInterval);
+            setTimeout(() => setBootStep(1), 500); // Trigger biometric after a short pause
           }
-          addActivityLog("KERNEL_INITIALIZED: ONLINE");
-        }, 800);
-      }
-    }, 400); // 400ms between each log
+        }
+      }, 400);
+      return () => clearInterval(logInterval);
+    }
 
-    return () => {
-      clearInterval(logInterval);
-    };
-  }, [isBooting]);
+    if (bootStep === 2) {
+      let currentLog = 0;
+      const logInterval = setInterval(() => {
+        if (currentLog < logsPhase2.length) {
+          setBootLogs(prev => [...prev, logsPhase2[currentLog]]);
+          currentLog++;
+        } else {
+          clearInterval(logInterval);
+          setTimeout(() => {
+            setIsBooting(false);
+            soundSystem.speak("System Online. Welcome, Curator.");
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('curator_booted', 'true');
+            }
+            addActivityLog("KERNEL_INITIALIZED: ONLINE");
+          }, 800);
+        }
+      }, 400);
+      return () => clearInterval(logInterval);
+    }
+
+  }, [isBooting, bootStep]);
 
   useEffect(() => {
      // Wait till boot finishes (or if already booted) to play boot sound
@@ -1528,7 +1575,7 @@ function App() {
       <CustomCursor />
       {/* SYS_BOOT Sequence Screen */}
       {showBootScreen && (
-        <div className={`fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center font-mono pointer-events-none transition-all duration-1000 ${!isBooting ? 'animate-boot-fade' : ''}`}>
+        <div className={`fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center font-mono pointer-events-auto transition-all duration-1000 ${!isBooting ? 'animate-boot-fade pointer-events-none' : ''}`}>
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--rgb-accent-400),0.1),transparent_50%)]"></div>
           <div className="scanline"></div>
 
@@ -1549,16 +1596,53 @@ function App() {
               </div>
             </div>
 
-            <div className="space-y-2 min-h-[200px]">
+            <div className="space-y-2 min-h-[300px] flex flex-col">
               {bootLogs.map((log, index) => (
                 <div key={index} className="flex items-center gap-3 text-sm">
                   <span className="text-accent-500">{`>`}</span>
-                  <span className={`text-gray-300 font-medium ${index === bootLogs.length - 1 ? 'typewriter-text text-accent-400 font-bold' : ''}`}>
+                  <span className={`text-gray-300 font-medium ${(index === bootLogs.length - 1 && bootStep !== 1) ? 'typewriter-text text-accent-400 font-bold' : ''}`}>
                     {log}
                   </span>
                 </div>
               ))}
-              {isBooting && (
+
+              {bootStep === 1 && (
+                <div className="mt-12 flex flex-col items-center justify-center animate-fade-in self-center">
+                  <div
+                    className="relative w-24 h-24 cursor-pointer group"
+                    onMouseDown={startScan}
+                    onMouseUp={stopScan}
+                    onMouseLeave={stopScan}
+                    onTouchStart={startScan}
+                    onTouchEnd={stopScan}
+                  >
+                    {/* Background SVG */}
+                    <svg className="absolute inset-0 w-full h-full text-accent-500/20 group-hover:text-accent-500/40 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+                    </svg>
+
+                    {/* Scan Progress Overlay */}
+                    <div
+                      className="absolute bottom-0 left-0 right-0 overflow-hidden pointer-events-none transition-all"
+                      style={{ height: `${scanProgress}%` }}
+                    >
+                      <svg className="absolute bottom-0 left-0 w-24 h-24 text-accent-400 drop-shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+                      </svg>
+                    </div>
+
+                    {/* Scanning Line */}
+                    {scanProgress > 0 && scanProgress < 100 && (
+                      <div className="absolute left-0 right-0 h-0.5 bg-white shadow-[0_0_10px_#fff] z-10 pointer-events-none" style={{ bottom: `${scanProgress}%` }}></div>
+                    )}
+                  </div>
+                  <div className="text-xs font-mono text-accent-500/70 mt-6 tracking-widest uppercase">
+                    {scanProgress === 0 ? 'Hold to Authorize' : `Scanning... ${Math.floor(scanProgress)}%`}
+                  </div>
+                </div>
+              )}
+
+              {isBooting && bootStep !== 1 && (
                 <div className="flex items-center gap-3 text-sm mt-2">
                    <span className="text-accent-500">{`>`}</span>
                    <div className="w-2 h-4 bg-accent-400 animate-pulse"></div>
