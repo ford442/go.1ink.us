@@ -12,6 +12,7 @@ import ActivityFeed from './ActivityFeed';
 import RadarHUD from './RadarHUD';
 import soundSystem from './SoundSystem';
 import OmniPalette from './OmniPalette';
+import ParticleNetwork from './ParticleNetwork';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
 import './App.css';
 
@@ -1200,11 +1201,6 @@ function App() {
     };
   }, [isTerminalOpen, isDataMode, isOmniOpen]);
 
-  // Refs for background blobs to implement parallax
-  const blob1Ref = useRef(null);
-  const blob2Ref = useRef(null);
-  const blob3Ref = useRef(null);
-  const blob4Ref = useRef(null);
 
   // Ref for the spotlight grid
   const gridSpotlightRef = useRef(null);
@@ -1245,13 +1241,6 @@ function App() {
     return Array.from(cats);
   }, [activeFilters]);
 
-  // Determine the active color theme based on the first active category
-  const currentTheme = useMemo(() => {
-    if (activeCategories.length > 0 && CATEGORY_THEMES[activeCategories[0]]) {
-      return CATEGORY_THEMES[activeCategories[0]];
-    }
-    return CATEGORY_THEMES['default'];
-  }, [activeCategories]);
 
   // Single-pass calculation of all category and tag counts
   const counts = useMemo(() => {
@@ -1452,45 +1441,6 @@ function App() {
       // Lerp current towards target (0.03 factor for smoother inertia and weighty drift)
       currentMouseX += (targetMouseX - currentMouseX) * 0.03;
       currentMouseY += (targetMouseY - currentMouseY) * 0.03;
-
-      // Time-based organic drift for "breathing" background
-      const time = performance.now() * 0.0005; // Slower time factor for more subtle drift
-
-      // Calculate organic drift offsets using sine/cosine waves with different phases/frequencies
-      // Increased amplitude and varied frequencies for a more fluid, "lava lamp" feel
-      // Blob 1
-      const drift1X = Math.sin(time * 0.8) * 150;
-      const drift1Y = Math.cos(time * 0.5) * 150;
-
-      // Blob 2
-      const drift2X = Math.cos(time * 0.7) * 180;
-      const drift2Y = Math.sin(time * 0.9 + 2) * 180;
-
-      // Blob 3
-      const drift3X = Math.sin(time * 0.6 + 4) * 120;
-      const drift3Y = Math.cos(time * 0.8 + 1) * 120;
-
-      // Blob 4
-      const drift4X = Math.cos(time * 0.5 + 5) * 160;
-      const drift4Y = Math.sin(time * 0.7 + 3) * 160;
-
-      // Calculate smooth blob positions based on scroll AND interpolated mouse AND organic drift
-      // Blob 1: Moves with scroll (0.8), Retreats from mouse (-0.04)
-      if (blob1Ref.current) {
-        blob1Ref.current.style.transform = `translate3d(${currentMouseX * -0.04 + drift1X}px, ${scrollY * 0.8 + currentMouseY * -0.04 + drift1Y}px, 0)`;
-      }
-      // Blob 2: Moves with scroll (-0.6), Attracted to mouse (0.06)
-      if (blob2Ref.current) {
-        blob2Ref.current.style.transform = `translate3d(${currentMouseX * 0.06 + drift2X}px, ${scrollY * -0.6 + currentMouseY * 0.06 + drift2Y}px, 0)`;
-      }
-      // Blob 3: Moves with scroll (0.4), Slight drift with mouse (0.02)
-      if (blob3Ref.current) {
-        blob3Ref.current.style.transform = `translate3d(${currentMouseX * 0.02 + drift3X}px, ${scrollY * 0.4 + currentMouseY * 0.02 + drift3Y}px, 0)`;
-      }
-      // Blob 4: Moves with scroll (-0.4), Counter-drift with mouse (-0.06)
-      if (blob4Ref.current) {
-        blob4Ref.current.style.transform = `translate3d(${currentMouseX * -0.06 + drift4X}px, ${scrollY * -0.4 + currentMouseY * -0.06 + drift4Y}px, 0)`;
-      }
 
       // Starfield: Subtle parallax (very far away)
       if (starfieldRef.current) {
@@ -1799,22 +1749,8 @@ function App() {
           <Starfield ref={starfieldRef} />
         </div>
 
-        {/* Animated Blobs with Parallax Wrapper */}
-        <div ref={blob1Ref} className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] will-change-transform">
-            <div className={`w-full h-full ${currentTheme[0]} rounded-full blur-[100px] animate-blob mix-blend-screen transition-colors duration-[2000ms]`}></div>
-        </div>
-
-        <div ref={blob2Ref} className="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] will-change-transform">
-            <div className={`w-full h-full ${currentTheme[1]} rounded-full blur-[100px] animate-blob mix-blend-screen transition-colors duration-[2000ms]`} style={{ animationDelay: "2s" }}></div>
-        </div>
-
-        <div ref={blob3Ref} className="absolute top-[40%] left-[30%] w-[30rem] h-[30rem] will-change-transform">
-            <div className={`w-full h-full ${currentTheme[2]} rounded-full blur-[80px] animate-blob mix-blend-screen transition-colors duration-[2000ms]`} style={{ animationDelay: "4s" }}></div>
-        </div>
-
-        <div ref={blob4Ref} className="absolute top-[10%] right-[20%] w-[35rem] h-[35rem] will-change-transform">
-            <div className={`w-full h-full ${currentTheme[3]} rounded-full blur-[90px] animate-blob mix-blend-screen transition-colors duration-[2000ms]`} style={{ animationDelay: "6s" }}></div>
-        </div>
+        {/* Interactive Particle Network (Replaces ambient glowing orbs) */}
+        <ParticleNetwork />
 
         {/* Floating Ambient Particles (Out of focus depth) */}
         <div className="absolute top-[15%] left-[10%] w-32 h-32 bg-accent-500/20 rounded-full blur-2xl animate-float-idle" style={{ animationDelay: '0s' }}></div>
