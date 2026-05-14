@@ -1914,48 +1914,60 @@ function App() {
              </div>
           </div>
 
-          {/* Mobile Filter Toggle Button */}
-          <div className="md:hidden flex justify-center mb-6 px-4 animate-fade-in" style={{ animationDelay: '0.15s' }}>
+          {/* Mobile Filter Toggle Button (Floating Hamburger) */}
+          <div className="lg:hidden fixed bottom-6 right-6 z-[65] animate-fade-in" style={{ animationDelay: '0.15s' }}>
             <button
-              onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
-              className="w-full relative group overflow-hidden bg-accent-900/40 border border-accent-500/30 rounded-xl py-3 px-4 flex items-center justify-between transition-all duration-300 hover:bg-accent-500/10 hover:border-accent-400"
+              onClick={() => setIsMobileFiltersOpen(true)}
+              className={`w-14 h-14 relative group overflow-hidden bg-black/80 backdrop-blur-xl border border-accent-500/50 rounded-full flex items-center justify-center transition-all duration-300 hover:bg-accent-900/40 hover:scale-110 shadow-[0_0_20px_rgba(var(--rgb-accent-400),0.3)] ${isMobileFiltersOpen ? 'scale-0' : 'scale-100'}`}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-accent-500/0 via-accent-500/5 to-accent-500/0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-accent-500/0 via-accent-500/5 to-accent-500/0 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"></div>
 
-              <div className="flex items-center gap-3 relative z-10">
-                <span className="text-accent-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                  </svg>
-                </span>
-                <span className="font-mono text-sm tracking-widest uppercase font-bold text-accent-100">Filter Protocols</span>
-
-                {/* Active Indicator */}
-                {(activeFilters.length > 0 || sortOption !== 'Featured') && (
-                  <span className="flex h-2 w-2 relative ml-1">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-500"></span>
-                  </span>
-                )}
-              </div>
-
-              <div className="relative z-10 text-accent-500/70 group-hover:text-accent-400 transition-colors">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className={`h-5 w-5 transform transition-transform duration-300 ${isMobileFiltersOpen ? 'rotate-180' : ''}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <div className="flex items-center justify-center relative z-10 text-accent-400 group-hover:text-accent-300 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </div>
+
+              {/* Active Indicator Bubble */}
+              {(activeFilters.length > 0 || sortOption !== 'Featured') && (
+                <span className="absolute top-0 right-0 flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-accent-500 border border-black"></span>
+                </span>
+              )}
             </button>
           </div>
 
-          {/* Collapsible Filter Container */}
-          <div className={`grid transition-all duration-300 ease-in-out lg:grid-rows-[1fr] lg:opacity-100 ${isMobileFiltersOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 lg:mb-0'}`}>
-            <div className="overflow-hidden flex flex-col gap-6 lg:gap-8">
+          {/* Drawer Backdrop */}
+          <div
+             className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] lg:hidden transition-opacity duration-300 ${isMobileFiltersOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+             onClick={() => setIsMobileFiltersOpen(false)}
+          ></div>
+
+          {/* Off-canvas Filter Drawer (Mobile) / Sidebar (Desktop) */}
+          <div className={`
+             fixed inset-y-0 right-0 z-[70] w-80 max-w-[85vw] bg-black/95 border-l border-white/10 p-6 transform transition-transform duration-300 ease-in-out lg:relative lg:transform-none lg:w-full lg:max-w-none lg:bg-transparent lg:border-none lg:p-0 lg:z-auto
+             ${isMobileFiltersOpen ? 'translate-x-0 shadow-[-10px_0_30px_rgba(0,0,0,0.8)]' : 'translate-x-full lg:translate-x-0'}
+             overflow-y-auto scrollbar-hide lg:overflow-visible flex flex-col gap-6 lg:gap-8
+          `}>
+
+            {/* Mobile Drawer Header */}
+            <div className="flex items-center justify-between lg:hidden mb-2">
+                <span className="font-mono text-sm tracking-widest uppercase font-bold text-accent-400 flex items-center gap-2">
+                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                  </svg>
+                  Tactical Filters
+                </span>
+                <button
+                  onClick={() => setIsMobileFiltersOpen(false)}
+                  className="text-gray-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-full"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+            </div>
 
           {/* Category Filter Section */}
           <div className="flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible gap-3 pb-2 lg:pb-0 scrollbar-hide snap-x lg:snap-none mobile-scroll-mask lg:[mask-image:none]">
@@ -2078,11 +2090,10 @@ function App() {
             <RadarHUD projects={filteredProjects} favorites={favorites} displayMode={displayMode} />
           </div>
           </div>
-          </div>
           </aside>
 
           {/* MAIN GRID */}
-          <main className="flex-1 w-full min-w-0">
+          <main className="flex-1 w-full min-w-0 relative z-0">
             {/* Active Filters Summary */}
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-2">
