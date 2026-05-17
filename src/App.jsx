@@ -1089,13 +1089,22 @@ function App() {
         setIsDataMode(true);
         addActivityLog(`PROTOCOL OVERRIDE: DATA_MODE_ACTIVE`);
       }
-      // Focus on '/' or 'Cmd+K' / 'Ctrl+K'
-      if ((e.key === '/' || ((e.metaKey || e.ctrlKey) && e.key === 'k')) && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      // Focus Search on '/'
+      if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        soundSystem.playKeystroke();
+        searchInputRef.current?.focus();
+        return;
+      }
+
+      // Focus OmniPalette on 'Cmd+K' / 'Ctrl+K'
+      if (((e.metaKey || e.ctrlKey) && e.key === 'k') && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
         e.preventDefault();
         setIsOmniOpen(prev => {
           if (!prev) soundSystem.playSuccess();
           return !prev;
         });
+        return;
       }
 
       // Global Terminal Toggle
@@ -1117,6 +1126,11 @@ function App() {
 
       // Global Escape Handler
       if (e.key === 'Escape') {
+        if (contextMenu) {
+          setContextMenu(null);
+          return;
+        }
+
         if (isOmniOpen) {
           setIsOmniOpen(false);
           return;
@@ -1225,7 +1239,7 @@ function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isTerminalOpen, isDataMode, isOmniOpen]);
+  }, [isTerminalOpen, isDataMode, isOmniOpen, contextMenu]);
 
 
   // Ref for the spotlight grid
