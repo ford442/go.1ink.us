@@ -37,6 +37,32 @@ const enhancedProjects = projectData.map(project => {
 
 function App() {
 
+  // Tactical Click Ripples State
+  const [clickEffects, setClickEffects] = useState([]);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      // Don't spawn ripples if clicking inside the terminal or omni palette
+      if (e.target.closest('.terminal-modal') || e.target.closest('.omni-palette')) return;
+
+      const newEffect = {
+        id: Date.now() + Math.random(),
+        x: e.clientX,
+        y: e.clientY,
+      };
+
+      setClickEffects(prev => [...prev, newEffect]);
+
+      // Remove the effect after animation completes (600ms)
+      setTimeout(() => {
+        setClickEffects(prev => prev.filter(effect => effect.id !== newEffect.id));
+      }, 600);
+    };
+
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, []);
+
   // Real-time Activity Logs State
   const [userActivityLogs, setUserActivityLogs] = useState([]);
 
@@ -2795,6 +2821,22 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* Tactical Click Ripples */}
+      <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden">
+        {clickEffects.map(effect => (
+          <div
+            key={effect.id}
+            className="absolute rounded-full border border-cyan-400 animate-tactical-ripple"
+            style={{
+              left: effect.x - 20, // Center the 40x40 circle
+              top: effect.y - 20,
+              width: '40px',
+              height: '40px',
+            }}
+          />
+        ))}
+      </div>
 
       {/* Toast Notifications Container */}
       <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-3 pointer-events-none">
