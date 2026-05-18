@@ -1246,6 +1246,8 @@ function App() {
   const gridSpotlightRef = useRef(null);
   const starfieldRef = useRef(null);
   const canvasRef = useRef(null); // Canvas for cursor trail effect
+  const deepGridRef = useRef(null);
+  const baseGridRef = useRef(null);
 
 
   // O(1) lookup for favorites
@@ -1494,6 +1496,17 @@ function App() {
         const mask = `radial-gradient(300px circle at ${pageMouseX}px ${pageMouseY}px, black, transparent)`;
         gridSpotlightRef.current.style.maskImage = mask;
         gridSpotlightRef.current.style.webkitMaskImage = mask;
+      }
+
+      // Update the Deep Grid and Base Grid Masks
+      const deepMask = `radial-gradient(800px circle at ${pageMouseX}px ${pageMouseY}px, black 10%, transparent 80%)`;
+      if (deepGridRef.current) {
+        deepGridRef.current.style.maskImage = deepMask;
+        deepGridRef.current.style.webkitMaskImage = deepMask;
+      }
+      if (baseGridRef.current) {
+        baseGridRef.current.style.maskImage = deepMask;
+        baseGridRef.current.style.webkitMaskImage = deepMask;
       }
 
       // Update and Draw Canvas Cursor Trail
@@ -1789,6 +1802,13 @@ function App() {
           <Starfield ref={starfieldRef} />
         </div>
 
+        {/* Deep Parallax Orbs for Enhanced Depth Layering */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+           <div className="absolute top-[20%] left-[10%] w-[40rem] h-[40rem] bg-accent-600/10 rounded-full blur-[100px] animate-blob"></div>
+           <div className="absolute top-[60%] right-[10%] w-[30rem] h-[30rem] bg-purple-600/10 rounded-full blur-[120px] animate-blob" style={{ animationDelay: '2s' }}></div>
+           <div className="absolute -bottom-32 left-[40%] w-[35rem] h-[35rem] bg-accent-500/10 rounded-full blur-[90px] animate-blob" style={{ animationDelay: '4s' }}></div>
+        </div>
+
         {/* Interactive Particle Network (Replaces ambient glowing orbs) */}
         <ParticleNetwork />
 
@@ -1800,6 +1820,7 @@ function App() {
 
         {/* Deep Space Grid Layer for Parallax Depth */}
         <div
+          ref={deepGridRef}
           className="absolute inset-[-5%] w-[110%] h-[110%] opacity-20 pointer-events-none"
           style={{
             backgroundSize: '120px 120px',
@@ -1813,6 +1834,7 @@ function App() {
 
         {/* Base Grid Pattern Overlay */}
         <div
+          ref={baseGridRef}
           className="absolute inset-[-5%] w-[110%] h-[110%] opacity-50"
           style={{
             backgroundSize: '60px 60px',
