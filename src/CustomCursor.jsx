@@ -22,9 +22,6 @@ export default function CustomCursor() {
   useEffect(() => {
     if (!isPointerDevice) return;
 
-    // Add global class to hide cursor when we know we're using a mouse
-    document.body.classList.add('custom-cursor-active');
-
     const onMouseMove = (e) => {
       mouse.current.x = e.clientX;
       mouse.current.y = e.clientY;
@@ -77,7 +74,6 @@ export default function CustomCursor() {
       document.removeEventListener('mouseover', onMouseOver);
       document.removeEventListener('mouseout', onMouseOut);
       cancelAnimationFrame(requestRef.current);
-      document.body.classList.remove('custom-cursor-active');
     };
   }, [isPointerDevice]);
 
