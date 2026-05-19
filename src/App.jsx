@@ -37,6 +37,11 @@ const enhancedProjects = projectData.map(project => {
 
 function App() {
 
+  // Ensure page loads scrolled to top
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Tactical Click Ripples State
   const [clickEffects, setClickEffects] = useState([]);
 
@@ -78,13 +83,8 @@ function App() {
     });
   };
 
-  // Boot Sequence State
-  const [isBooting, setIsBooting] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return !sessionStorage.getItem('curator_booted');
-    }
-    return true;
-  });
+  // Boot Sequence State — bypassed for public access
+  const [isBooting, setIsBooting] = useState(false);
   const [bootLogs, setBootLogs] = useState([]);
 
   // Biometric Scan State
@@ -119,13 +119,8 @@ function App() {
     }
   };
 
-  // Track unmount locally to handle the case where it was already booted in a previous session
-  const [showBootScreen, setShowBootScreen] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return !sessionStorage.getItem('curator_booted');
-    }
-    return true;
-  });
+  // Boot screen hidden — site loads directly into the project grid
+  const [showBootScreen, setShowBootScreen] = useState(false);
 
   // Audio State
   const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
@@ -416,26 +411,18 @@ function App() {
     };
   }, [isIdle, isBooting]);
 
-  // Wrapper to handle project selection and reset image loaded state
+  // Open the live app directly in a new tab
   const handleProjectSelect = (project) => {
     if (isLockdown) {
       soundSystem.playDenied();
       addToast('> SYS_ERR: ACCESS DENIED - SYSTEM IN LOCKDOWN', 'error');
       return;
     }
-    setModalImageLoaded(false);
 
-    if (document.startViewTransition) {
-      document.startViewTransition(() => {
-        flushSync(() => setSelectedProject(project));
-      });
-    } else {
-      setSelectedProject(project);
-    }
-
-    if (project) {
-        soundSystem.playClick();
-        addActivityLog(`DATA EXTRACTED: [${project.title.toUpperCase()}]`);
+    if (project && project.url) {
+      soundSystem.playClick();
+      addActivityLog(`APP LAUNCHED: [${project.title.toUpperCase()}]`);
+      window.open(project.url, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -873,7 +860,7 @@ function App() {
           const projectToOpen = projectData.find(p => p.id === idToOpen);
           if (projectToOpen) {
             handleProjectSelect(projectToOpen);
-            // Close terminal to show modal
+            // Close terminal after opening app
             setIsTerminalClosing(true);
             setTimeout(() => {
               setIsTerminalOpen(false);
@@ -2610,13 +2597,13 @@ function App() {
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 mt-auto pt-6 border-t border-white/10">
                 <button
-                  onClick={() => addToast(`> SYS_CMD: [${selectedProject.title.toUpperCase()}] DATA_EXTRACTION_INITIATED`, 'success')}
+                  onClick={() => handleCopyLink(selectedProject)}
                   className="bg-accent-900/40 hover:bg-accent-500/20 text-accent-300 border border-accent-500/30 hover:border-accent-400 px-6 py-3 rounded-lg font-bold tracking-widest uppercase text-sm flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)] group"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                   </svg>
-                  Extract Data
+                  Copy Link
                 </button>
                 <a
                   href={selectedProject.url}
@@ -2625,7 +2612,7 @@ function App() {
                   className="flex-1 bg-accent-500/20 hover:bg-accent-500/30 text-accent-300 border border-accent-400/50 hover:border-accent-300 px-6 py-3 rounded-lg font-bold tracking-widest uppercase text-sm flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-[0_0_20px_rgba(var(--rgb-accent-400),0.4)] group"
                 >
                   <span className="animate-pulse">▶</span>
-                  Launch Protocol
+                  Open App
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
@@ -2770,20 +2757,6 @@ function App() {
           </div>
 
           <div className="flex flex-col p-1 relative z-10">
-             <button
-                className="w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-accent-500/20 transition-colors flex items-center gap-3 group"
-                onClick={() => {
-                   handleProjectSelect(contextMenu.project);
-                   closeContextMenu();
-                }}
-                onMouseEnter={() => soundSystem.playHover()}
-             >
-                <span className="text-accent-400 group-hover:scale-110 transition-transform">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                </span>
-                Extract Data
-             </button>
-
              <a
                 href={contextMenu.project.url}
                 target="_blank"
@@ -2798,7 +2771,7 @@ function App() {
                 <span className="text-accent-400 group-hover:scale-110 transition-transform">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                 </span>
-                Execute Protocol
+                Open App
              </a>
 
              <button
