@@ -389,7 +389,7 @@ function App() {
       lastActivityRef.current = Date.now();
       if (isIdle) {
         setIsIdle(false);
-        soundSystem.playBeep(600, 'sine', 0.05); // Play a subtle sound when waking up
+        soundSystem.playTone(600, 'sine', 0.05); // Play a subtle sound when waking up
       }
     };
 
@@ -415,7 +415,13 @@ function App() {
   const handleProjectSelect = (project) => {
     if (isLockdown) {
       soundSystem.playDenied();
-      addToast('> SYS_ERR: ACCESS DENIED - SYSTEM IN LOCKDOWN', 'error');
+      addToast("> SYS_ERR: ACCESS DENIED - SYSTEM IN LOCKDOWN", "error");
+      return;
+    }
+    if (project && project.url) {
+      soundSystem.playClick();
+      addActivityLog(`LAUNCH INITIATED: [${project.title.toUpperCase()}]`);
+      window.open(project.url, "_blank", "noopener,noreferrer");
       return;
     }
 
@@ -1896,7 +1902,7 @@ function App() {
                       addActivityLog(`USER SEARCH: "${e.target.value}"`);
                     }
                   }}
-                  onInput={() => soundSystem.playTyping()}
+                  onInput={() => soundSystem.playKeystroke()}
                   onKeyDown={(e) => {
                     if (e.key === 'ArrowDown' || e.key === 'Enter') {
                       const firstCard = document.querySelector('.card-link');
@@ -2242,6 +2248,7 @@ function App() {
                         isFavorite={favorites.includes(project.id)}
                         onToggleFavorite={() => toggleFavorite(project)}
                         onContextMenu={(e) => handleContextMenu(e, project)}
+                        onCopyLink={handleCopyLink}
                         layout={displayMode}
                         isDataMode={isDataMode}
 
@@ -2697,7 +2704,7 @@ function App() {
                  type="text"
                  value={terminalInput}
                  onChange={(e) => setTerminalInput(e.target.value)}
-                 onInput={() => soundSystem.playTyping()}
+                 onInput={() => soundSystem.playKeystroke()}
                  onKeyDown={handleTerminalKeyDown}
                  className="flex-1 bg-transparent border-none outline-none text-white focus:ring-0 p-0 placeholder-gray-600"
                  placeholder="Type 'help' for available protocols..."
