@@ -17,7 +17,6 @@ This is a single-page application (SPA) built with modern React patterns, served
 | Styling | Tailwind CSS | ^4.1.18 |
 | CSS Processing | PostCSS with @tailwindcss/postcss | ^8.5.6 |
 | Linting | ESLint | ^9.39.1 |
-| E2E Testing | Playwright (Python) | - |
 | Deployment | Python + Paramiko (SFTP) | - |
 
 ---
@@ -33,8 +32,6 @@ go.1ink.us/
 ├── postcss.config.js          # PostCSS plugins config
 ├── eslint.config.js           # ESLint flat config
 ├── deploy.py                  # SFTP deployment script
-├── verify_data.js             # Data validation script
-├── verify_neon_border.py      # Visual verification script
 ├── public/                    # Static assets
 │   ├── *.png                  # Project screenshots
 │   ├── title.png              # Site header image
@@ -48,9 +45,7 @@ go.1ink.us/
 │   ├── projectData.js         # Project data array
 │   ├── App.css                # Custom CSS animations and 3D effects
 │   └── index.css              # Tailwind CSS import
-└── verification/              # E2E test scripts and screenshots
-    ├── verify_search.py       # Search functionality tests
-    ├── verify_hover.py        # Card hover effect tests
+└── (End of structure)              # E2E test scripts and screenshots
     └── *.png                  # Test result screenshots
 ```
 
@@ -102,33 +97,6 @@ npm run lint
 4. **will-change**: Apply to elements with frequent transforms
 
 ---
-
-## Testing Instructions
-
-### Prerequisites
-
-```bash
-pip install playwright
-playwright install
-```
-
-### Running Tests
-
-```bash
-# Ensure dev server is running
-npm run dev
-
-# Verify search functionality
-python verification/verify_search.py
-
-# Verify card hover effects
-python verification/verify_hover.py
-
-# Validate project data consistency
-node verify_data.js
-```
-
-### Test Coverage
 
 - **Search**: Tests real-time filtering and empty states
 - **Visual**: Captures screenshots of hover effects and transitions
@@ -269,15 +237,12 @@ python deploy.py
 
 2. Add screenshot to `public/new-project.png`
 
-3. Run `node verify_data.js` to validate tags
 
-4. Run `python verification/verify_search.py` to test
 
 ### Adding a New Category
 
 1. Update `CATEGORIES` object in `src/App.jsx`
 2. Add corresponding icon to `CATEGORY_ICONS`
-3. Run `node verify_data.js` to check for untagged projects
 
 ### Modifying Card Effects
 

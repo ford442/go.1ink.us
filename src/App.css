@@ -119,6 +119,7 @@ body.custom-cursor-active textarea * {
 }
 
 .animate-slide-in-up {
+  opacity: 0;
   animation: slideInUp 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 

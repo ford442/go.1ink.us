@@ -190,7 +190,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
         <div className="bg-black/90 border border-accent-500/50 font-mono text-accent-400 text-xs p-4 rounded-xl shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)] relative overflow-hidden group h-full cursor-pointer hover:bg-black hover:border-accent-400 transition-colors"
              onClick={(e) => {
                e.preventDefault();
-               soundSystem.playClickSound();
+               soundSystem.playClick();
                if (onProjectClick) onProjectClick(project);
              }}
         >
@@ -228,7 +228,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
           className="glass-card relative group flex items-center p-3 gap-4 rounded-lg hover:bg-white/5 hover:gold-glow transition-colors h-20 cursor-pointer"
           onClick={(e) => {
             e.preventDefault();
-            soundSystem.playClickSound();
+            soundSystem.playClick();
             if (onProjectClick) onProjectClick(project);
           }}
         >
@@ -310,7 +310,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
                    onClick={(e) => {
                      e.preventDefault();
                      e.stopPropagation();
-                     soundSystem.playClickSound();
+                     soundSystem.playClick();
                      if (onTagClick) onTagClick(tag);
                    }}
                    className={`text-[9px] px-2 py-0.5 rounded-full border transition-all duration-300 whitespace-nowrap
@@ -351,7 +351,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
                  onClick={(e) => {
                    e.preventDefault();
                    e.stopPropagation();
-                     soundSystem.playClickSound();
+                     soundSystem.playClick();
                    if (onToggleFavorite) onToggleFavorite(project);
                  }}
                  className={`p-1.5 rounded-md transition-all duration-300
@@ -372,7 +372,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
                  onClick={(e) => {
                    e.preventDefault();
                    e.stopPropagation();
-                     soundSystem.playClickSound();
+                     soundSystem.playClick();
                    if (onCopyLink) onCopyLink(project);
                  }}
                  className="p-1.5 rounded-md text-gray-500 hover:text-accent-300 hover:bg-accent-500/20 hover:border-accent-400/30 border border-transparent transition-all duration-300"
@@ -435,7 +435,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
         onMouseLeave={handleMouseLeave}
         onClick={(e) => {
           e.preventDefault();
-          soundSystem.playClickSound();
+          soundSystem.playClick();
           if (onProjectClick) onProjectClick(project);
         }}
       >
@@ -452,7 +452,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                soundSystem.playClickSound();
+                soundSystem.playClick();
                 if (onToggleFavorite) onToggleFavorite(project);
               }}
               className={`p-2 rounded-full transition-all duration-300 backdrop-blur-md
@@ -475,7 +475,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                soundSystem.playClickSound();
+                soundSystem.playClick();
                 if (onCopyLink) onCopyLink(project);
               }}
               className="p-2 rounded-full transition-all duration-300 backdrop-blur-md bg-black/30 text-white/50 opacity-0 group-hover:opacity-100 border border-white/10 hover:bg-accent-500/20 hover:text-accent-300 hover:border-accent-400/50 hover:scale-110"
@@ -613,7 +613,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      soundSystem.playClickSound();
+                      soundSystem.playClick();
                       if (onTagClick) onTagClick(tag);
                     }}
                     className={`px-3 py-1 text-xs font-semibold tracking-wider border rounded-full transition-all duration-300 cursor-pointer z-20
