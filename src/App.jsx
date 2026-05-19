@@ -860,7 +860,7 @@ function App() {
           const projectToOpen = projectData.find(p => p.id === idToOpen);
           if (projectToOpen) {
             handleProjectSelect(projectToOpen);
-            // Close terminal after opening app
+            // Close terminal after initiating app launch
             setIsTerminalClosing(true);
             setTimeout(() => {
               setIsTerminalOpen(false);
