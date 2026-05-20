@@ -13,6 +13,7 @@ import RadarHUD from './RadarHUD';
 import soundSystem from './SoundSystem';
 import OmniPalette from './OmniPalette';
 import ParticleNetwork from './ParticleNetwork';
+import SystemClock from './SystemClock';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
 import './App.css';
 
@@ -1674,6 +1675,26 @@ function App() {
           <div className="hidden sm:flex items-center gap-2 text-accent-200/70 border-l border-accent-500/30 pl-4">
             <span className="opacity-50">UPTIME:</span>
             <span className="text-accent-100">{formatUptime(systemStats.uptime)}</span>
+          </div>
+
+          <div className="hidden md:flex items-center gap-2 border-l border-accent-500/30 pl-4">
+            <span className="opacity-50">MEM:</span>
+            <div className="w-16 h-1.5 bg-black/50 rounded-full overflow-hidden border border-accent-500/30">
+              <div
+                className="h-full transition-all duration-1000"
+                style={{ width: `${systemStats.memory}%`, backgroundColor: systemStats.memory > 80 ? '#ef4444' : systemStats.memory > 60 ? '#eab308' : 'rgb(var(--rgb-accent-400))' }}
+              ></div>
+            </div>
+            <span className="text-accent-100 text-[10px] w-6">{systemStats.memory}%</span>
+          </div>
+
+          <div className="hidden md:flex items-center gap-2 border-l border-accent-500/30 pl-4">
+            <span className="opacity-50">NET:</span>
+            <span className="text-accent-100">{systemStats.connections}</span>
+          </div>
+
+          <div className="hidden lg:flex items-center">
+            <SystemClock />
           </div>
         </div>
 
