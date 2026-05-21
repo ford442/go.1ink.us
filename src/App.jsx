@@ -2349,21 +2349,35 @@ function App() {
              <div className="relative overflow-hidden rounded-xl p-8 backdrop-blur-md tinted-glass shifting-glass border border-accent-500/30 shadow-[0_0_30px_rgba(var(--rgb-accent-400),0.1),inset_0_0_20px_rgba(var(--rgb-accent-400),0.05)]">
                 <div className="scanline"></div>
                 <div className="flex flex-col items-center justify-center text-center space-y-6 relative z-10">
-                   {/* Radar / Scanner Visual */}
-                   <div className="relative w-32 h-32 flex items-center justify-center mb-2">
-                      <div className="absolute inset-0 border-2 border-accent-500/30 rounded-full animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]"></div>
-                      <div className="absolute inset-4 border border-accent-500/20 rounded-full"></div>
-                      <div className="absolute inset-8 border border-accent-500/10 rounded-full"></div>
-                      <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_70%,rgba(var(--rgb-accent-400),0.4)_100%)] rounded-full animate-spin [animation-duration:3s]"></div>
-                      <div className="absolute w-1/2 h-[2px] bg-accent-500/50 origin-right top-1/2 left-0 animate-spin [animation-duration:3s]"></div>
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#000_100%)] rounded-full"></div>
-                      <svg className="w-10 h-10 text-accent-400/80 absolute z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                   {/* Futuristic Void Illustration */}
+                   <div className="relative w-48 h-48 flex items-center justify-center mb-4 group cursor-default">
+                      {/* Floating glowing core */}
+                      <div className="absolute inset-0 rounded-full bg-accent-500/5 animate-[pulse_4s_ease-in-out_infinite] group-hover:bg-accent-500/10 transition-colors duration-700"></div>
+
+                      {/* Broken Hexagon / Geometric shapes */}
+                      <svg className="absolute w-32 h-32 text-accent-500/40 animate-[spin_20s_linear_infinite]" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1">
+                        <polygon points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5" strokeDasharray="10 5" className="animate-[dash_10s_linear_infinite]" />
+                        <circle cx="50" cy="50" r="30" strokeDasharray="5 15" className="animate-[dash_5s_linear_infinite_reverse]" />
                       </svg>
+
+                      {/* Shattered Core Fragments */}
+                      <div className="absolute inset-0 flex items-center justify-center animate-[float-idle_6s_ease-in-out_infinite]">
+                         <svg className="w-16 h-16 text-accent-400 drop-shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 2L2 7l10 5 10-5-10-5z" className="animate-[pulse_2s_infinite]" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2 17l10 5 10-5M2 12l10 5 10-5" className="opacity-50" />
+                            {/* Sparks/Disconnected nodes */}
+                            <circle cx="12" cy="2" r="1" fill="currentColor" className="animate-[ping_2s_infinite]" />
+                            <circle cx="22" cy="7" r="1" fill="currentColor" className="animate-[ping_3s_infinite]" />
+                            <circle cx="2" cy="7" r="1" fill="currentColor" className="animate-[ping_2.5s_infinite]" />
+                         </svg>
+                      </div>
+
+                      {/* Scanline overlay for illustration */}
+                      <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.2)_50%)] bg-[length:100%_4px] rounded-full overflow-hidden pointer-events-none"></div>
                    </div>
 
-                   <h3 className="text-2xl font-bold text-accent-200 uppercase tracking-widest glitch-text" data-text="VOID DETECTED">
-                      VOID DETECTED
+                   <h3 className="text-3xl md:text-4xl font-mono font-bold text-transparent bg-clip-text bg-gradient-to-r from-accent-300 via-accent-500 to-accent-700 mb-2 tracking-[0.2em] animate-[pulse_3s_ease-in-out_infinite] drop-shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.8)]">
+                      SIGNAL LOST
                    </h3>
 
                    <div className="text-accent-300/80 font-mono text-sm bg-black/40 p-5 rounded border border-accent-500/30 w-full text-left shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.1)] backdrop-blur-md">
@@ -2403,7 +2417,7 @@ function App() {
                       </div>
                    </div>
 
-                   <div className="flex flex-wrap justify-center gap-3 mt-4 w-full">
+                   <div className="flex flex-wrap justify-center gap-4 mt-6 w-full relative z-10">
                      {searchQuery && (
                        <button
                          onClick={() => {
@@ -2419,9 +2433,13 @@ function App() {
                              setCurrentPage(1);
                            }
                          }}
-                         className="flex-1 min-w-[140px] px-4 py-2.5 bg-accent-900/40 hover:bg-accent-500/20 border border-accent-500/40 text-accent-200 rounded transition-all duration-300 hover:shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)] uppercase text-xs font-bold tracking-wider"
+                         className="flex-1 min-w-[140px] relative px-4 py-3 bg-black/60 hover:bg-accent-900/60 border border-accent-500/50 text-accent-200 rounded-lg transition-all duration-300 hover:shadow-[0_0_20px_rgba(var(--rgb-accent-400),0.4)] hover:-translate-y-0.5 group overflow-hidden"
                        >
-                         Clear Search
+                         <div className="absolute inset-0 bg-accent-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent-500/50 group-hover:bg-accent-400"></div>
+                         <span className="uppercase text-xs font-bold tracking-widest block font-mono">
+                           Clear Search
+                         </span>
                        </button>
                      )}
 
@@ -2440,9 +2458,13 @@ function App() {
                              setCurrentPage(1);
                            }
                          }}
-                         className="flex-1 min-w-[140px] px-4 py-2.5 bg-accent-900/40 hover:bg-accent-500/20 border border-accent-500/40 text-accent-200 rounded transition-all duration-300 hover:shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)] uppercase text-xs font-bold tracking-wider"
+                         className="flex-1 min-w-[140px] relative px-4 py-3 bg-black/60 hover:bg-accent-900/60 border border-accent-500/50 text-accent-200 rounded-lg transition-all duration-300 hover:shadow-[0_0_20px_rgba(var(--rgb-accent-400),0.4)] hover:-translate-y-0.5 group overflow-hidden"
                        >
-                         Clear Tags
+                         <div className="absolute inset-0 bg-accent-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent-500/50 group-hover:bg-accent-400"></div>
+                         <span className="uppercase text-xs font-bold tracking-widest block font-mono">
+                           Clear Tags
+                         </span>
                        </button>
                      )}
 
@@ -2462,9 +2484,15 @@ function App() {
                            setCurrentPage(1);
                          }
                        }}
-                       className="w-full sm:flex-1 min-w-[200px] px-4 py-2.5 bg-accent-500/20 hover:bg-accent-500/30 border border-accent-500/60 text-accent-100 rounded transition-all duration-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)] hover:shadow-[0_0_20px_rgba(var(--rgb-accent-400),0.5)] uppercase text-xs font-bold tracking-wider"
+                       className="w-full sm:flex-1 min-w-[200px] relative px-4 py-3 bg-accent-500/20 hover:bg-accent-500/40 border border-accent-500/60 text-white rounded-lg transition-all duration-300 shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)] hover:shadow-[0_0_25px_rgba(var(--rgb-accent-400),0.6)] hover:-translate-y-0.5 group overflow-hidden"
                      >
-                       System Reset
+                       <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-[length:250%_250%] animate-[shine_3s_infinite_linear] opacity-0 group-hover:opacity-100"></div>
+                       <div className="flex items-center justify-center gap-2">
+                         <span className="w-2 h-2 rounded-full bg-accent-400 animate-pulse"></span>
+                         <span className="uppercase text-xs font-bold tracking-widest block font-mono">
+                           System Reset
+                         </span>
+                       </div>
                      </button>
                    </div>
                 </div>
