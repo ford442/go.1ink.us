@@ -412,24 +412,22 @@ function App() {
     };
   }, [isIdle, isBooting]);
 
-  // Open the live app directly in a new tab
+  // Open the Project Quick View modal
   const handleProjectSelect = (project) => {
     if (isLockdown) {
       soundSystem.playDenied();
       addToast("> SYS_ERR: ACCESS DENIED - SYSTEM IN LOCKDOWN", "error");
       return;
     }
-    if (project && project.url) {
-      soundSystem.playClick();
-      addActivityLog(`LAUNCH INITIATED: [${project.title.toUpperCase()}]`);
-      window.open(project.url, "_blank", "noopener,noreferrer");
-      return;
-    }
+    soundSystem.playClick();
+    addActivityLog(`VIEWING PROTOCOL: [${project.title.toUpperCase()}]`);
 
-    if (project && project.url) {
-      soundSystem.playClick();
-      addActivityLog(`APP LAUNCHED: [${project.title.toUpperCase()}]`);
-      window.open(project.url, '_blank', 'noopener,noreferrer');
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        flushSync(() => setSelectedProject(project));
+      });
+    } else {
+      setSelectedProject(project);
     }
   };
 
