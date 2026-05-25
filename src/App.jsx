@@ -1056,6 +1056,14 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
+  // Keyboard Navigation state for cards
+  const [focusedCardIndex, setFocusedCardIndex] = useState(0);
+
+  // Reset focus when changing pages, filters, etc.
+  useEffect(() => {
+    setFocusedCardIndex(0);
+  }, [currentPage, activeFilters, searchQuery, sortOption]);
+
   // Sync state to URL (Deep Linking)
   useEffect(() => {
     const params = new URLSearchParams();
@@ -1924,7 +1932,7 @@ function App() {
                   onInput={() => soundSystem.playKeystroke()}
                   onKeyDown={(e) => {
                     if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                      const firstCard = document.querySelector('.card-link');
+                      const firstCard = document.querySelector('.card-focusable');
                       if (firstCard) {
                         e.preventDefault();
                         firstCard.focus();
@@ -1935,7 +1943,7 @@ function App() {
                   placeholder="Search projects..."
                   autoComplete="off"
                   spellCheck="false"
-                  className="w-full bg-black/20 backdrop-blur-xl border border-white/10 text-white pl-10 pr-24 py-3 rounded-xl focus:outline-none focus:gold-glow focus:bg-black/40 transition-all duration-300 shadow-lg placeholder-gray-500 text-sm"
+                  className="w-full bg-black/20 backdrop-blur-xl border border-white/10 text-white pl-10 pr-24 py-3 rounded-xl focus:outline-none focus:gold-glow focus:bg-black/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-4 focus-visible:ring-offset-black transition-all duration-300 shadow-lg placeholder-gray-500 text-sm"
                 />
 
                 {/* Right Actions: Results Count or Shortcut Hint */}
@@ -2250,6 +2258,37 @@ function App() {
                       ? 'columns-1 md:columns-2 lg:columns-2 xl:columns-3 gap-6 md:gap-8'
                       : 'grid grid-cols-1 gap-6 md:gap-8'
                   }
+                  onKeyDown={(e) => {
+                    let nextIndex = focusedCardIndex;
+                    if (e.key === 'ArrowRight') {
+                      nextIndex = Math.min(paginatedProjects.length - 1, focusedCardIndex + 1);
+                    } else if (e.key === 'ArrowLeft') {
+                      nextIndex = Math.max(0, focusedCardIndex - 1);
+                    } else if (e.key === 'ArrowDown') {
+                      // In CSS columns, down goes to the next item sequentially within the column
+                      // A true spatial down would be index + items_per_col, but visually and DOM-wise sequential is often okay,
+                      // or we can jump by columns if we want spatial.
+                      // Let's use simple sequential for matrix mode, and sequential for columns mode since tab order follows DOM.
+                      nextIndex = Math.min(paginatedProjects.length - 1, focusedCardIndex + 1);
+                    } else if (e.key === 'ArrowUp') {
+                      nextIndex = Math.max(0, focusedCardIndex - 1);
+                    } else {
+                      return; // let other keys pass
+                    }
+
+                    if (nextIndex !== focusedCardIndex) {
+                      e.preventDefault();
+                      setFocusedCardIndex(nextIndex);
+                      setTimeout(() => {
+                        // Scope focus to the current container to avoid finding other focusable elements elsewhere
+                        const cards = e.currentTarget.querySelectorAll('.card-focusable');
+                        if (cards[nextIndex]) {
+                          cards[nextIndex].focus();
+                          cards[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                      }, 0);
+                    }
+                  }}
                 >
                   {paginatedProjects.map((project, index) => (
                     <div
@@ -2259,6 +2298,7 @@ function App() {
                     >
                       <Card
                         project={project}
+                        index={index}
                         onTagClick={handleTagClick}
                         highlightedTags={activeFilters}
                         searchQuery={searchQuery}
@@ -2279,6 +2319,8 @@ function App() {
                         onDrop={(e) => handleDrop(e, project.id)}
                         isDragged={draggedFavoriteId === project.id}
                         isDragOver={dragOverFavoriteId === project.id}
+                        tabIndex={index === focusedCardIndex ? 0 : -1}
+                        onFocus={() => setFocusedCardIndex(index)}
                       />
                     </div>
                   ))}
