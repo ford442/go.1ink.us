@@ -201,7 +201,17 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
       >
-        <div className="bg-black/90 border border-accent-500/50 font-mono text-accent-400 text-xs p-4 rounded-xl shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)] relative overflow-hidden group h-full cursor-pointer hover:bg-black hover:border-accent-400 transition-colors"
+        <div className="bg-black/90 border border-accent-500/50 font-mono text-accent-400 text-xs p-4 rounded-xl shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)] relative overflow-hidden group h-full cursor-pointer hover:bg-black hover:border-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+             tabIndex={0}
+             role="button"
+             aria-label={`View data for ${project.title}`}
+             onKeyDown={(e) => {
+               if (e.key === 'Enter' || e.key === ' ') {
+                 e.preventDefault();
+                 soundSystem.playClick();
+                 if (onProjectClick) onProjectClick(project);
+               }
+             }}
              onClick={(e) => {
                e.preventDefault();
                soundSystem.playClick();
@@ -242,7 +252,17 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
         onFocus={handleFocus}
       >
         <div
-          className="glass-card relative group flex items-center p-3 gap-4 rounded-lg hover:bg-white/5 hover:gold-glow transition-colors h-20 cursor-pointer"
+          className="glass-card relative group flex items-center p-3 gap-4 rounded-lg hover:bg-white/5 hover:gold-glow transition-colors h-20 cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          tabIndex={0}
+          role="button"
+          aria-label={`View details for ${project.title}`}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              soundSystem.playClick();
+              if (onProjectClick) onProjectClick(project);
+            }
+          }}
           onClick={(e) => {
             e.preventDefault();
             soundSystem.playClick();
@@ -449,7 +469,17 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
     >
       <div
         ref={cardRef}
-        className={`glass-card card-3d block rounded-xl flex flex-col h-full relative group will-change-transform animate-float-idle cursor-pointer`}
+        className={`glass-card card-3d block rounded-xl flex flex-col h-full relative group will-change-transform animate-float-idle cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black`}
+        tabIndex={0}
+        role="button"
+        aria-label={`View details for ${project.title}`}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            soundSystem.playClick();
+            if (onProjectClick) onProjectClick(project);
+          }
+        }}
         onMouseEnter={handleMouseEnter}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}

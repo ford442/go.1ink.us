@@ -2059,7 +2059,7 @@ function App() {
             <button
               onClick={() => toggleFilter('All')}
               className={`
-                px-4 py-2 lg:py-1.5 lg:px-3 rounded-full lg:rounded-lg text-sm lg:text-base font-medium transition-all duration-300 backdrop-blur-md border flex items-center justify-between gap-2 snap-center shrink-0 lg:w-full group
+                px-4 py-2 lg:py-1.5 lg:px-3 rounded-full lg:rounded-lg text-sm lg:text-base font-medium transition-all duration-300 backdrop-blur-md border flex items-center justify-between gap-2 snap-center shrink-0 lg:w-full group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400
                 ${activeFilters.length === 0
                   ? CATEGORY_BUTTON_STYLES['All'].activeClass
                   : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/30'
@@ -2086,10 +2086,10 @@ function App() {
 
               return (
                 <button
-                  key={category}
-                  onClick={() => toggleFilter(category)}
-                  className={`
-                    px-4 py-2 lg:py-1.5 lg:px-3 rounded-full lg:rounded-lg text-sm lg:text-base font-medium transition-all duration-300 backdrop-blur-md border flex items-center justify-between gap-2 snap-center shrink-0 lg:w-full group
+                    key={category}
+                    onClick={() => toggleFilter(category)}
+                    className={`
+                      px-4 py-2 lg:py-1.5 lg:px-3 rounded-full lg:rounded-lg text-sm lg:text-base font-medium transition-all duration-300 backdrop-blur-md border flex items-center justify-between gap-2 snap-center shrink-0 lg:w-full group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400
                     ${isActive
                       ? style.activeClass
                       : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/30'
@@ -2176,6 +2176,11 @@ function App() {
 
           {/* MAIN GRID */}
           <main className="flex-1 w-full min-w-0 relative z-0">
+            {/* ARIA Live Region for Screen Readers */}
+            <div className="sr-only" aria-live="polite" aria-atomic="true">
+              Showing {filteredProjects.length} projects. Active filters: {activeFilters.length === 0 ? 'All' : activeFilters.join(', ')}.
+            </div>
+
             {/* Active Filters Summary */}
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-2">
@@ -2202,7 +2207,7 @@ function App() {
                  <div className="bg-black/20 backdrop-blur-xl rounded-lg border border-white/10 p-1 flex">
                     <button
                       onClick={() => setDisplayMode('grid')}
-                      className={`p-1.5 rounded transition-all ${displayMode === 'grid' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
+                      className={`p-1.5 rounded transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 ${displayMode === 'grid' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
                       aria-label="Grid View"
                       title="Grid Protocol"
                     >
@@ -2212,7 +2217,7 @@ function App() {
                     </button>
                     <button
                       onClick={() => setDisplayMode('matrix')}
-                      className={`p-1.5 rounded transition-all ${displayMode === 'matrix' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
+                      className={`p-1.5 rounded transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 ${displayMode === 'matrix' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
                       aria-label="Matrix View"
                       title="Matrix Protocol"
                     >
@@ -2232,7 +2237,7 @@ function App() {
                      setCurrentPage(1);
                      addActivityLog(`SORT PROTOCOL: ${e.target.value.toUpperCase()}`);
                    }}
-                   className="bg-black/20 backdrop-blur-xl border border-white/10 text-white py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:border-accent-500/50 appearance-none text-sm cursor-pointer hover:bg-black/60 transition-colors shadow-lg"
+                   className="bg-black/20 backdrop-blur-xl border border-white/10 text-white py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:border-accent-500/50 focus-visible:ring-2 focus-visible:ring-accent-400 appearance-none text-sm cursor-pointer hover:bg-black/60 transition-colors shadow-lg"
                    style={{
                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
                      backgroundRepeat: 'no-repeat',
@@ -2638,7 +2643,7 @@ function App() {
                     setSelectedProject(null);
                   }
                 }}
-                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors border border-transparent hover:border-white/20"
+                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors border border-transparent hover:border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
                 aria-label="Close modal"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
