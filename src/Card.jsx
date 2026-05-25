@@ -15,9 +15,21 @@ const highlightMatch = (text, query, regex) => {
   );
 };
 
-const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagClick, searchQuery, highlightedTags = [], isSelected = false, isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick, draggable = false, isDragged = false, isDragOver = false, onDragStart, onDragOver, onDragEnd, onDrop, onContextMenu }) => {
+const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagClick, searchQuery, highlightedTags = [], isSelected = false, isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick, draggable = false, isDragged = false, isDragOver = false, onDragStart, onDragOver, onDragEnd, onDrop, onContextMenu, tabIndex = -1, onFocus }) => {
   const cardRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      soundSystem.playClick();
+      if (onProjectClick) onProjectClick(project);
+    }
+  };
+
+  const handleFocus = (e) => {
+    if (onFocus) onFocus(e);
+  };
   const rafRef = useRef(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -177,7 +189,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   if (isDataMode) {
     return (
       <div
-        className={`perspective-container animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 z-50 rounded-lg' : ''}`}
+        className={`perspective-container card-focusable focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-4 focus-visible:ring-offset-black rounded-xl animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 z-50 rounded-lg' : ''}`}
         style={{ viewTransitionName: isSelected ? 'none' : `project-container-${project.id}`, animationDelay: `${index * 50}ms` }}
         draggable={draggable}
         onDragStart={onDragStart}
@@ -185,6 +197,9 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
         onDragEnd={onDragEnd}
         onDrop={onDrop}
         onContextMenu={onContextMenu}
+        tabIndex={tabIndex}
+        onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
       >
         <div className="bg-black/90 border border-accent-500/50 font-mono text-accent-400 text-xs p-4 rounded-xl shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)] relative overflow-hidden group h-full cursor-pointer hover:bg-black hover:border-accent-400 transition-colors"
              onClick={(e) => {
@@ -214,7 +229,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   if (layout === 'matrix') {
     return (
       <div
-        className={`perspective-container animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 z-50 rounded-lg' : ''}`}
+        className={`perspective-container card-focusable focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-4 focus-visible:ring-offset-black rounded-xl animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 z-50 rounded-lg' : ''}`}
         style={{ viewTransitionName: isSelected ? 'none' : `project-container-${project.id}`, animationDelay: `${index * 50}ms` }}
         draggable={draggable}
         onDragStart={onDragStart}
@@ -222,6 +237,9 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
         onDragEnd={onDragEnd}
         onDrop={onDrop}
         onContextMenu={onContextMenu}
+        tabIndex={tabIndex}
+        onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
       >
         <div
           className="glass-card relative group flex items-center p-3 gap-4 rounded-lg hover:bg-white/5 hover:gold-glow transition-colors h-20 cursor-pointer"
@@ -417,7 +435,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   // Grid Layout (Default)
   return (
     <div
-      className={`perspective-container animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 scale-105 z-50' : ''}`}
+      className={`perspective-container card-focusable focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-4 focus-visible:ring-offset-black rounded-xl animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 scale-105 z-50' : ''}`}
       style={{ viewTransitionName: isSelected ? 'none' : `project-container-${project.id}`, animationDelay: `${index * 100}ms` }}
       draggable={draggable}
       onDragStart={onDragStart}
@@ -425,6 +443,9 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
       onDragEnd={onDragEnd}
       onDrop={onDrop}
       onContextMenu={onContextMenu}
+      tabIndex={tabIndex}
+      onKeyDown={handleKeyDown}
+      onFocus={handleFocus}
     >
       <div
         ref={cardRef}
