@@ -66,7 +66,6 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   }, []);
 
   const handleMouseEnter = () => {
-    soundSystem.playHoverSound();
     setIsHovered(true);
     soundSystem.playHover();
 
