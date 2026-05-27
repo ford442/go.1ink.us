@@ -32,7 +32,27 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   };
   const rafRef = useRef(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect(); // Only load once
+        }
+      },
+      { rootMargin: '200px 0px', threshold: 0.01 }
+    );
+
+    if (cardRef.current) {
+       observer.observe(cardRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
   const [ping, setPing] = useState(0);
 
   useEffect(() => {
@@ -286,22 +306,27 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
 
           {/* Thumbnail */}
           <div className="w-20 h-14 rounded border border-white/10 tinted-glass shifting-glass overflow-hidden shrink-0 relative z-10 pointer-events-none group-hover:gold-glow transition-colors duration-300">
-             {!imageLoaded && project.image && (
-                <div className="absolute inset-0 flex items-center justify-center tinted-glass shifting-glass z-10 overflow-hidden">
+             {(!imageLoaded || !isVisible) && project.image && !imageError && (
+                <div className="absolute inset-0 flex items-center justify-center tinted-glass animate-shimmer z-10 overflow-hidden">
                    <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(to right, rgba(var(--rgb-accent-400), 0.3) 1px, transparent 1px), linear-gradient(to bottom, rgba(var(--rgb-accent-400), 0.3) 1px, transparent 1px)', backgroundSize: '10px 10px' }}></div>
-                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent-500/30 to-transparent -translate-x-full animate-[skeleton-sweep_1s_infinite_linear]"></div>
                    <div className="w-1.5 h-1.5 bg-accent-400 animate-pulse shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.8)] relative z-10"></div>
                 </div>
              )}
-             {project.image ? (
-               <img
-                 src={project.image}
-                 alt={project.title}
-                 loading="lazy"
-                 onLoad={() => setImageLoaded(true)}
-                 className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-80' : 'opacity-0'} group-hover:opacity-100`}
-                 style={{ viewTransitionName: isSelected ? 'none' : `project-image-${project.id}` }}
-               />
+             {project.image && !imageError ? (
+               isVisible && (
+                 <img
+                   src={project.image}
+                   alt={project.title}
+                   loading="lazy"
+                   onLoad={() => setImageLoaded(true)}
+                   onError={() => {
+                     setImageError(true);
+                     setImageLoaded(true);
+                   }}
+                   className={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-80 blur-0 scale-100' : 'opacity-0 blur-sm scale-105'} group-hover:opacity-100`}
+                   style={{ viewTransitionName: isSelected ? 'none' : `project-image-${project.id}` }}
+                 />
+               )
              ) : (
                <div className="w-full h-full flex items-center justify-center text-xl bg-gradient-to-br from-indigo-900/50 to-purple-900/50 transform transition-transform duration-300 group-hover:scale-110">
                  {project.icon}
