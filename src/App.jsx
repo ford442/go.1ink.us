@@ -1554,8 +1554,9 @@ function App() {
           }
 
           ctx.beginPath();
-          // Use cyan color with fading opacity
-          ctx.fillStyle = `rgba(34, 211, 238, ${p.life * 0.5})`;
+          // Theme-reactive trail color (pulls current accent)
+          const trailRgb = getComputedStyle(document.documentElement).getPropertyValue('--rgb-accent-400').trim() || '34, 211, 238';
+          ctx.fillStyle = `rgba(${trailRgb}, ${p.life * 0.5})`;
           ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
           ctx.fill();
         }
@@ -1845,11 +1846,12 @@ function App() {
         {/* Interactive Particle Network (Replaces ambient glowing orbs) */}
         <ParticleNetwork />
 
-        {/* Floating Ambient Particles (Out of focus depth) */}
+        {/* Floating Ambient Particles (Out of focus depth) — theme-cohesive nebula layers */}
         <div className="absolute top-[15%] left-[10%] w-32 h-32 bg-accent-500/20 rounded-full blur-2xl animate-float-idle" style={{ animationDelay: '0s' }}></div>
-        <div className="absolute bottom-[20%] right-[15%] w-48 h-48 bg-purple-500/20 rounded-full blur-3xl animate-float-idle" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-[60%] left-[80%] w-24 h-24 bg-cyan-500/20 rounded-full blur-xl animate-float-idle" style={{ animationDelay: '4s' }}></div>
-        <div className="absolute bottom-[10%] left-[30%] w-40 h-40 bg-gold-500/10 rounded-full blur-2xl animate-float-idle" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-[20%] right-[15%] w-48 h-48 bg-purple-500/15 rounded-full blur-3xl animate-float-idle" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-[60%] left-[80%] w-24 h-24 bg-accent-400/20 rounded-full blur-xl animate-float-idle" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute bottom-[10%] left-[30%] w-40 h-40 bg-amber-400/12 rounded-full blur-2xl animate-float-idle" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-[35%] right-[25%] w-28 h-28 bg-accent-300/10 rounded-full blur-3xl animate-float-idle" style={{ animationDelay: '3.2s' }}></div>
 
         {/* Deep Space Grid Layer for Parallax Depth */}
         <div
@@ -1901,6 +1903,9 @@ function App() {
         {/* Vignette Depth Mask */}
         <div className="absolute inset-0 pointer-events-none z-10 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)]"></div>
       </div>
+
+      {/* Premium analog film grain — subtle tactile screen texture */}
+      <div className="film-grain" aria-hidden="true"></div>
       
       <div className="container mx-auto px-4 pt-20 pb-12 relative z-10">
         <header className="text-center mb-12 flex justify-center">
