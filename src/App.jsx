@@ -1089,6 +1089,19 @@ function App() {
         setIsDataMode(true);
         addActivityLog(`PROTOCOL OVERRIDE: DATA_MODE_ACTIVE`);
       }
+
+      // Quick Layout Toggle (L)
+      if (e.key === 'l' || e.key === 'L') {
+        if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          setDisplayMode((prev) => {
+            const nextMode = prev === 'grid' ? 'matrix' : prev === 'matrix' ? 'list' : 'grid';
+            addActivityLog(`SYS.UI: LAYOUT_UPDATED_${nextMode.toUpperCase()}`);
+            return nextMode;
+          });
+        }
+      }
+
       // Focus Search on '/'
       if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
         e.preventDefault();
@@ -2204,11 +2217,12 @@ function App() {
               {/* View & Sort Controls */}
               <div className="flex items-center gap-3">
                  {/* Display Mode Toggle */}
-                 <div className="bg-black/20 backdrop-blur-xl rounded-lg border border-white/10 p-1 flex">
+                 <div className="bg-black/20 backdrop-blur-xl rounded-lg border border-white/10 p-1 flex" role="group" aria-label="Layout mode">
                     <button
                       onClick={() => setDisplayMode('grid')}
                       className={`p-1.5 rounded transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 ${displayMode === 'grid' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
                       aria-label="Grid View"
+                      aria-pressed={displayMode === 'grid'}
                       title="Grid Protocol"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -2219,10 +2233,22 @@ function App() {
                       onClick={() => setDisplayMode('matrix')}
                       className={`p-1.5 rounded transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 ${displayMode === 'matrix' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
                       aria-label="Matrix View"
+                      aria-pressed={displayMode === 'matrix'}
                       title="Matrix Protocol"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setDisplayMode('list')}
+                      className={`p-1.5 rounded transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 ${displayMode === 'list' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
+                      aria-label="List View"
+                      aria-pressed={displayMode === 'list'}
+                      title="List Protocol"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                       </svg>
                     </button>
                  </div>
@@ -2258,11 +2284,13 @@ function App() {
               <>
                 <div
                   id="project-grid"
-                  className={
+                  className={`transition-all duration-300 ease-in-out ${
                     displayMode === 'grid'
-                      ? 'columns-1 md:columns-2 lg:columns-2 xl:columns-3 gap-6 md:gap-8'
-                      : 'grid grid-cols-1 gap-6 md:gap-8'
-                  }
+                      ? 'columns-1 md:columns-2 lg:columns-2 xl:columns-3 gap-6 md:gap-8 opacity-100'
+                      : displayMode === 'list'
+                      ? 'flex flex-col gap-3 opacity-100'
+                      : 'grid grid-cols-1 gap-6 md:gap-8 opacity-100'
+                  }`}
                   onKeyDown={(e) => {
                     let nextIndex = focusedCardIndex;
                     if (e.key === 'ArrowRight') {
