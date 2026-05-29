@@ -35,6 +35,8 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   const [imageError, setImageError] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isHoverDelayed, setIsHoverDelayed] = useState(false);
+  const hoverTimerRef = useRef(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -101,6 +103,11 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
     setIsHovered(true);
     soundSystem.playHover();
 
+    // Start 700ms timer for advanced hover micro-interactions (zoom, lift)
+    hoverTimerRef.current = setTimeout(() => {
+      setIsHoverDelayed(true);
+    }, 700);
+
     if (!cardRef.current) return;
     // Set fast transition for tilt responsiveness on hover enter
     // This avoids setting style on every mousemove event, improving performance
@@ -162,6 +169,11 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
 
   const handleMouseLeave = () => {
     setIsHovered(false);
+    setIsHoverDelayed(false);
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
     setPing(0);
     if (!cardRef.current) return;
 
@@ -480,7 +492,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   // Grid Layout (Default)
   return (
     <div
-      className={`perspective-container card-focusable focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-4 focus-visible:ring-offset-black rounded-xl animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 scale-105 z-50' : ''}`}
+      className={`perspective-container card-focusable focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-4 focus-visible:ring-offset-black rounded-xl animate-slide-in-up transition-all duration-500 ease-out hover:-translate-y-3 hover:shadow-[0_20px_40px_-15px_rgba(var(--rgb-accent-400),0.3)] hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 scale-105 z-50' : ''}`}
       style={{ viewTransitionName: isSelected ? 'none' : `project-container-${project.id}`, animationDelay: `${index * 100}ms` }}
       draggable={draggable}
       onDragStart={onDragStart}
@@ -589,9 +601,11 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
                 alt={project.title}
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
-                className={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-100' : 'opacity-0'} group-hover:scale-110 delay-100 group-hover:delay-[700ms]`}
+                className={`w-full h-full object-cover transition-all duration-[1500ms] ease-[cubic-bezier(0.19,1,0.22,1)] ${imageLoaded ? 'opacity-100' : 'opacity-0'} ${isHoverDelayed ? 'scale-125' : 'scale-100'}`}
                 style={{ viewTransitionName: isSelected ? 'none' : `project-image-${project.id}` }}
               />
+              {/* Inner Holographic Reflection (ramp up on hover) */}
+              <div className={`absolute inset-0 bg-gradient-to-tr from-accent-500/0 via-white/5 to-white/20 mix-blend-overlay transition-all duration-1000 ${isHoverDelayed ? 'opacity-100 shadow-[inset_0_0_30px_rgba(255,255,255,0.4)]' : 'opacity-0'}`}></div>
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300"></div>
             </div>
           ) : (
