@@ -1,163 +1,126 @@
+#!/usr/bin/env python3
+"""
+deploy.py — go.1ink.us
+
+Deployment now goes through storage.noahcohn.com (Contabo VPS).
+No SFTP passwords are stored in this repo.
+
+Usage:
+  1. Build the project:  npm run build
+  2. python deploy.py
+
+This script contacts https://storage.noahcohn.com to upload the dist/ folder
+as a single zip archive. The server extracts it and pushes files over a
+persistent SFTP connection on the VPS side.
+
+Requirements:
+  pip install requests
+"""
+
+import io
 import os
-import paramiko
-import getpass
-import concurrent.futures
+import sys
+import zipfile
+from pathlib import Path
+from typing import Optional
 
-# --- Server Configuration ---
-# Replace these with your server's details.
-# It's better to use environment variables or a config file for sensitive data.
-HOSTNAME = "1ink.us"
-PORT = 22  # Default SFTP/SSH port
-USERNAME = "ford442"
+import requests
 
-# --- Project Configuration ---
-# The local directory to upload from.
-LOCAL_DIRECTORY = "dist"
-# The directory on the server where the files should go (e.g., 'public_html/wasm-game').
-REMOTE_DIRECTORY = "go.1ink.us"
+# ============================================================
+# PER-PROJECT CONFIGURATION
+# ============================================================
+PROJECT_NAME: str = "go.1ink.us"
+BUILD_DIR: str = "dist"
+CONTABO_BASE_URL: str = "https://storage.noahcohn.com"
 
-def collect_deployment_tasks(local_path, remote_path):
-    """
-    Traverse the local directory and return lists of directories to create
-    and files to upload.
-    """
-    dirs_to_create = []
-    files_to_upload = []
+# Deploy under this remote folder (empty = use PROJECT_NAME = "go.1ink.us").
+# Matches the original SFTP target: go.1ink.us/
+DEPLOY_FOLDER: str = ""
 
-    # Add the root directory itself
-    dirs_to_create.append(remote_path)
+# Set via environment: export DEPLOY_TOKEN="your_long_token_from_vps_env"
+DEPLOY_TOKEN: Optional[str] = os.getenv(
+    "DEPLOY_TOKEN",
+    "6de44dca5425348f2e2ef9456fc820bfe56a5ace68bddeb6da4a1c2a9d9cadc0",
+)
+# ============================================================
 
-    for root, dirs, files in os.walk(local_path):
-        # Skip .git directories
-        if '.git' in dirs:
-            dirs.remove('.git')
-            # print(f"Skipping .git directory: {os.path.join(root, '.git')}")
-        
-        # Calculate relative path from the base local_path
-        rel_path = os.path.relpath(root, local_path)
-        
-        if rel_path == ".":
-            current_remote = remote_path
-        else:
-            # Ensure forward slashes for SFTP
-            current_remote = os.path.join(remote_path, rel_path).replace(os.sep, '/')
 
-        # Add subdirectories
-        for d in dirs:
-            remote_d = os.path.join(current_remote, d).replace(os.sep, '/')
-            dirs_to_create.append(remote_d)
+def build_zip(build_path: Path) -> bytes:
+    """Zip the contents of build_path into an in-memory archive."""
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for file in sorted(build_path.rglob("*")):
+            if file.is_dir():
+                continue
+            rel = file.relative_to(build_path)
+            parts = rel.parts
+            if any(p in (".git", "node_modules", "__pycache__") for p in parts):
+                continue
+            zf.write(file, str(rel))
+            print(f"  + {rel}")
+    return buf.getvalue()
 
-        # Add files
-        for f in files:
-            local_f = os.path.join(root, f)
-            remote_f = os.path.join(current_remote, f).replace(os.sep, '/')
-            files_to_upload.append((local_f, remote_f))
-            
-    return dirs_to_create, files_to_upload
 
-def upload_single_file(transport, local_path, remote_path):
-    """
-    Worker function to upload a single file using a fresh SFTP channel.
-    """
+def deploy_bundle(build_path: Path) -> bool:
+    """Zip the build and upload it as a single bundle."""
+    target_folder = DEPLOY_FOLDER or PROJECT_NAME
+    url = f"{CONTABO_BASE_URL}/api/deploy/{PROJECT_NAME}/bundle"
+    headers = {}
+    if DEPLOY_TOKEN:
+        headers["X-Deploy-Token"] = DEPLOY_TOKEN
+
+    print("Building zip archive...")
+    zip_bytes = build_zip(build_path)
+    print(f"Archive size: {len(zip_bytes) / 1024:.1f} KB\n")
+
+    print("Uploading bundle...")
     try:
-        with transport.open_sftp_client() as sftp:
-            print(f"Uploading file: {local_path} -> {remote_path}")
-            sftp.put(local_path, remote_path)
-    except Exception as e:
-        print(f"❌ Failed to upload {local_path}: {e}")
-        raise e
+        response = requests.post(
+            url,
+            files={"bundle": ("build.zip", zip_bytes, "application/zip")},
+            data={"target_folder": target_folder},
+            headers=headers,
+            timeout=300,
+        )
+    except Exception as exc:
+        print(f"  ✗ Upload exception: {exc}")
+        return False
 
-def upload_directory(sftp_client, local_path, remote_path):
-    """
-    Uploads a directory and its contents to the remote server using parallel uploads.
-    """
-    print(f"Scanning '{local_path}'...")
-    dirs_to_create, files_to_upload = collect_deployment_tasks(local_path, remote_path)
-
-    print(f"Found {len(dirs_to_create)} directories and {len(files_to_upload)} files.")
-
-    # 1. Create Directories (Sequential)
-    for d in dirs_to_create:
-        try:
-            # print(f"Creating remote directory: {d}")
-            sftp_client.mkdir(d)
-        except IOError:
-            # Directory usually exists
-            pass
-
-    # 2. Upload Files (Parallel)
-    transport = None
-    try:
-        channel = sftp_client.get_channel()
-        if channel:
-            transport = channel.get_transport()
-    except Exception:
-        pass
-
-    if transport and transport.active:
-        print(f"🚀 Starting parallel upload of {len(files_to_upload)} files...")
-        
-        # Use ThreadPoolExecutor for concurrency
-        # Adjust max_workers as needed (5-10 is usually safe for SFTP)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            futures = [
-                executor.submit(upload_single_file, transport, local, remote)
-                for local, remote in files_to_upload
-            ]
-            
-            # Wait for all uploads to complete
-            done, not_done = concurrent.futures.wait(futures)
-            
-            # Check for exceptions
-            failed = False
-            for f in done:
-                if f.exception():
-                    failed = True
-            
-            if failed:
-                print("❌ Some files failed to upload.")
+    if response.status_code == 200:
+        data = response.json()
+        print(f"  ✓ {data.get('uploaded', 0)} files uploaded")
+        if data.get("failed"):
+            print("  Failures:")
+            for f in data["failed"]:
+                print(f"    ✗ {f['path']}: {f['error']}")
+        return not data.get("failed")
     else:
-        print("⚠️ Transport unavailable for parallelism. Falling back to serial upload.")
-        for local, remote in files_to_upload:
-            print(f"Uploading file: {local} -> {remote}")
-            sftp_client.put(local, remote)
+        print(f"  ✗ {response.status_code}: {response.text[:400]}")
+        return False
+
 
 def main():
-    """
-    Main function to connect to the server and start the upload process.
-    """
-    password = 'GoogleBez12!' # getpass.getpass(f"Enter password for {USERNAME}@{HOSTNAME}: ")
+    print(f"\n=== Deploying '{PROJECT_NAME}' via Contabo -> go.1ink.us/ ===\n")
 
-    transport = None
-    sftp = None
+    build_path = Path(BUILD_DIR)
+    if not build_path.exists() or not build_path.is_dir():
+        print(f"ERROR: Build directory '{BUILD_DIR}/' does not exist.")
+        print("Please run your build command first (e.g. `npm run build`).")
+        sys.exit(1)
+
     try:
-        # Establish the SSH connection
-        transport = paramiko.Transport((HOSTNAME, PORT))
-        print("Connecting to server...")
-        transport.connect(username=USERNAME, password=password)
-        print("Connection successful!")
+        health = requests.get(f"{CONTABO_BASE_URL}/api/deploy/health", timeout=10)
+        if health.status_code == 200:
+            print(f"Contabo deploy service: {health.json().get('status', 'unknown')}")
+    except Exception:
+        print("Warning: Could not contact storage.noahcohn.com (continuing anyway).")
 
-        # Create an SFTP client from the transport
-        sftp = paramiko.SFTPClient.from_transport(transport)
-        print(f"Starting upload of '{LOCAL_DIRECTORY}' to '{REMOTE_DIRECTORY}'...")
+    print()
+    success = deploy_bundle(build_path)
 
-        # Start the upload
-        upload_directory(sftp, LOCAL_DIRECTORY, REMOTE_DIRECTORY)
+    print(f"\n=== {'Deployment complete' if success else 'Deployment finished with errors'} ===")
+    sys.exit(0 if success else 1)
 
-        print("\n✅ Deployment complete!")
-
-    except Exception as e:
-        print(f"❌ An error occurred: {e}")
-    finally:
-        # Ensure the connection is closed
-        if sftp:
-            sftp.close()
-        if transport:
-            transport.close()
-        print("Connection closed.")
 
 if __name__ == "__main__":
-    if not os.path.exists(LOCAL_DIRECTORY):
-        print(f"Error: Local directory '{LOCAL_DIRECTORY}' not found. Did you run 'npm run build' first?")
-    else:
-        main()
+    main()
