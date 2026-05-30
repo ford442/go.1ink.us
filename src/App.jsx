@@ -13,6 +13,7 @@ import RadarHUD from './RadarHUD';
 import soundSystem from './SoundSystem';
 import OmniPalette from './OmniPalette';
 import ParticleNetwork from './ParticleNetwork';
+import MatrixRain from './MatrixRain';
 import SystemClock from './SystemClock';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
 import './App.css';
@@ -250,6 +251,20 @@ function App() {
       localStorage.setItem('curator_crt', isCrtEnabled);
     }
   }, [isCrtEnabled]);
+
+  // Matrix Mode Global Effect State
+  const [isMatrixMode, setIsMatrixMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('curator_matrix') === 'true';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('curator_matrix', isMatrixMode);
+    }
+  }, [isMatrixMode]);
 
   // Theme State
   const [theme, setTheme] = useState(() => {
@@ -665,6 +680,7 @@ function App() {
           `  theme <val>  - Change OS theme (cyan, purple, emerald, gold)\n` +
           `  sound <val>  - Toggle UI audio feedback (on, off)\n` +
           `  crt <val>    - Toggle CRT retro effect (on, off)\n` +
+          `  matrix <val> - Toggle Matrix Rain background (on, off)\n` +
           `  stats        - View system diagnostics\n` +
           `  clear        - Flush terminal buffer\n` +
           `  lockdown     - Engage system lockdown protocol\n` +
@@ -910,6 +926,25 @@ function App() {
              responseType = 'success';
           } else {
              responseText = `ERR: Unsupported color matrix '${args[0]}'`;
+             responseType = 'error';
+          }
+        }
+        break;
+
+      case 'matrix':
+        if (args.length === 0) {
+          responseText = 'ERR: Missing parameter. Usage: matrix <on|off>';
+          responseType = 'error';
+        } else {
+          const stateParam = args[0].toLowerCase();
+          if (stateParam === 'on') {
+             setIsMatrixMode(true);
+             responseText = '> SYSTEM_VISUALS: MATRIX_PROTOCOL_ENGAGED';
+          } else if (stateParam === 'off') {
+             setIsMatrixMode(false);
+             responseText = '> SYSTEM_VISUALS: MATRIX_PROTOCOL_DISENGAGED';
+          } else {
+             responseText = `ERR: Invalid state '${stateParam}'. Use 'on' or 'off'.`;
              responseType = 'error';
           }
         }
@@ -1843,8 +1878,8 @@ function App() {
            <div className="absolute -bottom-32 left-[40%] w-[35rem] h-[35rem] bg-accent-500/10 rounded-full blur-[90px] animate-blob" style={{ animationDelay: '4s' }}></div>
         </div>
 
-        {/* Interactive Particle Network (Replaces ambient glowing orbs) */}
-        <ParticleNetwork />
+        {/* Interactive Particle Network or Matrix Rain */}
+        {isMatrixMode ? <MatrixRain theme={theme} /> : <ParticleNetwork theme={theme} />}
 
         {/* Floating Ambient Particles (Out of focus depth) — theme-cohesive nebula layers */}
         <div className="absolute top-[15%] left-[10%] w-32 h-32 bg-accent-500/20 rounded-full blur-2xl animate-float-idle" style={{ animationDelay: '0s' }}></div>
@@ -2859,6 +2894,8 @@ function App() {
         onChangeTheme={changeTheme}
         isCrtEnabled={isCrtEnabled}
         onToggleCrt={() => setIsCrtEnabled(!isCrtEnabled)}
+        isMatrixMode={isMatrixMode}
+        onToggleMatrixMode={() => setIsMatrixMode(!isMatrixMode)}
         isSoundEnabled={isSoundEnabled}
         onToggleSound={() => setIsSoundEnabled(!isSoundEnabled)}
         isLockdown={isLockdown}

@@ -12,6 +12,8 @@ const OmniPalette = ({
   onChangeTheme,
   isCrtEnabled,
   onToggleCrt,
+  isMatrixMode,
+  onToggleMatrixMode,
   isSoundEnabled,
   onToggleSound,
   isLockdown,
@@ -31,6 +33,7 @@ const OmniPalette = ({
       { id: 'theme-emerald', type: 'protocol', label: 'Set Theme: Emerald', action: () => onChangeTheme('emerald'), icon: '🎨' },
       { id: 'theme-gold', type: 'protocol', label: 'Set Theme: Gold', action: () => onChangeTheme('gold'), icon: '🎨' },
       { id: 'toggle-crt', type: 'protocol', label: `CRT Effect: ${isCrtEnabled ? 'Disable' : 'Enable'}`, action: onToggleCrt, icon: '📺' },
+      { id: 'toggle-matrix', type: 'protocol', label: `Matrix Mode: ${isMatrixMode ? 'Disable' : 'Enable'}`, action: onToggleMatrixMode, icon: '🌧️' },
       { id: 'toggle-sound', type: 'protocol', label: `Audio: ${isSoundEnabled ? 'Disable' : 'Enable'}`, action: onToggleSound, icon: '🔊' },
       { id: 'toggle-lockdown', type: 'protocol', label: isLockdown ? 'Override Lockdown' : 'Engage Lockdown', action: onToggleLockdown, icon: '🔒' },
       { id: 'view-grid', type: 'protocol', label: 'View: Grid', action: () => onChangeDisplayMode('grid'), icon: '🔲' },
@@ -68,7 +71,7 @@ const OmniPalette = ({
     }));
 
     return [...projectItems, ...categoryFilters, ...protocols];
-  }, [projects, activeFilters, onToggleFilter, onProjectSelect, onChangeTheme, isCrtEnabled, onToggleCrt, isSoundEnabled, onToggleSound, isLockdown, onToggleLockdown, onChangeDisplayMode]);
+  }, [projects, activeFilters, onToggleFilter, onProjectSelect, onChangeTheme, isCrtEnabled, onToggleCrt, isMatrixMode, onToggleMatrixMode, isSoundEnabled, onToggleSound, isLockdown, onToggleLockdown, onChangeDisplayMode]);
 
   // Filter commands based on query
   const filteredItems = useMemo(() => {
