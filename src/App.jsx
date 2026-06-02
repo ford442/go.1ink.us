@@ -15,6 +15,7 @@ import OmniPalette from './OmniPalette';
 import ParticleNetwork from './ParticleNetwork';
 import MatrixRain from './MatrixRain';
 import SystemClock from './SystemClock';
+import ConstellationOverlay from './ConstellationOverlay';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES, TAG_TO_CATEGORIES, CATEGORY_BUTTON_STYLES, CATEGORY_SETS } from './constants';
 import './App.css';
 
@@ -328,6 +329,9 @@ function App() {
     const s = seconds % 60;
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
+
+  // Tag Constellation Hover State
+  const [hoveredTag, setHoveredTag] = useState(null);
 
   // Mobile Filter Drawer State
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
@@ -2141,6 +2145,8 @@ function App() {
                 <button
                     key={category}
                     onClick={() => toggleFilter(category)}
+                    onMouseEnter={() => setHoveredTag(category)}
+                    onMouseLeave={() => setHoveredTag(null)}
                     className={`
                       px-4 py-2 lg:py-1.5 lg:px-3 rounded-full lg:rounded-lg text-sm lg:text-base font-medium transition-all duration-300 backdrop-blur-md border flex items-center justify-between gap-2 snap-center shrink-0 lg:w-full group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400
                     ${isActive
@@ -2202,6 +2208,8 @@ function App() {
                          e.stopPropagation();
                          handleTagClick(tag);
                       }}
+                        onMouseEnter={() => setHoveredTag(tag)}
+                        onMouseLeave={() => setHoveredTag(null)}
                       className={`
                         text-[11px] font-mono px-2.5 py-1 rounded-md border flex items-center gap-1.5 transition-all duration-300
                         ${isActive
@@ -2322,16 +2330,23 @@ function App() {
 
             {filteredProjects.length > 0 ? (
               <>
-                <div
-                  id="project-grid"
-                  className={`transition-all duration-300 ease-in-out ${
-                    displayMode === 'grid'
-                      ? 'columns-1 md:columns-2 lg:columns-2 xl:columns-3 gap-6 md:gap-8 opacity-100'
-                      : displayMode === 'list'
-                      ? 'flex flex-col gap-3 opacity-100'
-                      : 'grid grid-cols-1 gap-6 md:gap-8 opacity-100'
-                  }`}
-                  onKeyDown={(e) => {
+                <div className="relative">
+                  {/* Tactical Tag Constellation Overlay */}
+                  <ConstellationOverlay
+                     hoveredTag={hoveredTag}
+                     visibleProjects={paginatedProjects}
+                     displayMode={displayMode}
+                  />
+                  <div
+                    id="project-grid"
+                    className={`transition-all duration-300 ease-in-out relative z-10 ${
+                      displayMode === 'grid'
+                        ? 'columns-1 md:columns-2 lg:columns-2 xl:columns-3 gap-6 md:gap-8 opacity-100'
+                        : displayMode === 'list'
+                        ? 'flex flex-col gap-3 opacity-100'
+                        : 'grid grid-cols-1 gap-6 md:gap-8 opacity-100'
+                    }`}
+                    onKeyDown={(e) => {
                     let nextIndex = focusedCardIndex;
                     if (e.key === 'ArrowRight') {
                       nextIndex = Math.min(paginatedProjects.length - 1, focusedCardIndex + 1);
@@ -2394,9 +2409,11 @@ function App() {
                         isDragOver={dragOverFavoriteId === project.id}
                         tabIndex={index === focusedCardIndex ? 0 : -1}
                         onFocus={() => setFocusedCardIndex(index)}
+                        onHoverTag={setHoveredTag}
                       />
                     </div>
                   ))}
+                  </div>
                 </div>
 
                 {/* Pagination Controls */}

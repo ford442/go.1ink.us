@@ -15,7 +15,7 @@ const highlightMatch = (text, query, regex) => {
   );
 };
 
-const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagClick, searchQuery, highlightedTags = [], isSelected = false, isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick, draggable = false, isDragged = false, isDragOver = false, onDragStart, onDragOver, onDragEnd, onDrop, onContextMenu, tabIndex = -1, onFocus }) => {
+const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagClick, searchQuery, highlightedTags = [], isSelected = false, isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick, draggable = false, isDragged = false, isDragOver = false, onDragStart, onDragOver, onDragEnd, onDrop, onContextMenu, tabIndex = -1, onFocus, onHoverTag }) => {
   const cardRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
 
@@ -221,6 +221,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   if (isDataMode) {
     return (
       <div
+        id={`project-card-${project.id}`}
         className={`perspective-container card-focusable focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-4 focus-visible:ring-offset-black rounded-xl animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 z-50 rounded-lg' : ''}`}
         style={{ viewTransitionName: isSelected ? 'none' : `project-container-${project.id}`, animationDelay: `${index * 50}ms` }}
         draggable={draggable}
@@ -271,6 +272,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   if (layout === 'matrix') {
     return (
       <div
+        id={`project-card-${project.id}`}
         className={`perspective-container card-focusable focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-4 focus-visible:ring-offset-black rounded-xl animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 z-50 rounded-lg' : ''}`}
         style={{ viewTransitionName: isSelected ? 'none' : `project-container-${project.id}`, animationDelay: `${index * 50}ms` }}
         draggable={draggable}
@@ -387,6 +389,12 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
                      soundSystem.playClick();
                      if (onTagClick) onTagClick(tag);
                    }}
+                   onMouseEnter={() => {
+                     if (onHoverTag) onHoverTag(tag);
+                   }}
+                   onMouseLeave={() => {
+                     if (onHoverTag) onHoverTag(null);
+                   }}
                    className={`text-[9px] px-2 py-0.5 rounded-full border transition-all duration-300 whitespace-nowrap
                      ${isHighlighted
                        ? 'bg-accent-500/80 text-white border-accent-300 shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.6)] ring-1 ring-accent-200'
@@ -492,6 +500,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   // Grid Layout (Default)
   return (
     <div
+      id={`project-card-${project.id}`}
       className={`perspective-container card-focusable focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-4 focus-visible:ring-offset-black rounded-xl animate-slide-in-up transition-all duration-500 ease-out hover:-translate-y-3 hover:shadow-[0_20px_40px_-15px_rgba(var(--rgb-accent-400),0.3)] hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 scale-105 z-50' : ''}`}
       style={{ viewTransitionName: isSelected ? 'none' : `project-container-${project.id}`, animationDelay: `${index * 100}ms` }}
       draggable={draggable}
@@ -704,6 +713,12 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
                       e.stopPropagation();
                       soundSystem.playClick();
                       if (onTagClick) onTagClick(tag);
+                    }}
+                    onMouseEnter={() => {
+                      if (onHoverTag) onHoverTag(tag);
+                    }}
+                    onMouseLeave={() => {
+                      if (onHoverTag) onHoverTag(null);
                     }}
                     className={`px-3 py-1 text-xs font-semibold tracking-wider border rounded-full transition-all duration-300 cursor-pointer z-20
                       ${isHighlighted
