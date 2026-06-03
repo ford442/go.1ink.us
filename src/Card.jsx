@@ -735,6 +735,11 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
           </div>
         </div>
         
+        {/* Holographic Scanline on Hover */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-[6]">
+          <div className="scanline" style={{ animationDuration: '2s' }}></div>
+        </div>
+
         {/* Dynamic Holographic Spotlight */}
         <div
           className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
