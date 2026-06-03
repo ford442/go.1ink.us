@@ -821,3 +821,16 @@
 .crt-flicker .film-grain {
   opacity: 0.055;
 }
+
+@keyframes radar-sweep {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.animate-radar-sweep {
+  animation: radar-sweep 4s linear infinite;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
