@@ -369,11 +369,39 @@ function App() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlMode = params.get('view');
-      if (urlMode === 'grid' || urlMode === 'matrix') return urlMode;
+      if (urlMode === 'grid' || urlMode === 'matrix' || urlMode === 'list') return urlMode;
       return localStorage.getItem('curator_display_mode') || 'grid';
     }
     return 'grid';
   });
+
+  // Glitch transition state
+  const [isGlitching, setIsGlitching] = useState(false);
+  const glitchTimeoutRef = useRef(null);
+
+  // Track previous mode for glitch transition when changed via shortcuts
+  const prevDisplayModeRef = useRef(displayMode);
+
+  useEffect(() => {
+    if (displayMode !== prevDisplayModeRef.current) {
+      if (glitchTimeoutRef.current) clearTimeout(glitchTimeoutRef.current);
+
+      setIsGlitching(true);
+      soundSystem.playSelect();
+
+      glitchTimeoutRef.current = setTimeout(() => {
+        setIsGlitching(false);
+      }, 400);
+
+      prevDisplayModeRef.current = displayMode;
+    }
+  }, [displayMode]);
+
+  const handleDisplayModeChange = (newMode) => {
+    if (newMode === displayMode) return;
+    setDisplayMode(newMode);
+    addActivityLog(`SYS.UI: LAYOUT_UPDATED_${newMode.toUpperCase()}`);
+  };
 
   // Sync display mode to localStorage
   useEffect(() => {
@@ -825,12 +853,12 @@ function App() {
 
       case 'view':
         if (args.length === 0) {
-          responseText = 'ERR: Missing parameter. Usage: view <grid|matrix>';
+          responseText = 'ERR: Missing parameter. Usage: view <grid|matrix|list>';
           responseType = 'error';
         } else {
           const viewParam = args[0].toLowerCase();
-          if (viewParam === 'grid' || viewParam === 'matrix') {
-             setDisplayMode(viewParam);
+          if (viewParam === 'grid' || viewParam === 'matrix' || viewParam === 'list') {
+             handleDisplayModeChange(viewParam);
              responseText = `> DISPLAY_PROTOCOL_UPDATED: [${viewParam.toUpperCase()}]`;
              responseType = 'success';
           } else {
@@ -2267,7 +2295,7 @@ function App() {
                  {/* Display Mode Toggle */}
                  <div className="bg-black/20 backdrop-blur-xl rounded-lg border border-white/10 p-1 flex" role="group" aria-label="Layout mode">
                     <button
-                      onClick={() => setDisplayMode('grid')}
+                      onClick={() => handleDisplayModeChange('grid')}
                       className={`p-1.5 rounded transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 ${displayMode === 'grid' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
                       aria-label="Grid View"
                       aria-pressed={displayMode === 'grid'}
@@ -2278,7 +2306,7 @@ function App() {
                       </svg>
                     </button>
                     <button
-                      onClick={() => setDisplayMode('matrix')}
+                      onClick={() => handleDisplayModeChange('matrix')}
                       className={`p-1.5 rounded transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 ${displayMode === 'matrix' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
                       aria-label="Matrix View"
                       aria-pressed={displayMode === 'matrix'}
@@ -2289,7 +2317,7 @@ function App() {
                       </svg>
                     </button>
                     <button
-                      onClick={() => setDisplayMode('list')}
+                      onClick={() => handleDisplayModeChange('list')}
                       className={`p-1.5 rounded transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 ${displayMode === 'list' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
                       aria-label="List View"
                       aria-pressed={displayMode === 'list'}
@@ -2339,7 +2367,7 @@ function App() {
                   />
                   <div
                     id="project-grid"
-                    className={`transition-all duration-300 ease-in-out relative z-10 ${
+                    className={`transition-all duration-300 ease-in-out relative z-10 ${isGlitching ? 'animate-layout-glitch' : ''} ${
                       displayMode === 'grid'
                         ? 'columns-1 md:columns-2 lg:columns-2 xl:columns-3 gap-6 md:gap-8 opacity-100'
                         : displayMode === 'list'
