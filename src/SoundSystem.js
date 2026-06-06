@@ -131,6 +131,12 @@ class ProceduralSoundSystem {
         this.playTone(820, 'sine', 0.04, 0.06);
     }
 
+    playDeepFocus() {
+        // Deep, resonant sci-fi swelling tone for delayed hover state
+        this.playTone(150, 'sine', 0.8, 0.04, 1.2);
+        setTimeout(() => this.playTone(220, 'triangle', 0.6, 0.02, 1.1), 100);
+    }
+
     playClick() {
         this.playTone(1250, 'square', 0.06, 0.04, 0.7); // crisp with slight slide
     }

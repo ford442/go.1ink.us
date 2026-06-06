@@ -106,6 +106,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
     // Start 700ms timer for advanced hover micro-interactions (zoom, lift)
     hoverTimerRef.current = setTimeout(() => {
       setIsHoverDelayed(true);
+      soundSystem.playDeepFocus();
     }, 700);
 
     if (!cardRef.current) return;
@@ -799,6 +800,18 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
 
         {/* 🌌 CURATOR FEATURE: True Holographic Glass Effects */}
         <div className="holo-overlay absolute inset-0 pointer-events-none rounded-xl z-10" style={{ transform: 'translateZ(20px)', backgroundPosition: 'calc(var(--mouse-percent-x, 50%) * 2) calc(var(--mouse-percent-y, 50%) * 2)' }}></div>
+
+        {/* 🌌 CURATOR FEATURE: Tactical Hover Brackets (Targeting Reticle) */}
+        <div className="absolute inset-0 pointer-events-none z-30" style={{ transform: 'translateZ(80px)' }}>
+          {/* Top Left */}
+          <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-accent-400 opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-2 -translate-y-2 group-hover:translate-x-1 group-hover:translate-y-1 shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.8)] rounded-tl-sm"></div>
+          {/* Top Right */}
+          <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-accent-400 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-2 -translate-y-2 group-hover:-translate-x-1 group-hover:translate-y-1 shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.8)] rounded-tr-sm"></div>
+          {/* Bottom Left */}
+          <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-accent-400 opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-2 translate-y-2 group-hover:translate-x-1 group-hover:-translate-y-1 shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.8)] rounded-bl-sm"></div>
+          {/* Bottom Right */}
+          <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-accent-400 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-2 translate-y-2 group-hover:-translate-x-1 group-hover:-translate-y-1 shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.8)] rounded-br-sm"></div>
+        </div>
 
         {/* 🌌 CURATOR FEATURE: Dynamic Mouse-Follow Glare */}
         <div
