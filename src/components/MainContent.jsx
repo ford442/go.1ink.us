@@ -1,0 +1,474 @@
+import { flushSync } from 'react-dom';
+import Card from '../Card';
+import ConstellationOverlay from '../ConstellationOverlay';
+import { CATEGORY_ICONS } from '../constants';
+import { useAppContext } from '../AppContext';
+
+export default function MainContent() {
+  const { filteredProjects, activeFilters, searchQuery, setSearchQuery, setActiveFilters, setCurrentPage, toggleFilter, handleDisplayModeChange, displayMode, sortOption, setSortOption, setRandomSeed, addActivityLog, isGlitching, hoveredTag, paginatedProjects, focusedCardIndex, setFocusedCardIndex, selectedProject, favorites, toggleFavorite, handleContextMenu, handleCopyLink, handleProjectSelect, handleTagClick, isDataMode, activeFiltersSet, draggedFavoriteId, dragOverFavoriteId, handleDragStart, handleDragOver, handleDragEnd, handleDrop, setHoveredTag, totalPages, currentPage, handlePageChange, suggestedTags } = useAppContext();
+
+  return (
+    <>
+      {/* MAIN GRID */}
+      <main className="flex-1 w-full min-w-0 relative z-0">
+        {/* ARIA Live Region for Screen Readers */}
+        <div className="sr-only" aria-live="polite" aria-atomic="true">
+          Showing {filteredProjects.length} projects. Active filters: {activeFilters.length === 0 ? 'All' : activeFilters.join(', ')}.
+        </div>
+
+        {/* Active Filters Summary */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+             <span className="text-gray-500 text-sm font-mono mr-2">SYS_VIEW:</span>
+             {activeFilters.length === 0 && !searchQuery ? (
+               <span className="text-white text-sm font-bold bg-white/10 px-3 py-1 rounded-full border border-white/20">All Protocols</span>
+             ) : (
+               <>
+                 {searchQuery && (
+                   <span className="text-white text-sm font-bold bg-accent-500/20 px-3 py-1 rounded-full border border-accent-500/30 flex items-center gap-2 animate-fade-in shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]">
+                     🔍 "{searchQuery}"
+                     <button onClick={() => { setSearchQuery(''); setCurrentPage(1); }} className="ml-1 hover:text-red-400 transition-colors p-0.5" aria-label={`Clear search`}>
+                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                         <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                       </svg>
+                     </button>
+                   </span>
+                 )}
+                 {activeFilters.map(filter => (
+                   <span key={filter} className="text-white text-sm font-bold bg-accent-500/20 px-3 py-1 rounded-full border border-accent-500/30 flex items-center gap-2 animate-fade-in shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]">
+                     {CATEGORY_ICONS[filter] || '🏷️'} {filter}
+                     <button onClick={() => toggleFilter(filter)} className="ml-1 hover:text-red-400 transition-colors p-0.5" aria-label={`Remove ${filter} filter`}>
+                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                         <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                       </svg>
+                     </button>
+                   </span>
+                 ))}
+                 {(activeFilters.length > 0 && searchQuery) || activeFilters.length > 1 ? (
+                   <button onClick={() => { setActiveFilters([]); setSearchQuery(''); setCurrentPage(1); }} className="text-xs font-mono text-accent-400 hover:text-accent-300 ml-2 uppercase tracking-widest hover:underline decoration-accent-400/50 underline-offset-4 transition-all">
+                     [ Clear All ]
+                   </button>
+                 ) : null}
+               </>
+             )}
+          </div>
+
+          {/* View & Sort Controls */}
+          <div className="flex items-center gap-3">
+             {/* Display Mode Toggle */}
+             <div className="bg-black/20 backdrop-blur-xl rounded-lg border border-white/10 p-1 flex" role="group" aria-label="Layout mode">
+                <button
+                  onClick={() => handleDisplayModeChange('grid')}
+                  className={`p-1.5 rounded transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 ${displayMode === 'grid' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
+                  aria-label="Grid View"
+                  aria-pressed={displayMode === 'grid'}
+                  title="Grid Protocol"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => handleDisplayModeChange('matrix')}
+                  className={`p-1.5 rounded transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 ${displayMode === 'matrix' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
+                  aria-label="Matrix View"
+                  aria-pressed={displayMode === 'matrix'}
+                  title="Matrix Protocol"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => handleDisplayModeChange('list')}
+                  className={`p-1.5 rounded transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 ${displayMode === 'list' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
+                  aria-label="List View"
+                  aria-pressed={displayMode === 'list'}
+                  title="List Protocol"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+             </div>
+
+             <select
+               value={sortOption}
+               onChange={(e) => {
+                 if (e.target.value === 'Random') {
+                   setRandomSeed(Math.random());
+                 }
+                 setSortOption(e.target.value);
+                 setCurrentPage(1);
+                 addActivityLog(`SORT PROTOCOL: ${e.target.value.toUpperCase()}`);
+               }}
+               className="bg-black/20 backdrop-blur-xl border border-white/10 text-white py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:border-accent-500/50 focus-visible:ring-2 focus-visible:ring-accent-400 appearance-none text-sm cursor-pointer hover:bg-black/60 transition-colors shadow-lg"
+               style={{
+                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                 backgroundRepeat: 'no-repeat',
+                 backgroundPosition: 'right 0.5rem center',
+                 backgroundSize: '1.2em'
+               }}
+             >
+               <option value="Featured">Sort: Featured</option>
+               <option value="Newest">Sort: Newest</option>
+               <option value="A-Z">Sort: A-Z</option>
+               <option value="Most Complex">Sort: Complexity</option>
+               <option value="Random">Sort: Random (Shuffle)</option>
+             </select>
+          </div>
+        </div>
+
+        {filteredProjects.length > 0 ? (
+          <>
+            <div className="relative">
+              {/* Tactical Tag Constellation Overlay */}
+              <ConstellationOverlay
+                 hoveredTag={hoveredTag}
+                 visibleProjects={paginatedProjects}
+                 displayMode={displayMode}
+              />
+              <div
+                id="project-grid"
+                className={`transition-all duration-300 ease-in-out relative z-10 ${isGlitching ? 'animate-layout-glitch' : ''} ${
+                  displayMode === 'grid'
+                    ? 'columns-1 md:columns-2 lg:columns-2 xl:columns-3 gap-6 md:gap-8 opacity-100'
+                    : displayMode === 'list'
+                    ? 'flex flex-col gap-3 opacity-100'
+                    : 'grid grid-cols-1 gap-6 md:gap-8 opacity-100'
+                }`}
+                onKeyDown={(e) => {
+                let nextIndex = focusedCardIndex;
+                if (e.key === 'ArrowRight') {
+                  nextIndex = Math.min(paginatedProjects.length - 1, focusedCardIndex + 1);
+                } else if (e.key === 'ArrowLeft') {
+                  nextIndex = Math.max(0, focusedCardIndex - 1);
+                } else if (e.key === 'ArrowDown') {
+                  // In CSS columns, down goes to the next item sequentially within the column
+                  // A true spatial down would be index + items_per_col, but visually and DOM-wise sequential is often okay,
+                  // or we can jump by columns if we want spatial.
+                  // Let's use simple sequential for matrix mode, and sequential for columns mode since tab order follows DOM.
+                  nextIndex = Math.min(paginatedProjects.length - 1, focusedCardIndex + 1);
+                } else if (e.key === 'ArrowUp') {
+                  nextIndex = Math.max(0, focusedCardIndex - 1);
+                } else {
+                  return; // let other keys pass
+                }
+
+                if (nextIndex !== focusedCardIndex) {
+                  e.preventDefault();
+                  setFocusedCardIndex(nextIndex);
+                  setTimeout(() => {
+                    // Scope focus to the current container to avoid finding other focusable elements elsewhere
+                    const cards = e.currentTarget.querySelectorAll('.card-focusable');
+                    if (cards[nextIndex]) {
+                      cards[nextIndex].focus();
+                      cards[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                  }, 0);
+                }
+              }}
+            >
+              {paginatedProjects.map((project, index) => (
+                <div
+                   key={`${activeFilters.join('-')}-${sortOption}-${currentPage}-${project.id}`}
+                   className={`animate-slide-in-up ${displayMode === 'grid' ? 'break-inside-avoid inline-block w-full mb-6 md:mb-8' : ''}`}
+                   style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <Card
+                    project={project}
+                    index={index}
+                    onTagClick={handleTagClick}
+                    highlightedTags={activeFilters}
+                    searchQuery={searchQuery}
+                    onProjectClick={() => handleProjectSelect(project)}
+                    isSelected={selectedProject?.id === project.id}
+                    isFavorite={favorites.includes(project.id)}
+                    onToggleFavorite={() => toggleFavorite(project)}
+                    onContextMenu={(e) => handleContextMenu(e, project)}
+                    onCopyLink={handleCopyLink}
+                    layout={displayMode}
+                    isDataMode={isDataMode}
+
+                    // Drag and drop props (only active when sorting favorites)
+                    draggable={sortOption === 'Featured' && activeFiltersSet.has('Favorites')}
+                    onDragStart={(e) => handleDragStart(e, project.id)}
+                    onDragOver={(e) => handleDragOver(e, project.id)}
+                    onDragEnd={handleDragEnd}
+                    onDrop={(e) => handleDrop(e, project.id)}
+                    isDragged={draggedFavoriteId === project.id}
+                    isDragOver={dragOverFavoriteId === project.id}
+                    tabIndex={index === focusedCardIndex ? 0 : -1}
+                    onFocus={() => setFocusedCardIndex(index)}
+                    onHoverTag={setHoveredTag}
+                  />
+                </div>
+              ))}
+              </div>
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-16 flex justify-center items-center gap-4 border-t border-white/10 pt-8 animate-fade-in">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg bg-black/40 border border-white/10 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
+                  aria-label="Previous Page"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </button>
+
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                    // Show first, last, current, and +/- 1 pages
+                    if (
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`w-10 h-10 rounded-lg text-sm font-mono font-bold transition-all ${
+                            currentPage === page
+                              ? 'bg-accent-500/20 text-accent-300 border border-accent-500/50 shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)]'
+                              : 'bg-black/40 text-gray-400 border border-white/10 hover:bg-white/10 hover:text-white'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    } else if (
+                      page === currentPage - 2 ||
+                      page === currentPage + 2
+                    ) {
+                      return <span key={page} className="text-gray-600">...</span>;
+                    }
+                    return null;
+                  })}
+                </div>
+
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-lg bg-black/40 border border-white/10 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
+                  aria-label="Next Page"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+      <div className="max-w-2xl mx-auto mt-10 animate-fade-in">
+         <div className="relative overflow-hidden rounded-xl p-8 backdrop-blur-md tinted-glass shifting-glass border border-accent-500/30 shadow-[0_0_30px_rgba(var(--rgb-accent-400),0.1),inset_0_0_20px_rgba(var(--rgb-accent-400),0.05)]">
+            <div className="scanline"></div>
+            <div className="flex flex-col items-center justify-center text-center space-y-6 relative z-10">
+               {/* Holographic Radar / Core Searching Illustration */}
+               <div className="relative w-64 h-64 flex items-center justify-center mb-6 group cursor-default perspective-1000">
+
+                  {/* Deep Parallax Glow */}
+                  <div className="absolute inset-0 bg-accent-500/20 rounded-full blur-[60px] animate-[pulse_4s_ease-in-out_infinite] group-hover:bg-accent-500/40 transition-colors duration-1000"></div>
+
+                  {/* Outer Radar Ring */}
+                  <div className="absolute inset-2 border-[1px] border-accent-500/30 rounded-full animate-[spin_10s_linear_infinite]"></div>
+                  <div className="absolute inset-2 border-[2px] border-dashed border-accent-500/20 rounded-full animate-[spin_15s_linear_infinite_reverse]"></div>
+
+                  {/* Radar Sweep Element */}
+                  <div className="absolute inset-0 rounded-full overflow-hidden">
+                    <div className="absolute top-1/2 left-1/2 w-full h-full bg-[conic-gradient(from_0deg_at_0%_0%,transparent_0deg,transparent_270deg,rgba(var(--rgb-accent-400),0.3)_360deg)] animate-radar-sweep transform origin-top-left" style={{ transform: 'translate(-50%, -50%)' }}></div>
+                  </div>
+
+                  {/* Geometric Holographic Structure */}
+                  <svg className="absolute w-48 h-48 text-accent-500/60 animate-[float-idle_8s_ease-in-out_infinite]" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="0.5" style={{ transformStyle: 'preserve-3d' }}>
+                    {/* Outer rotating hex */}
+                    <polygon points="50,2 98,26 98,74 50,98 2,74 2,26" strokeDasharray="4 6" className="animate-[spin_30s_linear_infinite]" />
+                    {/* Inner rotating hex opposite */}
+                    <polygon points="50,15 80.3,32.5 80.3,67.5 50,85 19.7,67.5 19.7,32.5" strokeDasharray="10 5" className="animate-[spin_20s_linear_infinite_reverse] text-accent-400/80" />
+
+                    {/* Connecting Nodes */}
+                    <circle cx="50" cy="2" r="1.5" fill="currentColor" className="animate-pulse" />
+                    <circle cx="98" cy="26" r="1.5" fill="currentColor" className="animate-pulse" />
+                    <circle cx="98" cy="74" r="1.5" fill="currentColor" className="animate-pulse" />
+                    <circle cx="50" cy="98" r="1.5" fill="currentColor" className="animate-pulse" />
+                    <circle cx="2" cy="74" r="1.5" fill="currentColor" className="animate-pulse" />
+                    <circle cx="2" cy="26" r="1.5" fill="currentColor" className="animate-pulse" />
+                  </svg>
+
+                  {/* Core Searching Fragments */}
+                  <div className="absolute inset-0 flex items-center justify-center animate-[float-idle_5s_ease-in-out_infinite]">
+                     <svg className="w-20 h-20 text-accent-300 drop-shadow-[0_0_20px_rgba(var(--rgb-accent-400),1)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                        {/* Scanning Eye/Core */}
+                        <circle cx="12" cy="12" r="4" className="animate-[pulse_1.5s_infinite]" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2v4m0 12v4m10-10h-4M6 12H2" className="opacity-70 animate-[pulse_2s_infinite]" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.07 4.93l-2.83 2.83m-8.48 8.48l-2.83 2.83M19.07 19.07l-2.83-2.83M4.93 4.93l2.83 2.83" className="opacity-40" />
+
+                        {/* Floating data particles */}
+                        <circle cx="16" cy="8" r="1" fill="currentColor" className="animate-[ping_2s_infinite]" />
+                        <circle cx="8" cy="16" r="1" fill="currentColor" className="animate-[ping_3s_infinite]" />
+                        <circle cx="8" cy="8" r="1.5" fill="currentColor" className="animate-[ping_2.5s_infinite]" />
+                        <circle cx="16" cy="16" r="0.5" fill="currentColor" className="animate-[ping_1.8s_infinite]" />
+                     </svg>
+                  </div>
+
+                  {/* Holographic Glare Layer */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none mix-blend-overlay rotate-45 transform"></div>
+
+                  {/* Scanline overlay for illustration */}
+                  <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.4)_50%)] bg-[length:100%_4px] rounded-full overflow-hidden pointer-events-none mix-blend-multiply"></div>
+               </div>
+
+               <div className="relative">
+                 <h3 className="text-4xl md:text-5xl font-mono font-bold text-transparent bg-clip-text bg-gradient-to-r from-accent-300 via-accent-500 to-accent-700 mb-1 tracking-[0.25em] drop-shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.8)] glitch-text" data-text="SIGNAL LOST">
+                    SIGNAL LOST
+                 </h3>
+                 <div className="h-0.5 w-full bg-gradient-to-r from-transparent via-accent-500/50 to-transparent mt-4 mb-2 animate-pulse"></div>
+               </div>
+
+               <div className="text-accent-300/80 font-mono text-sm bg-black/60 p-6 rounded-xl border border-accent-500/40 w-full text-left shadow-[0_0_25px_rgba(var(--rgb-accent-400),0.15)] backdrop-blur-xl relative overflow-hidden group">
+                  {/* Terminal Glare */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-accent-500/30">
+                     <div className="flex items-center gap-3">
+                        <div className="relative flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                        </div>
+                        <span className="text-accent-400/90 text-xs font-bold tracking-widest">SYSTEM_DIAGNOSTIC</span>
+                     </div>
+                     <span className="text-[10px] text-accent-500/50">ERR_CODE: 404_VOID</span>
+                  </div>
+                  {/* Removed duplicated header */}
+
+                  {searchQuery && (
+                    <p className="mb-2 break-all"><span className="text-white/50">{`> SEARCH_QUERY:`}</span> <span className="text-accent-200">"{searchQuery}"</span></p>
+                  )}
+
+                  {activeFilters.length > 0 && (
+                    <p className="mb-2"><span className="text-white/50">{`> ACTIVE_TAGS:`}</span> <span className="text-accent-200">[{activeFilters.join(', ')}]</span></p>
+                  )}
+
+                  <p className="mb-2"><span className="text-white/50">{`> STATUS:`}</span> <span className="text-red-400">NO_RESULTS_FOUND</span></p>
+                  <p className="animate-pulse mb-6 mt-4 text-accent-400/70">{`> RECOMMENDATION: INITIATE_PROTOCOL_OVERRIDE`}</p>
+
+                  {/* Suggested Protocols */}
+                  <div className="flex flex-col items-center gap-3 pt-4 border-t border-accent-500/20">
+                    <p className="text-xs uppercase opacity-70">Suggested Override Protocols:</p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {suggestedTags.map(tag => (
+                        <button
+                          key={tag}
+                          onClick={() => {
+                            setSearchQuery('');
+                            toggleFilter(tag);
+                          }}
+                          className="px-3 py-1 bg-accent-900/40 hover:bg-accent-500/20 border border-accent-500/30 text-accent-200 text-xs rounded transition-all duration-300 hover:shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.3)] hover:-translate-y-0.5"
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+               </div>
+
+               <div className="flex flex-wrap justify-center gap-4 mt-6 w-full relative z-10">
+                 {searchQuery && (
+                   <button
+                     onClick={() => {
+                       if (document.startViewTransition) {
+                         document.startViewTransition(() => {
+                           flushSync(() => {
+                             setSearchQuery('');
+                             setCurrentPage(1);
+                           });
+                         });
+                       } else {
+                         setSearchQuery('');
+                         setCurrentPage(1);
+                       }
+                     }}
+                     className="flex-1 min-w-[140px] relative px-4 py-3 bg-black/60 hover:bg-accent-900/60 border border-accent-500/50 text-accent-200 rounded-lg transition-all duration-300 hover:shadow-[0_0_20px_rgba(var(--rgb-accent-400),0.4)] hover:-translate-y-0.5 group overflow-hidden"
+                   >
+                     <div className="absolute inset-0 bg-accent-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent-500/50 group-hover:bg-accent-400"></div>
+                     <span className="uppercase text-xs font-bold tracking-widest block font-mono">
+                       Clear Search
+                     </span>
+                   </button>
+                 )}
+
+                 {activeFilters.length > 0 && (
+                   <button
+                     onClick={() => {
+                       if (document.startViewTransition) {
+                         document.startViewTransition(() => {
+                           flushSync(() => {
+                             setActiveFilters([]);
+                             setCurrentPage(1);
+                           });
+                         });
+                       } else {
+                         setActiveFilters([]);
+                         setCurrentPage(1);
+                       }
+                     }}
+                     className="flex-1 min-w-[140px] relative px-4 py-3 bg-black/60 hover:bg-accent-900/60 border border-accent-500/50 text-accent-200 rounded-lg transition-all duration-300 hover:shadow-[0_0_20px_rgba(var(--rgb-accent-400),0.4)] hover:-translate-y-0.5 group overflow-hidden"
+                   >
+                     <div className="absolute inset-0 bg-accent-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent-500/50 group-hover:bg-accent-400"></div>
+                     <span className="uppercase text-xs font-bold tracking-widest block font-mono">
+                       Clear Tags
+                     </span>
+                   </button>
+                 )}
+
+                 <button
+                   onClick={() => {
+                     if (document.startViewTransition) {
+                       document.startViewTransition(() => {
+                         flushSync(() => {
+                           setActiveFilters([]);
+                           setSearchQuery('');
+                           setCurrentPage(1);
+                         });
+                       });
+                     } else {
+                       setActiveFilters([]);
+                       setSearchQuery('');
+                       setCurrentPage(1);
+                     }
+                   }}
+                   className="w-full sm:flex-1 min-w-[200px] relative px-4 py-3 bg-accent-500/20 hover:bg-accent-500/40 border border-accent-500/60 text-white rounded-lg transition-all duration-300 shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)] hover:shadow-[0_0_25px_rgba(var(--rgb-accent-400),0.6)] hover:-translate-y-0.5 group overflow-hidden"
+                 >
+                   <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-[length:250%_250%] animate-[shine_3s_infinite_linear] opacity-0 group-hover:opacity-100"></div>
+                   <div className="flex items-center justify-center gap-2">
+                     <span className="w-2 h-2 rounded-full bg-accent-400 animate-pulse"></span>
+                     <span className="uppercase text-xs font-bold tracking-widest block font-mono">
+                       System Reset
+                     </span>
+                   </div>
+                 </button>
+               </div>
+            </div>
+         </div>
+      </div>
+    )}
+      </main>
+    
+    <footer className="mt-24 mb-8 flex flex-col justify-center items-center gap-4">
+      <img
+        src="./go1inkus.png"
+        alt="go1ink.us"
+        className="h-16 md:h-20 lg:h-24 w-auto opacity-60 hover:opacity-100 transition-all duration-300 hover:scale-105"
+      />
+    </footer>
+    </>
+  );
+}
