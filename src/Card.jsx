@@ -611,7 +611,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
                 alt={project.title}
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
-                className={`w-full h-full object-cover transition-all duration-[1500ms] ease-[cubic-bezier(0.19,1,0.22,1)] ${imageLoaded ? 'opacity-100' : 'opacity-0'} ${isHoverDelayed ? 'scale-125' : 'scale-100'}`}
+                className={`w-full h-full object-cover transition-all duration-[1500ms] ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:animate-image-glitch ${imageLoaded ? 'opacity-100' : 'opacity-0'} ${isHoverDelayed ? 'scale-125' : 'scale-100'}`}
                 style={{ viewTransitionName: isSelected ? 'none' : `project-image-${project.id}` }}
               />
               {/* Inner Holographic Reflection (ramp up on hover) */}
