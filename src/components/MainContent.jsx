@@ -1,4 +1,5 @@
 import { flushSync } from 'react-dom';
+import React, { useEffect, useRef, useState } from 'react';
 import Card from '../Card';
 import ConstellationOverlay from '../ConstellationOverlay';
 import { CATEGORY_ICONS } from '../constants';
@@ -6,6 +7,74 @@ import { useAppContext } from '../AppContext';
 
 export default function MainContent() {
   const { filteredProjects, activeFilters, searchQuery, setSearchQuery, setActiveFilters, setCurrentPage, toggleFilter, handleDisplayModeChange, displayMode, sortOption, setSortOption, setRandomSeed, addActivityLog, isGlitching, hoveredTag, paginatedProjects, focusedCardIndex, setFocusedCardIndex, selectedProject, favorites, toggleFavorite, handleContextMenu, handleCopyLink, handleProjectSelect, handleTagClick, isDataMode, activeFiltersSet, draggedFavoriteId, dragOverFavoriteId, handleDragStart, handleDragOver, handleDragEnd, handleDrop, setHoveredTag, totalPages, currentPage, handlePageChange, suggestedTags } = useAppContext();
+
+  // 🌌 CURATOR FEATURE: Global Holographic Command Table Perspective
+  const gridRef = useRef(null);
+  const [isInteractive, setIsInteractive] = useState(false);
+
+  useEffect(() => {
+    // Check if device supports hover and user doesn't prefer reduced motion
+    const hoverQuery = window.matchMedia('(hover: hover)');
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const updateInteractive = () => {
+      setIsInteractive(hoverQuery.matches && !motionQuery.matches);
+    };
+
+    updateInteractive();
+    hoverQuery.addEventListener('change', updateInteractive);
+    motionQuery.addEventListener('change', updateInteractive);
+
+    return () => {
+      hoverQuery.removeEventListener('change', updateInteractive);
+      motionQuery.removeEventListener('change', updateInteractive);
+    };
+  }, []);
+
+  useEffect(() => {
+    let rafId = null;
+
+    if (!isInteractive) {
+      if (gridRef.current) {
+        gridRef.current.style.transform = 'perspective(2000px) rotateX(0deg) rotateY(0deg)';
+      }
+      return;
+    }
+
+    const handleMouseMove = (e) => {
+      if (rafId) return;
+
+      rafId = requestAnimationFrame(() => {
+        const { innerWidth, innerHeight } = window;
+        const x = e.clientX;
+        const y = e.clientY;
+
+        // Calculate distance from center (-0.5 to 0.5)
+        const xPos = (x / innerWidth) - 0.5;
+        const yPos = (y / innerHeight) - 0.5;
+
+        // Max tilt of 3 degrees
+        const maxTilt = 3;
+
+        // When mouse is right, rotateY should be positive to look left
+        const rotateY = xPos * maxTilt * 2;
+        // When mouse is down, rotateX should be negative to look up
+        const rotateX = -(yPos * maxTilt * 2);
+
+        if (gridRef.current) {
+          gridRef.current.style.transform = `perspective(2000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        }
+        rafId = null;
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [isInteractive]);
 
   return (
     <>
@@ -130,13 +199,18 @@ export default function MainContent() {
               />
               <div
                 id="project-grid"
-                className={`transition-all duration-300 ease-in-out relative z-10 ${isGlitching ? 'animate-layout-glitch' : ''} ${
+                ref={gridRef}
+                className={`transition-all duration-300 ease-out relative z-10 will-change-transform ${isGlitching ? 'animate-layout-glitch' : ''} ${
                   displayMode === 'grid'
                     ? 'columns-1 md:columns-2 lg:columns-2 xl:columns-3 gap-6 md:gap-8 opacity-100'
                     : displayMode === 'list'
                     ? 'flex flex-col gap-3 opacity-100'
                     : 'grid grid-cols-1 gap-6 md:gap-8 opacity-100'
                 }`}
+                style={{
+                  transform: 'perspective(2000px) rotateX(0deg) rotateY(0deg)',
+                  transformStyle: 'preserve-3d'
+                }}
                 onKeyDown={(e) => {
                 let nextIndex = focusedCardIndex;
                 if (e.key === 'ArrowRight') {
