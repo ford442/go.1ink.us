@@ -7,10 +7,15 @@ export default {
   theme: {
     extend: {
       animation: {
+        scanline: "scanline 8s linear infinite",
         blob: "blob 7s infinite",
         "image-glitch": "image-glitch 2s infinite linear alternate-reverse",
       },
       keyframes: {
+        scanline: {
+          '0%': { transform: 'translateY(-100%)' },
+          '100%': { transform: 'translateY(100%)' },
+        },
         "image-glitch": {
           "0%": {
             clipPath: "inset(20% 0 80% 0)",
