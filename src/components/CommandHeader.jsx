@@ -6,7 +6,7 @@ import soundSystem from '../SoundSystem';
 import { useAppContext } from '../AppContext';
 
 export default function CommandHeader() {
-  const { formatUptime, systemStats, soundEnabled, setSoundEnabled, isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme } = useAppContext();
+  const { formatUptime, systemStats, soundEnabled, setSoundEnabled, isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, totalProjects } = useAppContext();
 
   return (
     <>
@@ -36,6 +36,11 @@ export default function CommandHeader() {
       <div className="hidden md:flex items-center gap-2 border-l border-accent-500/30 pl-4">
         <span className="opacity-50">NET:</span>
         <span className="text-accent-100">{systemStats.connections}</span>
+      </div>
+
+      <div className="hidden lg:flex items-center gap-2 border-l border-accent-500/30 pl-4">
+        <span className="opacity-50">PRJ:</span>
+        <span className="text-accent-100">{totalProjects}</span>
       </div>
 
       <div className="hidden lg:flex items-center">
@@ -139,6 +144,10 @@ export default function CommandHeader() {
          <div className="ml-1 border border-accent-500/30 rounded overflow-hidden">
             <TelemetryGraph value={systemStats.connections} max={3000} width={40} height={16} />
          </div>
+      </div>
+      <div className="hidden md:flex items-center gap-2 text-accent-200/70 border-r border-accent-500/30 pr-4">
+         <span className="opacity-50">PRJ:</span>
+         <span className="text-accent-100 min-w-[28px] tabular-nums">{totalProjects}</span>
       </div>
       <div className="hidden md:flex">
          <AudioVisualizer theme={theme} />
