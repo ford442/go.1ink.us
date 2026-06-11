@@ -681,6 +681,36 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
           if (onProjectClick) onProjectClick(project);
         }}
       >
+        {/* True Holographic Glass Foil */}
+        <div
+          className="absolute inset-0 pointer-events-none z-20 mix-blend-color-dodge opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl overflow-hidden"
+          style={{
+            backgroundImage: `linear-gradient(
+              115deg,
+              transparent 20%,
+              rgba(var(--rgb-accent-400), 0.4) 30%,
+              rgba(236, 72, 153, 0.4) 40%,
+              rgba(6, 182, 212, 0.4) 50%,
+              rgba(251, 191, 36, 0.4) 60%,
+              transparent 70%
+            )`,
+            backgroundSize: '300% 300%',
+            backgroundPosition: 'calc(var(--mouse-percent-x, 50%) * 1.5) calc(var(--mouse-percent-y, 50%) * 1.5)',
+          }}
+        />
+
+        {/* Dynamic Specular Glare */}
+        <div
+          className="absolute inset-0 pointer-events-none z-30 mix-blend-screen opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl overflow-hidden"
+          style={{
+            background: `radial-gradient(
+              600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+              rgba(255, 255, 255, 0.15),
+              transparent 40%
+            )`
+          }}
+        />
+
         {/* Drag Handle Indicator */}
         {draggable && (
           <div className="absolute top-2 left-1/2 -translate-x-1/2 z-40 w-12 h-1.5 bg-white/20 rounded-full group-hover:bg-white/40 transition-colors pointer-events-none shadow-[0_0_10px_rgba(255,255,255,0.1)]"></div>
