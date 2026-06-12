@@ -66,3 +66,32 @@
   --rgb-accent-400: 251, 191, 36;
   --rgb-accent-500: 245, 158, 11;
 }
+
+/* Global Holographic Scrollbar */
+html, body {
+  scrollbar-color: rgba(var(--rgb-accent-400), 0.5) rgba(0, 0, 0, 0.4);
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(var(--rgb-accent-400), 0.5);
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(var(--rgb-accent-400), 0.3);
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--rgb-accent-400), 0.9);
+  box-shadow: 0 0 15px rgba(var(--rgb-accent-400), 0.6);
+}
