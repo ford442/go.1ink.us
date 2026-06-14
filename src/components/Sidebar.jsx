@@ -6,7 +6,7 @@ import { CATEGORIES, CATEGORY_ICONS, CATEGORY_BUTTON_STYLES } from '../constants
 import { useAppContext } from '../AppContext';
 
 export default function Sidebar() {
-  const { searchInputRef, searchQuery, setSearchQuery, setCurrentPage, addActivityLog, filteredProjects, suggestedTags, toggleFilter, isMobileFiltersOpen, setIsMobileFiltersOpen, activeFilters, sortOption, activeFiltersSet, counts, setHoveredTag, favoriteCount, activeCategories, handleTagClick, userActivityLogs, favorites, displayMode } = useAppContext();
+  const { searchInputRef, searchQuery, setSearchQuery, setCurrentPage, addActivityLog, filteredProjects, suggestedTags, toggleFilter, isMobileFiltersOpen, setIsMobileFiltersOpen, activeFilters, sortOption, setSortOption, activeFiltersSet, counts, setHoveredTag, favoriteCount, activeCategories, handleTagClick, userActivityLogs, favorites, displayMode, setRandomSeed } = useAppContext();
 
   return (
     <>
@@ -123,6 +123,37 @@ export default function Sidebar() {
             </span>
           )}
         </button>
+      </div>
+
+      {/* Sort Options */}
+      <div className="flex flex-col gap-2 px-1">
+        <div className="flex items-center justify-between">
+          <span className="text-accent-500/70 text-[10px] font-mono tracking-widest uppercase flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+            </svg>
+            Sort Protocol:
+          </span>
+        </div>
+        <select
+          value={sortOption}
+          onChange={(e) => {
+            if (e.target.value === 'Random') {
+              setRandomSeed(Math.random());
+            }
+            setSortOption(e.target.value);
+            setCurrentPage(1);
+            addActivityLog(`SORT_PROTOCOL_UPDATED: ${e.target.value.toUpperCase()}`);
+          }}
+          className="w-full bg-black/40 text-gray-300 text-xs font-mono px-3 py-2 rounded-lg border border-white/10 focus:outline-none focus:border-accent-500/50 focus-visible:ring-2 focus-visible:ring-accent-400 hover:bg-white/5 transition-colors cursor-pointer appearance-none shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: `right 0.5rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1.5em 1.5em`, paddingRight: `2.5rem` }}
+        >
+          <option value="Featured" className="bg-gray-900">Featured</option>
+          <option value="Newest" className="bg-gray-900">Newest</option>
+          <option value="A-Z" className="bg-gray-900">A-Z</option>
+          <option value="Random" className="bg-gray-900">Random</option>
+          <option value="Most Complex" className="bg-gray-900">Most Complex</option>
+        </select>
       </div>
 
       {/* Drawer Backdrop */}
