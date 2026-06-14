@@ -4,7 +4,7 @@ import projectData from '../projectData';
 import { useAppContext } from '../AppContext';
 
 export default function SystemOverlays() {
-  const { isOmniOpen, setIsOmniOpen, handleProjectSelect, activeFilters, toggleFilter, theme, changeTheme, isCrtEnabled, setIsCrtEnabled, isMatrixMode, setIsMatrixMode, isSoundEnabled, setIsSoundEnabled, isLockdown, setIsLockdown, displayMode, setDisplayMode, isIdle, isBooting, clickEffects, toasts, removeToast } = useAppContext();
+  const { isOmniOpen, setIsOmniOpen, handleProjectSelect, activeFilters, toggleFilter, theme, changeTheme, isCrtEnabled, setIsCrtEnabled, isMatrixMode, setIsMatrixMode, isSoundEnabled, setIsSoundEnabled, isLockdown, setIsLockdown, displayMode, setDisplayMode, isIdle, isBooting, clickEffects, toasts, removeToast, sortOption, setSortOption } = useAppContext();
 
   return (
     <>
@@ -27,6 +27,8 @@ export default function SystemOverlays() {
         onToggleLockdown={() => setIsLockdown(!isLockdown)}
         displayMode={displayMode}
         onChangeDisplayMode={setDisplayMode}
+        sortOption={sortOption}
+        onChangeSortOption={setSortOption}
       />
 
       {isIdle && !isBooting && <Screensaver />}

@@ -18,7 +18,8 @@ const OmniPalette = ({
   onToggleSound,
   isLockdown,
   onToggleLockdown,
-  onChangeDisplayMode
+  onChangeDisplayMode,
+  onChangeSortOption
 }) => {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -38,7 +39,12 @@ const OmniPalette = ({
       { id: 'toggle-lockdown', type: 'protocol', label: isLockdown ? 'Override Lockdown' : 'Engage Lockdown', action: onToggleLockdown, icon: '🔒' },
       { id: 'view-grid', type: 'protocol', label: 'View: Grid', action: () => onChangeDisplayMode('grid'), icon: '🔲' },
       { id: 'view-matrix', type: 'protocol', label: 'View: Matrix', action: () => onChangeDisplayMode('matrix'), icon: '☰' },
-      { id: 'filter-clear', type: 'protocol', label: 'Clear All Filters', action: () => onToggleFilter('All'), icon: '🧹' }
+      { id: 'filter-clear', type: 'protocol', label: 'Clear All Filters', action: () => onToggleFilter('All'), icon: '🧹' },
+      { id: 'sort-featured', type: 'protocol', label: 'Sort: Featured', action: () => onChangeSortOption('Featured'), icon: '⭐' },
+      { id: 'sort-newest', type: 'protocol', label: 'Sort: Newest', action: () => onChangeSortOption('Newest'), icon: '✨' },
+      { id: 'sort-az', type: 'protocol', label: 'Sort: A-Z', action: () => onChangeSortOption('A-Z'), icon: '🔤' },
+      { id: 'sort-complex', type: 'protocol', label: 'Sort: Complexity', action: () => onChangeSortOption('Most Complex'), icon: '🧠' },
+      { id: 'sort-random', type: 'protocol', label: 'Sort: Random', action: () => onChangeSortOption('Random'), icon: '🎲' }
     ];
 
     const categoryFilters = Object.keys(CATEGORIES).map(cat => ({
@@ -71,7 +77,7 @@ const OmniPalette = ({
     }));
 
     return [...projectItems, ...categoryFilters, ...protocols];
-  }, [projects, activeFilters, onToggleFilter, onProjectSelect, onChangeTheme, isCrtEnabled, onToggleCrt, isMatrixMode, onToggleMatrixMode, isSoundEnabled, onToggleSound, isLockdown, onToggleLockdown, onChangeDisplayMode]);
+  }, [projects, activeFilters, onToggleFilter, onProjectSelect, onChangeTheme, isCrtEnabled, onToggleCrt, isMatrixMode, onToggleMatrixMode, isSoundEnabled, onToggleSound, isLockdown, onToggleLockdown, onChangeDisplayMode, onChangeSortOption]);
 
   // Filter commands based on query
   const filteredItems = useMemo(() => {
