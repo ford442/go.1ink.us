@@ -6,7 +6,7 @@ import { CATEGORY_ICONS } from '../constants';
 import { useAppContext } from '../AppContext';
 
 export default function MainContent() {
-  const { filteredProjects, activeFilters, searchQuery, setSearchQuery, setActiveFilters, setCurrentPage, toggleFilter, handleDisplayModeChange, displayMode, sortOption, setSortOption, setRandomSeed, addActivityLog, isGlitching, hoveredTag, paginatedProjects, focusedCardIndex, setFocusedCardIndex, selectedProject, favorites, toggleFavorite, handleContextMenu, handleCopyLink, handleProjectSelect, handleTagClick, isDataMode, activeFiltersSet, draggedFavoriteId, dragOverFavoriteId, handleDragStart, handleDragOver, handleDragEnd, handleDrop, setHoveredTag, totalPages, currentPage, handlePageChange, suggestedTags } = useAppContext();
+  const { filteredProjects, activeFilters, searchQuery, setSearchQuery, setActiveFilters, setCurrentPage, toggleFilter, handleDisplayModeChange, displayMode, sortOption, isGlitching, hoveredTag, paginatedProjects, focusedCardIndex, setFocusedCardIndex, selectedProject, favorites, toggleFavorite, handleContextMenu, handleCopyLink, handleProjectSelect, handleTagClick, isDataMode, activeFiltersSet, draggedFavoriteId, dragOverFavoriteId, handleDragStart, handleDragOver, handleDragEnd, handleDrop, setHoveredTag, totalPages, currentPage, handlePageChange, suggestedTags } = useAppContext();
 
   // 🌌 CURATOR FEATURE: Global Holographic Command Table Perspective
   const gridRef = useRef(null);
@@ -160,31 +160,6 @@ export default function MainContent() {
                   </svg>
                 </button>
              </div>
-
-             <select
-               value={sortOption}
-               onChange={(e) => {
-                 if (e.target.value === 'Random') {
-                   setRandomSeed(Math.random());
-                 }
-                 setSortOption(e.target.value);
-                 setCurrentPage(1);
-                 addActivityLog(`SORT PROTOCOL: ${e.target.value.toUpperCase()}`);
-               }}
-               className="bg-black/20 backdrop-blur-xl border border-white/10 text-white py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:border-accent-500/50 focus-visible:ring-2 focus-visible:ring-accent-400 appearance-none text-sm cursor-pointer hover:bg-black/60 transition-colors shadow-lg"
-               style={{
-                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                 backgroundRepeat: 'no-repeat',
-                 backgroundPosition: 'right 0.5rem center',
-                 backgroundSize: '1.2em'
-               }}
-             >
-               <option value="Featured">Sort: Featured</option>
-               <option value="Newest">Sort: Newest</option>
-               <option value="A-Z">Sort: A-Z</option>
-               <option value="Most Complex">Sort: Complexity</option>
-               <option value="Random">Sort: Random (Shuffle)</option>
-             </select>
           </div>
         </div>
 
