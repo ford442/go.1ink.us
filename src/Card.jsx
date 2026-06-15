@@ -15,7 +15,7 @@ const highlightMatch = (text, query, regex) => {
   );
 };
 
-const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagClick, searchQuery, highlightedTags = [], isSelected = false, isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick, draggable = false, isDragged = false, isDragOver = false, onDragStart, onDragOver, onDragEnd, onDrop, onContextMenu, tabIndex = -1, onFocus, onHoverTag }) => {
+const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagClick, searchQuery, highlightedTags = [], isSelected = false, isFavorite = false, onToggleFavorite, onCopyLink, onProjectClick, draggable = false, isDragged = false, isDragOver = false, onDragStart, onDragOver, onDragEnd, onDrop, onContextMenu, tabIndex = -1, onFocus, onHoverTag, onCardHover }) => {
   const cardRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
 
@@ -102,6 +102,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
 
   const handleMouseEnter = () => {
     setIsHovered(true);
+    if (onCardHover) onCardHover(project.id);
     soundSystem.playHover();
 
     // Start 700ms timer for advanced hover micro-interactions (zoom, lift)
@@ -171,6 +172,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
 
   const handleMouseLeave = () => {
     setIsHovered(false);
+    if (onCardHover) onCardHover(null);
     setIsHoverDelayed(false);
     if (hoverTimerRef.current) {
       clearTimeout(hoverTimerRef.current);

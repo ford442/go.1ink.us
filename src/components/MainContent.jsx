@@ -11,6 +11,7 @@ export default function MainContent() {
   // 🌌 CURATOR FEATURE: Global Holographic Command Table Perspective
   const gridRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
+  const [hoveredProjectId, setHoveredProjectId] = useState(null);
 
   useEffect(() => {
     // Check if device supports hover and user doesn't prefer reduced motion
@@ -221,11 +222,16 @@ export default function MainContent() {
               {paginatedProjects.map((project, index) => (
                 <div
                    key={`${activeFilters.join('-')}-${sortOption}-${currentPage}-${project.id}`}
-                   className={`animate-slide-in-up ${displayMode === 'grid' ? 'break-inside-avoid inline-block w-full mb-6 md:mb-8' : ''}`}
+                   className={`animate-slide-in-up ${displayMode === 'grid' ? 'break-inside-avoid inline-block w-full mb-6 md:mb-8' : ''} transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] ${
+                     hoveredProjectId && hoveredProjectId !== project.id
+                       ? 'blur-[4px] opacity-40 scale-[0.98] grayscale-[30%]'
+                       : ''
+                   }`}
                    style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <Card
                     project={project}
+                    onCardHover={setHoveredProjectId}
                     index={index}
                     onTagClick={handleTagClick}
                     highlightedTags={activeFilters}
