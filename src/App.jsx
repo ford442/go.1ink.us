@@ -75,7 +75,9 @@ function App() {
       localStorage.setItem('curator_sound', soundEnabled);
       if (soundEnabled) {
         soundSystem.enable();
+        soundSystem.startAmbience();
       } else {
+        soundSystem.stopAmbience();
         soundSystem.disable();
       }
     }
