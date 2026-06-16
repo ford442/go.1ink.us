@@ -7,6 +7,9 @@ class ProceduralSoundSystem {
         this.analyser = null;
         this.dataArray = null;
         this.initialized = false;
+        this.ambientOscillators = [];
+        this.ambientGain = null;
+        this.isAmbienceRunning = false;
     }
 
     init() {
@@ -54,6 +57,50 @@ class ProceduralSoundSystem {
 
     disable() {
         this.isEnabled = false;
+    }
+
+    startAmbience() {
+        if (!this.isEnabled || !this.audioContext || this.isAmbienceRunning) return;
+        this.isAmbienceRunning = true;
+
+        if (this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
+
+        try {
+            this.ambientGain = this.audioContext.createGain();
+            this.ambientGain.gain.value = 0.05; // Low volume for ambience
+            this.ambientGain.connect(this.masterGain);
+
+            // Create two low frequency oscillators for a beating drone effect
+            const freqs = [55, 56]; // Subtle phasing/beating
+            this.ambientOscillators = freqs.map(freq => {
+                const osc = this.audioContext.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                osc.connect(this.ambientGain);
+                osc.start();
+                return osc;
+            });
+        } catch (e) {
+            console.warn('Could not start ambient sound', e);
+        }
+    }
+
+    stopAmbience() {
+        if (!this.isAmbienceRunning) return;
+        this.isAmbienceRunning = false;
+
+        try {
+            this.ambientOscillators.forEach(osc => osc.stop());
+            this.ambientOscillators = [];
+            if (this.ambientGain) {
+                this.ambientGain.disconnect();
+                this.ambientGain = null;
+            }
+        } catch (e) {
+            console.warn('Error stopping ambience', e);
+        }
     }
 
     // Compatibility layer for older curator-audio-protocol code that calls setEnabled
