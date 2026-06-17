@@ -879,3 +879,29 @@
   animation: layout-glitch 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
   will-change: transform, filter, clip-path;
 }
+
+/* Global Cyberpunk Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.4);
+  border-left: 1px solid rgba(var(--rgb-accent-500), 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(var(--rgb-accent-500), 0.5);
+  border: 1px solid rgba(var(--rgb-accent-400), 0.8);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--rgb-accent-400), 0.8);
+  box-shadow: 0 0 10px rgba(var(--rgb-accent-400), 0.8);
+}
+
+::-webkit-scrollbar-corner {
+  background: rgba(0, 0, 0, 0.8);
+}
