@@ -39,6 +39,7 @@ const OmniPalette = ({
       { id: 'toggle-lockdown', type: 'protocol', label: isLockdown ? 'Override Lockdown' : 'Engage Lockdown', action: onToggleLockdown, icon: '🔒' },
       { id: 'view-grid', type: 'protocol', label: 'View: Grid', action: () => onChangeDisplayMode('grid'), icon: '🔲' },
       { id: 'view-matrix', type: 'protocol', label: 'View: Matrix', action: () => onChangeDisplayMode('matrix'), icon: '☰' },
+      { id: 'view-map', type: 'protocol', label: 'View: Neural Map', action: () => onChangeDisplayMode('map'), icon: '🌌' },
       { id: 'filter-clear', type: 'protocol', label: 'Clear All Filters', action: () => onToggleFilter('All'), icon: '🧹' },
       { id: 'sort-featured', type: 'protocol', label: 'Sort: Featured', action: () => onChangeSortOption('Featured'), icon: '⭐' },
       { id: 'sort-newest', type: 'protocol', label: 'Sort: Newest', action: () => onChangeSortOption('Newest'), icon: '✨' },

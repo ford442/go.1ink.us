@@ -1,6 +1,7 @@
 import { flushSync } from 'react-dom';
 import React, { useEffect, useRef, useState } from 'react';
 import Card from '../Card';
+import SystemMap from './SystemMap';
 import ConstellationOverlay from '../ConstellationOverlay';
 import { CATEGORY_ICONS } from '../constants';
 import { useAppContext } from '../AppContext';
@@ -160,6 +161,17 @@ export default function MainContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 </button>
+                <button
+                  onClick={() => handleDisplayModeChange('map')}
+                  className={`p-1.5 rounded transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 ${displayMode === 'map' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
+                  aria-label="Neural Map View"
+                  aria-pressed={displayMode === 'map'}
+                  title="Map Protocol"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  </svg>
+                </button>
              </div>
           </div>
         </div>
@@ -173,6 +185,9 @@ export default function MainContent() {
                  visibleProjects={paginatedProjects}
                  displayMode={displayMode}
               />
+              {displayMode === 'map' ? (
+                <SystemMap />
+              ) : (
               <div
                 id="project-grid"
                 ref={gridRef}
@@ -260,6 +275,7 @@ export default function MainContent() {
                 </div>
               ))}
               </div>
+              )}
             </div>
 
             {/* Pagination Controls */}

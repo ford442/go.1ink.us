@@ -213,7 +213,7 @@ function App() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlMode = params.get('view');
-      if (urlMode === 'grid' || urlMode === 'matrix' || urlMode === 'list') return urlMode;
+      if (urlMode === 'grid' || urlMode === 'matrix' || urlMode === 'list' || urlMode === 'map') return urlMode;
       return localStorage.getItem('curator_display_mode') || 'grid';
     }
     return 'grid';

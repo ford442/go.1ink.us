@@ -61,7 +61,7 @@ export default function useTerminalController({
 
       const words = input.split(' ');
       const cmd = words[0].toLowerCase();
-      const commands = ['help', 'filter', 'view', 'sort', 'ls', 'open', 'fav', 'theme', 'sound', 'crt', 'clear', 'exit', 'lockdown', 'unlock', 'override', 'alert'];
+      const commands = ['help', 'filter', 'view', 'map', 'graph', 'sort', 'ls', 'open', 'fav', 'theme', 'sound', 'crt', 'clear', 'exit', 'lockdown', 'unlock', 'override', 'alert'];
 
       if (words.length === 1) {
         const matches = commands.filter(c => c.startsWith(cmd));
@@ -122,7 +122,8 @@ export default function useTerminalController({
           `  help         - Display this information\n` +
           `  filter <val> - Set filter (e.g., 'filter Games', 'filter all')\n` +
           `  sort <val>   - Set sorting (newest, a-z, random, featured, complex)\n` +
-          `  view <val>   - Set display protocol (grid, matrix)\n` +
+          `  view <val>   - Set display protocol (grid, matrix, list, map)\n` +
+          `  map          - Quick switch to Neural Map view\n` +
           `  ls           - List active projects by ID\n` +
           `  open <id>    - Initialize view for specific project ID\n` +
           `  fav <id>     - Toggle favorite status for project ID\n` +
@@ -270,11 +271,11 @@ export default function useTerminalController({
 
       case 'view':
         if (args.length === 0) {
-          responseText = 'ERR: Missing parameter. Usage: view <grid|matrix|list>';
+          responseText = 'ERR: Missing parameter. Usage: view <grid|matrix|list|map>';
           responseType = 'error';
         } else {
           const viewParam = args[0].toLowerCase();
-          if (viewParam === 'grid' || viewParam === 'matrix' || viewParam === 'list') {
+          if (viewParam === 'grid' || viewParam === 'matrix' || viewParam === 'list' || viewParam === 'map') {
              handleDisplayModeChange(viewParam);
              responseText = `> DISPLAY_PROTOCOL_UPDATED: [${viewParam.toUpperCase()}]`;
              responseType = 'success';
@@ -283,6 +284,13 @@ export default function useTerminalController({
              responseType = 'error';
           }
         }
+        break;
+
+      case 'map':
+      case 'graph':
+        handleDisplayModeChange('map');
+        responseText = '> DISPLAY_PROTOCOL_UPDATED: [MAP]';
+        responseType = 'success';
         break;
 
       case 'sort':
