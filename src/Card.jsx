@@ -368,8 +368,9 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
                <div className="hidden sm:flex gap-1 overflow-hidden pointer-events-auto">
                   {project.tech?.slice(0, 2).map((t, i) => (
                     <Tooltip key={i} text={`TECH: ${t}`}>
-                      <span className="cursor-help text-[9px] font-mono px-1.5 rounded bg-white/5 text-gray-400 border border-white/10 whitespace-nowrap block">
-                        {highlightMatch(t, searchQuery, regex)}
+                      <span className="relative group/tech cursor-help text-[9px] font-mono px-1.5 py-0.5 rounded bg-black/40 text-gray-400 border border-accent-500/30 hover:bg-accent-500/20 hover:text-accent-300 hover:border-accent-400 hover:shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.6)] whitespace-nowrap block transition-all duration-300 overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent-400/20 to-transparent -translate-x-full group-hover/tech:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
+                        <span className="relative z-10">{highlightMatch(t, searchQuery, regex)}</span>
                       </span>
                     </Tooltip>
                   ))}
@@ -876,10 +877,9 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
                 <div className="flex flex-wrap gap-1.5">
                   {project.tech.map((techItem, index) => (
                     <Tooltip key={index} text={`TECH: ${techItem}`}>
-                      <span
-                        className="cursor-help text-[10px] font-mono px-2 py-0.5 rounded border border-white/10 bg-black/40 text-gray-400 hover:text-accent-300 hover:gold-glow hover:bg-accent-900/40 transition-colors duration-300 block"
-                      >
-                        {highlightMatch(techItem, searchQuery, regex)}
+                      <span className="relative group/tech cursor-help text-[10px] font-mono px-2 py-0.5 rounded border border-accent-500/30 bg-black/40 text-gray-400 hover:text-accent-300 hover:bg-accent-500/20 hover:border-accent-400 hover:shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.6)] transition-all duration-300 block overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent-400/20 to-transparent -translate-x-full group-hover/tech:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
+                        <span className="relative z-10">{highlightMatch(techItem, searchQuery, regex)}</span>
                       </span>
                     </Tooltip>
                   ))}
