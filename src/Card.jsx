@@ -37,6 +37,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   const [isHovered, setIsHovered] = useState(false);
   const [isHoverDelayed, setIsHoverDelayed] = useState(false);
   const hoverTimerRef = useRef(null);
+  const [favoriteParticles, setFavoriteParticles] = useState([]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -57,6 +58,24 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   }, []);
   const [ping, setPing] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+
+  const triggerFavoriteBurst = () => {
+    if (!isFavorite) {
+      const particles = Array.from({ length: 12 }).map((_, i) => {
+        const angle = (Math.PI * 2 * i) / 12 + (Math.random() * 0.5 - 0.25);
+        const velocity = 30 + Math.random() * 30;
+        const tx = Math.cos(angle) * velocity;
+        const ty = Math.sin(angle) * velocity;
+        return {
+          id: i,
+          tx: `${tx}px`,
+          ty: `${ty}px`,
+        };
+      });
+      setFavoriteParticles(particles);
+      setTimeout(() => setFavoriteParticles([]), 600);
+    }
+  };
 
   useEffect(() => {
     let timeout;
@@ -433,27 +452,41 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
 
           {/* Actions */}
           <div className="flex items-center gap-1.5 z-20 pointer-events-auto shrink-0 pr-2 border-l border-white/5 pl-3">
-             <Tooltip text={isFavorite ? "REM_FAV" : "ADD_FAV"}>
-               <button
-                 onClick={(e) => {
-                   e.preventDefault();
-                   e.stopPropagation();
+             <div className="relative">
+               <Tooltip text={isFavorite ? "REM_FAV" : "ADD_FAV"}>
+                 <button
+                   onClick={(e) => {
+                     e.preventDefault();
+                     e.stopPropagation();
                      soundSystem.playClick();
-                   if (onToggleFavorite) onToggleFavorite(project);
-                 }}
-                 className={`p-1.5 rounded-md transition-all duration-300
-                   ${isFavorite
-                     ? 'text-pink-400 bg-pink-500/20 shadow-[0_0_10px_rgba(236,72,153,0.3)] border border-pink-400/30'
-                     : 'text-gray-500 hover:text-pink-300 hover:bg-pink-500/10 hover:border-pink-400/30 border border-transparent'
-                   }
-                 `}
-                 aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-               >
-                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                   <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                 </svg>
-               </button>
-             </Tooltip>
+                     triggerFavoriteBurst();
+                     if (onToggleFavorite) onToggleFavorite(project);
+                   }}
+                   className={`p-1.5 rounded-md transition-all duration-300
+                     ${isFavorite
+                       ? 'text-pink-400 bg-pink-500/20 shadow-[0_0_10px_rgba(236,72,153,0.3)] border border-pink-400/30'
+                       : 'text-gray-500 hover:text-pink-300 hover:bg-pink-500/10 hover:border-pink-400/30 border border-transparent'
+                     }
+                   `}
+                   aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                 >
+                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                     <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                   </svg>
+                 </button>
+               </Tooltip>
+               {favoriteParticles.map(p => (
+                 <div
+                   key={p.id}
+                   className="absolute left-1/2 top-1/2 w-1 h-1 bg-pink-400 rounded-full pointer-events-none z-50 shadow-[0_0_5px_rgba(236,72,153,0.8)]"
+                   style={{
+                     '--tx': p.tx,
+                     '--ty': p.ty,
+                     animation: 'particle-fly 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards'
+                   }}
+                 />
+               ))}
+             </div>
              <Tooltip text="COPY_LINK">
                <button
                  onClick={(e) => {
@@ -604,27 +637,41 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
 
           {/* Actions */}
           <div className="flex items-center gap-2 shrink-0 pointer-events-auto ml-auto md:ml-0 pl-4 border-l border-white/5 z-20">
-             <Tooltip text={isFavorite ? "REM_FAV" : "ADD_FAV"}>
-               <button
-                 onClick={(e) => {
-                   e.preventDefault();
-                   e.stopPropagation();
-                   soundSystem.playClick();
-                   if (onToggleFavorite) onToggleFavorite(project);
-                 }}
-                 className={`p-1.5 rounded-md transition-all duration-300
-                   ${isFavorite
-                     ? 'text-pink-400 bg-pink-500/20 shadow-[0_0_10px_rgba(236,72,153,0.3)] border border-pink-400/30'
-                     : 'text-gray-500 hover:text-pink-300 hover:bg-pink-500/10 hover:border-pink-400/30 border border-transparent'
-                   }
-                 `}
-                 aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-               >
-                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                   <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                 </svg>
-               </button>
-             </Tooltip>
+             <div className="relative">
+               <Tooltip text={isFavorite ? "REM_FAV" : "ADD_FAV"}>
+                 <button
+                   onClick={(e) => {
+                     e.preventDefault();
+                     e.stopPropagation();
+                     soundSystem.playClick();
+                     triggerFavoriteBurst();
+                     if (onToggleFavorite) onToggleFavorite(project);
+                   }}
+                   className={`p-1.5 rounded-md transition-all duration-300
+                     ${isFavorite
+                       ? 'text-pink-400 bg-pink-500/20 shadow-[0_0_10px_rgba(236,72,153,0.3)] border border-pink-400/30'
+                       : 'text-gray-500 hover:text-pink-300 hover:bg-pink-500/10 hover:border-pink-400/30 border border-transparent'
+                     }
+                   `}
+                   aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                 >
+                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                     <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                   </svg>
+                 </button>
+               </Tooltip>
+               {favoriteParticles.map(p => (
+                 <div
+                   key={p.id}
+                   className="absolute left-1/2 top-1/2 w-1 h-1 bg-pink-400 rounded-full pointer-events-none z-50 shadow-[0_0_5px_rgba(236,72,153,0.8)]"
+                   style={{
+                     '--tx': p.tx,
+                     '--ty': p.ty,
+                     animation: 'particle-fly 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards'
+                   }}
+                 />
+               ))}
+             </div>
              <Tooltip text="COPY_LINK">
                <button
                  onClick={(e) => {
@@ -729,27 +776,41 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
 
         <div className="absolute top-4 right-4 z-30 flex flex-col gap-2 pointer-events-auto" style={{ transform: 'translateZ(60px)' }}>
           {/* Favorite Button */}
-          <Tooltip text={isFavorite ? "SYS: REM_FAV" : "SYS: ADD_FAV"}>
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                soundSystem.playClick();
-                if (onToggleFavorite) onToggleFavorite(project);
-              }}
-              className={`p-2 rounded-full transition-all duration-300 backdrop-blur-md
-                ${isFavorite
-                  ? 'bg-pink-500/20 text-pink-400 opacity-100 shadow-[0_0_15px_rgba(236,72,153,0.5)] border border-pink-400/50 scale-110'
-                  : 'bg-black/30 text-white/50 opacity-0 group-hover:opacity-100 border border-white/10 hover:bg-pink-500/20 hover:text-pink-300 hover:border-pink-400/50 hover:scale-110'
-                }
-              `}
-              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-              </svg>
-            </button>
-          </Tooltip>
+          <div className="relative">
+            <Tooltip text={isFavorite ? "SYS: REM_FAV" : "SYS: ADD_FAV"}>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  soundSystem.playClick();
+                  triggerFavoriteBurst();
+                  if (onToggleFavorite) onToggleFavorite(project);
+                }}
+                className={`p-2 rounded-full transition-all duration-300 backdrop-blur-md
+                  ${isFavorite
+                    ? 'bg-pink-500/20 text-pink-400 opacity-100 shadow-[0_0_15px_rgba(236,72,153,0.5)] border border-pink-400/50 scale-110'
+                    : 'bg-black/30 text-white/50 opacity-0 group-hover:opacity-100 border border-white/10 hover:bg-pink-500/20 hover:text-pink-300 hover:border-pink-400/50 hover:scale-110'
+                  }
+                `}
+                aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </Tooltip>
+            {favoriteParticles.map(p => (
+              <div
+                key={p.id}
+                className="absolute left-1/2 top-1/2 w-1.5 h-1.5 bg-pink-400 rounded-full pointer-events-none z-50 shadow-[0_0_5px_rgba(236,72,153,0.8)]"
+                style={{
+                  '--tx': p.tx,
+                  '--ty': p.ty,
+                  animation: 'particle-fly 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards'
+                }}
+              />
+            ))}
+          </div>
 
           {/* Copy Link Button */}
           <Tooltip text="SYS: COPY_LINK">
