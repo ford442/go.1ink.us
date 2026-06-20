@@ -10,6 +10,7 @@ export default {
         scanline: "scanline 8s linear infinite",
         blob: "blob 7s infinite",
         "image-glitch": "image-glitch 2s infinite linear alternate-reverse",
+        "particle-fly": "particle-fly 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards",
       },
       keyframes: {
         scanline: {
@@ -74,6 +75,16 @@ export default {
           },
           "100%": {
             transform: "translate(0px, 0px) scale(1)",
+          },
+        },
+        "particle-fly": {
+          "0%": {
+            transform: "translate(0, 0) scale(1)",
+            opacity: "1",
+          },
+          "100%": {
+            transform: "translate(var(--tx), var(--ty)) scale(0)",
+            opacity: "0",
           },
         },
       },
