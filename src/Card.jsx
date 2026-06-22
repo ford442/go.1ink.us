@@ -38,24 +38,48 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   const [isHoverDelayed, setIsHoverDelayed] = useState(false);
   const hoverTimerRef = useRef(null);
   const [favoriteParticles, setFavoriteParticles] = useState([]);
+  const [hasScrolledIntoView, setHasScrolledIntoView] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
+
+          // 🌌 CURATOR FEATURE: Scroll-triggered Decryption
+          // Trigger the decryption effect when the card scrolls into view.
+          // Use a slight staggered delay based on index for a cascading effect.
+          const initialTimeout = setTimeout(() => {
+            setHasScrolledIntoView(true);
+            const revertTimeout = setTimeout(() => {
+              setHasScrolledIntoView(false);
+            }, 1500); // Effect duration
+
+            // Store revert timeout to cleanup if needed (though it runs fast)
+            if (cardRef.current) cardRef.current.revertTimeout = revertTimeout;
+          }, (index % 12) * 100);
+
+          if (cardRef.current) cardRef.current.initialTimeout = initialTimeout;
+
           observer.disconnect(); // Only load once
         }
       },
       { rootMargin: '200px 0px', threshold: 0.01 }
     );
 
-    if (cardRef.current) {
-       observer.observe(cardRef.current);
+    const currentCardRef = cardRef.current;
+    if (currentCardRef) {
+       observer.observe(currentCardRef);
     }
 
-    return () => observer.disconnect();
-  }, []);
+    return () => {
+      observer.disconnect();
+      if (currentCardRef) {
+        clearTimeout(currentCardRef.initialTimeout);
+        clearTimeout(currentCardRef.revertTimeout);
+      }
+    };
+  }, [index]);
   const [ping, setPing] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
@@ -381,7 +405,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
           <div className="flex-1 flex flex-col min-w-0 z-10 pointer-events-none justify-center">
              <div className="flex items-center gap-2">
                <h3 className="text-sm md:text-base font-bold text-white truncate group-hover:text-accent-300 transition-colors duration-300">
-                 <DecryptText text={project.title} isHovered={isHovered} searchQuery={searchQuery} regex={regex} />
+                 <DecryptText text={project.title} isHovered={isHovered || hasScrolledIntoView} searchQuery={searchQuery} regex={regex} />
                </h3>
                {/* Tech badges inline (hide on very small screens) */}
                <div className="hidden sm:flex gap-1 overflow-hidden pointer-events-auto">
@@ -595,7 +619,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
             <span className="text-lg w-6 text-center transform group-hover:scale-110 transition-transform drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">{project.icon}</span>
             <div className="flex flex-col min-w-0">
                <span className="text-accent-300 font-bold tracking-wide truncate group-hover:text-accent-100 transition-colors">
-                 <DecryptText text={project.title} isHovered={isHovered} searchQuery={searchQuery} regex={regex} />
+                 <DecryptText text={project.title} isHovered={isHovered || hasScrolledIntoView} searchQuery={searchQuery} regex={regex} />
                </span>
                <span className="text-xs text-gray-500 truncate mt-0.5 max-w-[300px] lg:max-w-md xl:max-w-lg hidden sm:block">
                  {highlightMatch(project.description, searchQuery, regex)}
@@ -903,7 +927,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
               {project.image && <div className="text-2xl mr-3 transform transition-transform duration-300 group-hover:rotate-12 filter drop-shadow">{project.icon}</div>}
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white tracking-wide group-hover:text-blue-300 transition-colors duration-300 flex items-center justify-between">
-                  <DecryptText text={project.title} isHovered={isHovered} searchQuery={searchQuery} regex={regex} />
+                  <DecryptText text={project.title} isHovered={isHovered || hasScrolledIntoView} searchQuery={searchQuery} regex={regex} />
 
                   {/* Complexity Meter */}
                   <Tooltip text={`COMPLEXITY: ${complexityScore}/5`}>
