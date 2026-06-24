@@ -375,6 +375,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
              )}
              {project.image && !imageError ? (
                isVisible && (
+                 <>
                  <img
                    src={project.image}
                    alt={project.title}
@@ -387,6 +388,14 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
                    className={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-80 blur-0 scale-100' : 'opacity-0 blur-sm scale-105'} group-hover:opacity-100`}
                    style={{ viewTransitionName: isSelected ? 'none' : `project-image-${project.id}` }}
                  />
+                 <img
+                   src={project.image}
+                   alt=""
+                   className={`absolute inset-0 w-full h-full object-cover mix-blend-screen transition-all duration-700 group-hover:animate-image-glitch ${imageLoaded ? 'opacity-0 group-hover:opacity-60' : 'opacity-0'}`}
+                   style={{ filter: 'drop-shadow(2px 0 0 rgba(255,0,0,1)) drop-shadow(-2px 0 0 rgba(0,255,255,1))' }}
+                   aria-hidden="true"
+                 />
+               </>
                )
              ) : (
                <div className="w-full h-full flex items-center justify-center text-xl bg-gradient-to-br from-indigo-900/50 to-purple-900/50 transform transition-transform duration-300 group-hover:scale-110">
@@ -883,6 +892,14 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
                 onLoad={() => setImageLoaded(true)}
                 className={`w-full h-full object-cover transition-all duration-[1500ms] ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:animate-image-glitch ${imageLoaded ? 'opacity-100' : 'opacity-0'} ${isHoverDelayed ? 'scale-125' : 'scale-100'}`}
                 style={{ viewTransitionName: isSelected ? 'none' : `project-image-${project.id}` }}
+              />
+              {/* 🌌 CURATOR FEATURE: RGB Glitch Split Hover Effect */}
+              <img
+                src={project.image}
+                alt=""
+                className={`absolute inset-0 w-full h-full object-cover mix-blend-screen transition-all duration-[1500ms] ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:animate-image-glitch ${imageLoaded ? 'opacity-0 group-hover:opacity-70' : 'opacity-0'} ${isHoverDelayed ? 'scale-[1.26] -translate-x-1 translate-y-0.5' : 'scale-100 translate-x-0'}`}
+                style={{ filter: 'drop-shadow(3px 0 0 rgba(255,0,0,1)) drop-shadow(-3px 0 0 rgba(0,255,255,1))' }}
+                aria-hidden="true"
               />
               {/* Inner Holographic Reflection (ramp up on hover) */}
               <div className={`absolute inset-0 bg-gradient-to-tr from-accent-500/0 via-white/5 to-white/20 mix-blend-overlay transition-all duration-1000 ${isHoverDelayed ? 'opacity-100 shadow-[inset_0_0_30px_rgba(255,255,255,0.4)]' : 'opacity-0'}`}></div>
