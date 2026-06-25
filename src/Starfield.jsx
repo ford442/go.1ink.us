@@ -1,6 +1,10 @@
-import React, { useState, forwardRef, memo, useEffect } from 'react';
+import React, { useState, forwardRef, memo, useEffect, useContext } from 'react';
+import { AppContext } from './AppContext';
 
 const Starfield = memo(forwardRef(({ starCount = 75 }, ref) => {
+  const context = useContext(AppContext);
+  const isWarping = context?.isWarping || false;
+
   // INSTRUMENTATION FOR PERF TESTING
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -22,7 +26,9 @@ const Starfield = memo(forwardRef(({ starCount = 75 }, ref) => {
   return (
     <div
       ref={ref}
-      className="absolute -top-[10%] -left-[10%] w-[120%] h-[120%] pointer-events-none z-0"
+      className={`absolute -top-[10%] -left-[10%] w-[120%] h-[120%] pointer-events-none z-0 ${
+        isWarping ? 'animate-warp-speed' : ''
+      }`}
     >
       {stars.map((star) => (
         <div
