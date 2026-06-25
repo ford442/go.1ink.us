@@ -12,8 +12,18 @@ export default {
         "image-glitch": "image-glitch 2s infinite linear alternate-reverse",
         "particle-fly": "particle-fly 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards",
         "shimmer": "shimmer 1.5s infinite",
+        "warp-speed": "warp-speed 0.8s cubic-bezier(0.4, 0, 1, 1) forwards",
       },
       keyframes: {
+        "warp-speed": {
+          "0%": {
+            transform: "perspective(1000px) translateZ(0) scale(1)",
+          },
+          "100%": {
+            transform: "perspective(1000px) translateZ(800px) scale(3)",
+            opacity: "0",
+          },
+        },
         scanline: {
           '0%': { transform: 'translateY(-100%)' },
           '100%': { transform: 'translateY(100%)' },
