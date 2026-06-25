@@ -14,12 +14,12 @@ const highlightMatch = (text, query, regex) => {
   );
 };
 
-const DecryptText = ({ text, isHovered, searchQuery, regex }) => {
+const DecryptText = ({ text, isHovered, isVisible, searchQuery, regex }) => {
   const [scrambled, setScrambled] = useState(null);
 
   useEffect(() => {
     // If there's an active search query, skip the scramble to preserve highlight functionality seamlessly
-    if (searchQuery || !isHovered) {
+    if (searchQuery || (!isHovered && !isVisible)) {
       // Avoid sync setState warning: just return, rendering handles fallback.
       return;
     }
@@ -46,9 +46,9 @@ const DecryptText = ({ text, isHovered, searchQuery, regex }) => {
       clearInterval(interval);
       setScrambled(null);
     };
-  }, [isHovered, text, searchQuery]);
+  }, [isHovered, isVisible, text, searchQuery]);
 
-  return <span>{searchQuery ? highlightMatch(text, searchQuery, regex) : (!isHovered ? text : (scrambled || text))}</span>;
+  return <span>{searchQuery ? highlightMatch(text, searchQuery, regex) : (!(isHovered || isVisible) ? text : (scrambled || text))}</span>;
 };
 
 export default DecryptText;
