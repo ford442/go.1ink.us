@@ -315,13 +315,23 @@ function App() {
     soundSystem.playClick();
     addActivityLog(`VIEWING PROTOCOL: [${project.title.toUpperCase()}]`);
 
-    if (document.startViewTransition) {
-      document.startViewTransition(() => {
-        flushSync(() => setSelectedProject(project));
-      });
-    } else {
-      setSelectedProject(project);
-    }
+    // Trigger Hyperspace Transition
+    setIsWarping(true);
+    // soundSystem.playDeepFocus(); // Add a whoosh or warp sound if available in SoundSystem
+
+    setTimeout(() => {
+      if (document.startViewTransition) {
+        document.startViewTransition(() => {
+          flushSync(() => {
+            setSelectedProject(project);
+            setIsWarping(false); // Reset warp after view transition completes
+          });
+        });
+      } else {
+        setSelectedProject(project);
+        setIsWarping(false);
+      }
+    }, 600); // Duration to let the warp effect play before opening modal
   };
 
   useEffect(() => {
@@ -402,6 +412,9 @@ function App() {
   // Drag and Drop State for Favorites
   const [draggedFavoriteId, setDraggedFavoriteId] = useState(null);
   const [dragOverFavoriteId, setDragOverFavoriteId] = useState(null);
+
+  // Warp Speed State
+  const [isWarping, setIsWarping] = useState(false);
 
   const handleDragStart = (e, projectId) => {
     setDraggedFavoriteId(projectId);
@@ -654,7 +667,7 @@ function App() {
   const { baseGridRef, canvasRef, deepGridRef, gridSpotlightRef, starfieldRef } = useBackgroundEffects();
 
   const appContext = {
-    activeCategories, activeFilters, activeFiltersSet, addActivityLog, addToast, baseGridRef, bootLogs, bootStep, canvasRef, changeTheme, clickEffects, closeContextMenu, contextMenu, counts, currentPage, deepGridRef, displayMode, dragOverFavoriteId, draggedFavoriteId, favoriteCount, favorites, filteredProjects, focusedCardIndex, formatUptime, gridSpotlightRef, handleContextMenu, handleCopyLink, handleDisplayModeChange, handleDragEnd, handleDragOver, handleDragStart, handleDrop, handlePageChange, handleProjectSelect, handleTagClick, handleTerminalKeyDown, handleTerminalSubmit, hoveredTag, isBooting, isCrtEnabled, isDataMode, isGlitching, isIdle, isLockdown, isMatrixMode, isMobileFiltersOpen, isOmniOpen, isSoundEnabled, isHoloTerminalOpen, isTerminalClosing, isTerminalOpen, modalImageLoaded, modalRef, paginatedProjects, removeToast, scanProgress, searchInputRef, searchQuery, selectedProject, setActiveFilters, setCurrentPage, setDisplayMode, setFocusedCardIndex, setIsCrtEnabled, setIsDataMode, setIsLockdown, setIsMatrixMode, setIsMobileFiltersOpen, setIsOmniOpen, setIsSoundEnabled, setIsHoloTerminalOpen, setIsTerminalClosing, setIsTerminalOpen, setModalImageLoaded, setRandomSeed, setSearchQuery, setSelectedProject, setSortOption, setSoundEnabled, setTerminalInput, setHoveredTag, showBootScreen, sortOption, soundEnabled, starfieldRef, startScan, stopScan, suggestedTags, systemStats, terminalEndRef, terminalHistory, terminalInput, terminalInputRef, theme, toasts, toggleFavorite, toggleFilter, totalPages, userActivityLogs
+    activeCategories, activeFilters, activeFiltersSet, addActivityLog, addToast, baseGridRef, bootLogs, bootStep, canvasRef, changeTheme, clickEffects, closeContextMenu, contextMenu, counts, currentPage, deepGridRef, displayMode, dragOverFavoriteId, draggedFavoriteId, favoriteCount, favorites, filteredProjects, focusedCardIndex, formatUptime, gridSpotlightRef, handleContextMenu, handleCopyLink, handleDisplayModeChange, handleDragEnd, handleDragOver, handleDragStart, handleDrop, handlePageChange, handleProjectSelect, handleTagClick, handleTerminalKeyDown, handleTerminalSubmit, hoveredTag, isBooting, isCrtEnabled, isDataMode, isGlitching, isIdle, isLockdown, isMatrixMode, isMobileFiltersOpen, isOmniOpen, isSoundEnabled, isHoloTerminalOpen, isTerminalClosing, isTerminalOpen, isWarping, modalImageLoaded, modalRef, paginatedProjects, removeToast, scanProgress, searchInputRef, searchQuery, selectedProject, setActiveFilters, setCurrentPage, setDisplayMode, setFocusedCardIndex, setIsCrtEnabled, setIsDataMode, setIsLockdown, setIsMatrixMode, setIsMobileFiltersOpen, setIsOmniOpen, setIsSoundEnabled, setIsHoloTerminalOpen, setIsTerminalClosing, setIsTerminalOpen, setModalImageLoaded, setRandomSeed, setSearchQuery, setSelectedProject, setSortOption, setSoundEnabled, setTerminalInput, setHoveredTag, showBootScreen, sortOption, soundEnabled, starfieldRef, startScan, stopScan, suggestedTags, systemStats, terminalEndRef, terminalHistory, terminalInput, terminalInputRef, theme, toasts, toggleFavorite, toggleFilter, totalPages, userActivityLogs
   };
 
   return (
