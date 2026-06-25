@@ -11,6 +11,7 @@ export default {
         blob: "blob 7s infinite",
         "image-glitch": "image-glitch 2s infinite linear alternate-reverse",
         "particle-fly": "particle-fly 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards",
+        "shimmer": "shimmer 1.5s infinite",
         "warp-speed": "warp-speed 0.8s cubic-bezier(0.4, 0, 1, 1) forwards",
       },
       keyframes: {
@@ -96,6 +97,10 @@ export default {
             transform: "translate(var(--tx), var(--ty)) scale(0)",
             opacity: "0",
           },
+        },
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
         },
       },
     },

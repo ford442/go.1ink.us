@@ -905,3 +905,17 @@
 ::-webkit-scrollbar-corner {
   background: rgba(0, 0, 0, 0.8);
 }
+
+/* Global Warp Scroll Velocity Effects */
+.warp-scroll-effect {
+  /* Using clamp to prevent extreme distortion on fast scrolling */
+  transform: skewY(calc(clamp(-10deg, var(--scroll-velocity, 0) * 0.01deg, 10deg))) scale(calc(clamp(0.95, 1 - abs(var(--scroll-velocity, 0)) * 0.00005, 1)));
+  /* Optional: Add blur at extremely high velocities */
+  /* filter: blur(calc(clamp(0px, abs(var(--scroll-velocity, 0)) * 0.001px, 2px))); */
+  will-change: transform, filter;
+}
+
+.warp-scroll-effect-list {
+  transform: scaleY(calc(clamp(1, 1 + abs(var(--scroll-velocity, 0)) * 0.00002, 1.02)));
+  will-change: transform;
+}

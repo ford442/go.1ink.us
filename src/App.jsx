@@ -19,6 +19,7 @@ import useTerminalController from './hooks/useTerminalController';
 import useGlobalShortcuts from './hooks/useGlobalShortcuts';
 import useBackgroundEffects from './hooks/useBackgroundEffects';
 import useProjectBrowser from './hooks/useProjectBrowser';
+import { useScroll, useVelocity, useSpring } from 'framer-motion';
 import './App.css';
 
 // Pre-process project data to add Sets for O(1) lookups during filtering
@@ -69,6 +70,21 @@ function App() {
     }
     return false;
   });
+
+  // Framer Motion Scroll Velocity
+  const { scrollY } = useScroll();
+  const rawVelocity = useVelocity(scrollY);
+  const smoothVelocity = useSpring(rawVelocity, {
+    damping: 50,
+    stiffness: 400
+  });
+
+  // Sync scroll velocity to a CSS custom property for global distortion effects
+  useEffect(() => {
+    return smoothVelocity.on('change', (latest) => {
+      document.documentElement.style.setProperty('--scroll-velocity', latest);
+    });
+  }, [smoothVelocity]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

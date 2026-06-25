@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect, useMemo } from 'react';
 import Tooltip from './Tooltip';
 import DecryptText from './DecryptText';
 import soundSystem from './SoundSystem';
-
 // Helper to highlight matching text moved outside to avoid re-allocation on every render
 const highlightMatch = (text, query, regex) => {
   if (!query || !text || !regex) return text;
@@ -320,8 +319,11 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
     return (
       <div
         id={`project-card-${project.id}`}
-        className={`perspective-container card-focusable focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-4 focus-visible:ring-offset-black rounded-xl animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 z-50 rounded-lg' : ''}`}
-        style={{ viewTransitionName: isSelected ? 'none' : `project-container-${project.id}`, animationDelay: `${index * 50}ms` }}
+        className={`perspective-container warp-scroll-effect card-focusable focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-4 focus-visible:ring-offset-black rounded-xl animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 z-50 rounded-lg' : ''}`}
+        style={{
+          viewTransitionName: isSelected ? 'none' : `project-container-${project.id}`,
+          animationDelay: `${index * 50}ms`
+        }}
         draggable={draggable}
         onDragStart={onDragStart}
         onDragOver={onDragOver}
@@ -414,7 +416,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
           <div className="flex-1 flex flex-col min-w-0 z-10 pointer-events-none justify-center">
              <div className="flex items-center gap-2">
                <h3 className="text-sm md:text-base font-bold text-white truncate group-hover:text-accent-300 transition-colors duration-300">
-                 <DecryptText text={project.title} isHovered={isHovered || hasScrolledIntoView} searchQuery={searchQuery} regex={regex} />
+                 <DecryptText text={project.title} isHovered={isHovered} isVisible={isVisible} searchQuery={searchQuery} regex={regex} />
                </h3>
                {/* Tech badges inline (hide on very small screens) */}
                <div className="hidden sm:flex gap-1 overflow-hidden pointer-events-auto">
@@ -579,8 +581,11 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
     return (
       <div
         id={`project-card-${project.id}`}
-        className={`card-focusable w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black animate-slide-in-up ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 rounded' : ''}`}
-        style={{ viewTransitionName: isSelected ? 'none' : `project-container-${project.id}`, animationDelay: `${index * 30}ms` }}
+        className={`card-focusable warp-scroll-effect-list w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black animate-slide-in-up ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 rounded' : ''}`}
+        style={{
+          viewTransitionName: isSelected ? 'none' : `project-container-${project.id}`,
+          animationDelay: `${index * 50}ms`
+        }}
         draggable={draggable}
         onDragStart={onDragStart}
         onDragOver={onDragOver}
@@ -628,7 +633,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
             <span className="text-lg w-6 text-center transform group-hover:scale-110 transition-transform drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">{project.icon}</span>
             <div className="flex flex-col min-w-0">
                <span className="text-accent-300 font-bold tracking-wide truncate group-hover:text-accent-100 transition-colors">
-                 <DecryptText text={project.title} isHovered={isHovered || hasScrolledIntoView} searchQuery={searchQuery} regex={regex} />
+                 <DecryptText text={project.title} isHovered={isHovered} isVisible={isVisible} searchQuery={searchQuery} regex={regex} />
                </span>
                <span className="text-xs text-gray-500 truncate mt-0.5 max-w-[300px] lg:max-w-md xl:max-w-lg hidden sm:block">
                  {highlightMatch(project.description, searchQuery, regex)}
@@ -731,8 +736,11 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   return (
     <div
       id={`project-card-${project.id}`}
-      className={`perspective-container card-focusable focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-4 focus-visible:ring-offset-black rounded-xl animate-slide-in-up transition-all duration-500 ease-out hover:-translate-y-3 hover:shadow-[0_20px_40px_-15px_rgba(var(--rgb-accent-400),0.3)] hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 scale-105 z-50' : ''}`}
-      style={{ viewTransitionName: isSelected ? 'none' : `project-container-${project.id}`, animationDelay: `${index * 100}ms` }}
+      className={`perspective-container warp-scroll-effect card-focusable focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-4 focus-visible:ring-offset-black rounded-xl animate-slide-in-up transition-all duration-500 ease-out hover:-translate-y-3 hover:shadow-[0_20px_40px_-15px_rgba(var(--rgb-accent-400),0.3)] hover:z-10 ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? 'ring-2 ring-pink-500 scale-105 z-50' : ''}`}
+      style={{
+        viewTransitionName: isSelected ? 'none' : `project-container-${project.id}`,
+        animationDelay: `${index * 100}ms`
+      }}
       draggable={draggable}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
@@ -944,7 +952,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
               {project.image && <div className="text-2xl mr-3 transform transition-transform duration-300 group-hover:rotate-12 filter drop-shadow">{project.icon}</div>}
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white tracking-wide group-hover:text-blue-300 transition-colors duration-300 flex items-center justify-between">
-                  <DecryptText text={project.title} isHovered={isHovered || hasScrolledIntoView} searchQuery={searchQuery} regex={regex} />
+                  <DecryptText text={project.title} isHovered={isHovered} isVisible={isVisible} searchQuery={searchQuery} regex={regex} />
 
                   {/* Complexity Meter */}
                   <Tooltip text={`COMPLEXITY: ${complexityScore}/5`}>
