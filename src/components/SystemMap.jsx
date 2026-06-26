@@ -175,6 +175,14 @@ export default function SystemMap() {
            linkCanvasObject={paintLink}
            nodeRelSize={4}
            linkColor={() => 'rgba(255, 255, 255, 0.1)'}
+
+           // 🌌 CURATOR FEATURE: Interactive Network Traffic Minimap
+           // Adding directional particles to simulate live data stream across network edges
+           linkDirectionalParticles={2}
+           linkDirectionalParticleSpeed={0.005}
+           linkDirectionalParticleWidth={1.5}
+           linkDirectionalParticleColor={() => getThemeColor()}
+
            onNodeHover={setHoverNode}
            onNodeClick={(node) => handleProjectSelect(node.project)}
            enableNodeDrag={true}
