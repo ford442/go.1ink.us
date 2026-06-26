@@ -37,6 +37,7 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
   const [isHoverDelayed, setIsHoverDelayed] = useState(false);
   const hoverTimerRef = useRef(null);
   const [favoriteParticles, setFavoriteParticles] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [hasScrolledIntoView, setHasScrolledIntoView] = useState(false);
 
   useEffect(() => {
