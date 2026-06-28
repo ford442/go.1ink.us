@@ -1,9 +1,8 @@
-import { flushSync } from 'react-dom';
 import { CATEGORY_ICONS, TAG_TO_CATEGORIES } from '../constants';
 import { useAppContext } from '../AppContext';
 
 export default function ProjectQuickView() {
-  const { selectedProject, setSelectedProject, modalRef, modalImageLoaded, setModalImageLoaded, handleCopyLink, toggleFavorite, favorites } = useAppContext();
+  const { selectedProject, closeProjectModal, modalRef, modalImageLoaded, setModalImageLoaded, handleCopyLink, toggleFavorite, favorites } = useAppContext();
   if (!selectedProject) return null;
 
   return (
@@ -14,15 +13,7 @@ export default function ProjectQuickView() {
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
-        onClick={() => {
-              if (document.startViewTransition) {
-                document.startViewTransition(() => {
-                  flushSync(() => setSelectedProject(null));
-                });
-              } else {
-                setSelectedProject(null);
-              }
-        }}
+        onClick={closeProjectModal}
       ></div>
 
       {/* Modal Content */}
@@ -86,15 +77,7 @@ export default function ProjectQuickView() {
         <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-between relative z-10">
           {/* Close Button */}
           <button
-            onClick={() => {
-              if (document.startViewTransition) {
-                document.startViewTransition(() => {
-                  flushSync(() => setSelectedProject(null));
-                });
-              } else {
-                setSelectedProject(null);
-              }
-            }}
+            onClick={closeProjectModal}
             className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors border border-transparent hover:border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
             aria-label="Close modal"
           >
