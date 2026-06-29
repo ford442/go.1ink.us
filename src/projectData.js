@@ -123,7 +123,7 @@ const projectData = [
     id: 13,
     title: "Project M",
     description: "A linked project listed by the user.",
-    url: "https://www.noahcohn.com/projectm.1ink",
+    url: "https://projectm.1ink.us",
     image: "/projectm.png",
     icon: "🎯",
     tags: ["External", "Project"],
@@ -148,6 +148,16 @@ const projectData = [
     icon: "🌐",
     tags: ["External", "Portfolio"],
     tech: ["Next.js", "React", "Tailwind CSS"]
+  },
+  {
+    id: 16,
+    title: "Chromashift",
+    description: "A crop circle viewing app with layered color separation and analysis tools.",
+    url: "https://test.1ink.us/chromashift/index.html",
+    image: "/chromashift.png",
+    icon: "🛸",
+    tags: ["Interactive", "Art", "Visualization"],
+    tech: ["WebGL", "TypeScript", "WASM"]
   }
 ];
 
