@@ -7,7 +7,7 @@ import { CATEGORY_ICONS } from '../constants';
 import { useAppContext } from '../AppContext';
 
 export default function MainContent() {
-  const { filteredProjects, activeFilters, searchQuery, setSearchQuery, setActiveFilters, setCurrentPage, toggleFilter, handleDisplayModeChange, displayMode, sortOption, isGlitching, hoveredTag, paginatedProjects, focusedCardIndex, setFocusedCardIndex, selectedProject, favorites, toggleFavorite, handleContextMenu, handleCopyLink, handleProjectSelect, handleTagClick, isDataMode, activeFiltersSet, draggedFavoriteId, dragOverFavoriteId, handleDragStart, handleDragOver, handleDragEnd, handleDrop, setHoveredTag, totalPages, currentPage, handlePageChange, suggestedTags } = useAppContext();
+  const { filteredProjects, activeFilters, searchQuery, setSearchQuery, setActiveFilters, setCurrentPage, toggleFilter, handleDisplayModeChange, displayMode, sortOption, isGlitching, hoveredTag, paginatedProjects, focusedCardIndex, setFocusedCardIndex, selectedProject, favorites, toggleFavorite, handleContextMenu, handleCopyLink, handleProjectSelect, handleTagClick, isDataMode, activeFiltersSet, draggedFavoriteId, dragOverFavoriteId, handleDragStart, handleDragOver, handleDragEnd, handleDrop, setHoveredTag, totalPages, currentPage, handlePageChange, suggestedTags, isWarping } = useAppContext();
 
   // 🌌 CURATOR FEATURE: Global Holographic Command Table Perspective
   const gridRef = useRef(null);
@@ -197,7 +197,7 @@ export default function MainContent() {
                     : displayMode === 'list'
                     ? 'flex flex-col gap-3 opacity-100'
                     : 'grid grid-cols-1 gap-6 md:gap-8 opacity-100'
-                }`}
+                } ${isWarping ? 'opacity-20 scale-[1.05] blur-[8px] grayscale' : 'opacity-100'}`}
                 style={{
                   transform: 'perspective(2000px) rotateX(0deg) rotateY(0deg)',
                   transformStyle: 'preserve-3d'

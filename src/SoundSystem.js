@@ -213,6 +213,50 @@ class ProceduralSoundSystem {
         setTimeout(() => this.playTone(100, 'sawtooth', 0.25, 0.1), 150);
     }
 
+    playWarp() {
+        // Deep, sweeping riser for hyperspace transition
+        if (!this.isEnabled || !this.audioContext) return;
+        const now = this.audioContext.currentTime;
+        try {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(80, now);
+            osc.frequency.exponentialRampToValueAtTime(600, now + 0.6);
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.15, now + 0.3);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.8);
+        } catch {
+            // ignore
+        }
+    }
+
+    playExitWarp() {
+        // Quick, descending power-down sound
+        if (!this.isEnabled || !this.audioContext) return;
+        const now = this.audioContext.currentTime;
+        try {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(400, now);
+            osc.frequency.exponentialRampToValueAtTime(60, now + 0.4);
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.1, now + 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.5);
+        } catch {
+            // ignore
+        }
+    }
+
     playSuccess() {
         // Pleasant ascending chime – precise envelope version (from main)
         if (!this.isEnabled || !this.audioContext) return;

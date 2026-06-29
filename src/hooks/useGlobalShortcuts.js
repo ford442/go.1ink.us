@@ -19,6 +19,7 @@ export default function useGlobalShortcuts({
   setIsTerminalOpen,
   setSearchQuery,
   setSelectedProject,
+  closeProjectModal,
   setSortOption
 }) {
   const searchInputRef = useRef(null);
@@ -101,12 +102,16 @@ export default function useGlobalShortcuts({
         }
 
         if (selectedProjectRef.current) {
-          if (document.startViewTransition) {
-            document.startViewTransition(() => {
-              flushSync(() => setSelectedProject(null));
-            });
+          if (closeProjectModal) {
+            closeProjectModal();
           } else {
-            setSelectedProject(null);
+            if (document.startViewTransition) {
+              document.startViewTransition(() => {
+                flushSync(() => setSelectedProject(null));
+              });
+            } else {
+              setSelectedProject(null);
+            }
           }
           return;
         }
@@ -211,6 +216,7 @@ export default function useGlobalShortcuts({
     setIsTerminalOpen,
     setSearchQuery,
     setSelectedProject,
+    closeProjectModal,
     setSortOption
   ]);
 

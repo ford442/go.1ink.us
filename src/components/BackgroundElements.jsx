@@ -4,12 +4,12 @@ import MatrixRain from '../MatrixRain';
 import { useAppContext } from '../AppContext';
 
 export default function BackgroundElements() {
-  const { starfieldRef, deepGridRef, baseGridRef, gridSpotlightRef, canvasRef, isMatrixMode, theme } = useAppContext();
+  const { starfieldRef, deepGridRef, baseGridRef, gridSpotlightRef, canvasRef, isMatrixMode, theme, isWarping } = useAppContext();
 
   return (
     <>
   {/* Background Elements */}
-  <div className="fixed inset-0 overflow-hidden pointer-events-none">
+  <div className={`fixed inset-0 overflow-hidden pointer-events-none transition-all duration-700 ${isWarping ? 'opacity-30 blur-sm scale-110' : 'opacity-100 scale-100'}`}>
     <div style={{
       transform: 'translate(calc(var(--parallax-x, 0) * -2%), calc(var(--parallax-y, 0) * -2%))',
       transition: 'transform 0.1s ease-out',
