@@ -780,6 +780,12 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
       >
       {/* FRONT SIDE */}
       <div className={`relative h-full flex flex-col rounded-xl overflow-hidden ${isFlipped ? 'pointer-events-none' : 'pointer-events-auto'}`} style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
+
+        {/* 🌌 CURATOR FEATURE: Holographic Scanline */}
+        <div className="absolute inset-0 z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden rounded-xl">
+          <div className="w-full h-1 bg-accent-400/50 shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.8)] animate-scanline"></div>
+        </div>
+
         {/* True Holographic Glass Foil */}
         <div
           className="absolute inset-0 pointer-events-none z-20 mix-blend-color-dodge opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl overflow-hidden"
