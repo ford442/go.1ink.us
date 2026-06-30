@@ -4,9 +4,11 @@ import SystemClock from '../SystemClock';
 import TelemetryGraph from '../TelemetryGraph';
 import soundSystem from '../SoundSystem';
 import { useAppContext } from '../AppContext';
+import useVoiceCommand from '../hooks/useVoiceCommand';
 
 export default function CommandHeader() {
   const { formatUptime, systemStats, soundEnabled, setSoundEnabled, isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, totalProjects } = useAppContext();
+  const { isSupported, isListening, startListening, stopListening } = useVoiceCommand();
 
   return (
     <>
@@ -49,6 +51,22 @@ export default function CommandHeader() {
     </div>
 
     <div className="flex items-center gap-4">
+
+      {/* Voice Command Protocol */}
+      {isSupported && (
+        <div className="hidden lg:flex items-center gap-2 border-r border-accent-500/30 pr-4">
+          <button
+            onClick={isListening ? stopListening : startListening}
+            className={`relative p-1.5 rounded-full transition-colors ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse-glow shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'text-accent-400 hover:text-white opacity-70 hover:opacity-100'}`}
+            title="Voice Command Protocol"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+               <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
+            </svg>
+            {isListening && <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-red-500 animate-ping"></span>}
+          </button>
+        </div>
+      )}
 
       {/* Sound Toggle */}
       <div className="hidden sm:flex items-center gap-2 border-r border-accent-500/30 pr-4">
