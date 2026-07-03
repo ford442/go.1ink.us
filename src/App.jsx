@@ -584,7 +584,7 @@ function App() {
 
   // Pagination Logic
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = displayMode === 'map' ? 100 : displayMode === 'matrix' ? 10 : displayMode === 'list' ? 8 : 6;
 
   // Keyboard Navigation state for cards
   const [focusedCardIndex, setFocusedCardIndex] = useState(0);
