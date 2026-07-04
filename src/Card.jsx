@@ -1112,8 +1112,33 @@ const Card = ({ project, index = 0, layout = 'grid', isDataMode = false, onTagCl
           <div className="glass-reflection" />
         </div>
 
-        {/* 🌌 CURATOR FEATURE: True Holographic Glass Effects */}
+        {/* 🌌 CURATOR FEATURE: True Holographic Glass Effects with Inner Reflections */}
         <div className="holo-overlay absolute inset-0 pointer-events-none rounded-xl z-10" style={{ transform: 'translateZ(20px)', backgroundPosition: 'calc(var(--mouse-percent-x, 50%) * 2) calc(var(--mouse-percent-y, 50%) * 2)' }}></div>
+
+        {/* Dynamic Inner Rim Light (Refractive edge) */}
+        <div
+          className="absolute inset-0 pointer-events-none rounded-xl z-[25] opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+          style={{
+            boxShadow: `inset calc((var(--mouse-percent-x, 50) - 50) * -0.2px) calc((var(--mouse-percent-y, 50) - 50) * -0.2px) 15px rgba(255, 255, 255, 0.4), inset calc((var(--mouse-percent-x, 50) - 50) * -0.5px) calc((var(--mouse-percent-y, 50) - 50) * -0.5px) 2px rgba(var(--rgb-accent-300), 0.5)`,
+            transform: 'translateZ(40px)',
+            mixBlendMode: 'screen'
+          }}
+        />
+
+        {/* Diagonal Glossy Shine moving with mouse */}
+        <div
+          className="absolute inset-0 pointer-events-none rounded-xl z-[26] opacity-0 group-hover:opacity-100 transition-opacity duration-500 overflow-hidden"
+          style={{ transform: 'translateZ(50px)' }}
+        >
+          <div
+            className="absolute inset-[-100%] w-[300%] h-[300%] transition-transform duration-100 ease-out"
+            style={{
+              background: `linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.1) 48%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0.1) 52%, transparent 60%)`,
+              transform: `translate(calc((var(--mouse-percent-x, 50) - 50) * -1%), calc((var(--mouse-percent-y, 50) - 50) * -1%))`,
+              mixBlendMode: 'color-dodge'
+            }}
+          />
+        </div>
 
         {/* 🌌 CURATOR FEATURE: Tactical Hover Brackets (Targeting Reticle) */}
         <div className="absolute inset-0 pointer-events-none z-30" style={{ transform: 'translateZ(80px)' }}>
