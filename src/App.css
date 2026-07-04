@@ -584,6 +584,35 @@
   box-shadow: 2px 2px 10px rgba(var(--rgb-accent-400), 0.5);
 }
 
+/* Glass Reflection (Sweeping Light) */
+.glass-reflection {
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg);
+  transition: opacity 0.3s ease;
+  opacity: 0;
+  z-index: 10;
+}
+
+.group:hover .glass-reflection {
+  animation: glass-sweep 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  opacity: 1;
+}
+
+@keyframes glass-sweep {
+  0% { left: -150%; }
+  100% { left: 250%; }
+}
+
 /* Holographic Overlay */
 .holo-overlay {
   background: linear-gradient(
