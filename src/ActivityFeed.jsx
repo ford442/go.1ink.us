@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import projectData from './projectData';
+import { useAppContext } from './hooks/useAppContext';
 
 const LOG_TEMPLATES = [
   "INCOMING TCP_CONN FROM [IP]",
@@ -26,6 +27,8 @@ const generateLog = () => {
 };
 
 const ActivityFeed = () => {
+  const { userActivityLogs = [] } = useAppContext() || {};
+
   const [logs, setLogs] = useState(() => {
     return Array.from({ length: 8 }, () => ({
       id: Math.random().toString(36).substr(2, 9),
@@ -89,12 +92,17 @@ const ActivityFeed = () => {
           <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-black/60 to-transparent z-10 pointer-events-none"></div>
 
           <div className="flex flex-col gap-2 font-mono text-[9px] text-accent-200/70 overflow-y-auto h-[120px] scrollbar-hide py-1">
-            {logs.map((log) => (
-              <div key={log.id} className="animate-slide-in-up flex gap-2 leading-tight">
-                <span className="text-accent-500/50 shrink-0">[{log.time}]</span>
-                <span className="text-gray-400 break-words">{log.text}</span>
-              </div>
-            ))}
+            {[...logs, ...userActivityLogs].sort((a, b) => a.time.localeCompare(b.time) || (a.id > b.id ? 1 : -1)).slice(-15).map((log) => {
+              const isUserAction = userActivityLogs.some(u => u.id === log.id);
+              return (
+                <div key={log.id} className={`animate-slide-in-up flex gap-2 leading-tight ${isUserAction ? 'text-accent-300 font-bold' : ''}`}>
+                  <span className="text-accent-500/50 shrink-0">[{log.time}]</span>
+                  <span className={`${isUserAction ? 'text-accent-300' : 'text-gray-400'} break-words`}>
+                    {isUserAction ? '> SYS_REQ: ' : ''}{log.text}
+                  </span>
+                </div>
+              );
+            })}
             <div ref={bottomRef} />
           </div>
       </div>
