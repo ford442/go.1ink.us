@@ -1,5 +1,6 @@
 import { flushSync } from 'react-dom';
 import React, { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Card from '../Card';
 import SystemMap from './SystemMap';
 import ConstellationOverlay from '../ConstellationOverlay';
@@ -234,16 +235,22 @@ export default function MainContent() {
                 }
               }}
             >
-              {paginatedProjects.map((project, index) => (
-                <div
-                   key={`${activeFilters.join('-')}-${sortOption}-${currentPage}-${project.id}`}
-                   className={`animate-slide-in-up ${displayMode === 'grid' ? 'break-inside-avoid inline-block w-full mb-6 md:mb-8' : ''} transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] ${
-                     hoveredProjectId && hoveredProjectId !== project.id
-                       ? 'blur-[4px] opacity-40 scale-[0.98] grayscale-[30%]'
-                       : ''
-                   }`}
-                   style={{ animationDelay: `${index * 100}ms` }}
-                >
+              <AnimatePresence mode="popLayout">
+                {paginatedProjects.map((project, index) => (
+                  <motion.div
+                     layout
+                     initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                     animate={{ opacity: 1, y: 0, scale: 1 }}
+                     exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                     transition={{ duration: 0.5, type: 'spring', bounce: 0.3, delay: index * 0.05 }}
+                     whileHover={{ scale: 1.02 }}
+                     key={project.id} // use unique project id for reliable layout animations
+                     className={`${displayMode === 'grid' ? 'break-inside-avoid inline-block w-full mb-6 md:mb-8' : ''} transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] ${
+                       hoveredProjectId && hoveredProjectId !== project.id
+                         ? 'blur-[4px] opacity-40 scale-[0.98] grayscale-[30%]'
+                         : ''
+                     }`}
+                  >
                   <Card
                     project={project}
                     onCardHover={setHoveredProjectId}
@@ -272,8 +279,9 @@ export default function MainContent() {
                     onFocus={() => setFocusedCardIndex(index)}
                     onHoverTag={setHoveredTag}
                   />
-                </div>
-              ))}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
               </div>
               )}
             </div>
