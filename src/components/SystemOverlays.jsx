@@ -1,6 +1,8 @@
+import { AnimatePresence } from 'framer-motion';
 import OmniPalette from '../OmniPalette';
 import Screensaver from '../Screensaver';
 import projectData from '../projectData';
+import Toast from './Toast';
 import { useAppContext } from '../AppContext';
 
 export default function SystemOverlays() {
@@ -60,45 +62,11 @@ export default function SystemOverlays() {
 
   {/* Toast Notifications Container */}
   <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-3 pointer-events-none">
-    {toasts.map(toast => {
-      let borderClass, textClass, icon;
-      switch (toast.type) {
-        case 'success':
-          borderClass = 'border-pink-500/50 shadow-[0_0_15px_rgba(236,72,153,0.3)]';
-          textClass = 'text-pink-400';
-          icon = '💖';
-          break;
-        case 'warning':
-          borderClass = 'border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.3)]';
-          textClass = 'text-yellow-400';
-          icon = '⚠️';
-          break;
-        case 'error':
-          borderClass = 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]';
-          textClass = 'text-red-400';
-          icon = '❌';
-          break;
-        case 'info':
-        default:
-          borderClass = 'border-accent-500/50 shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)]';
-          textClass = 'text-accent-400';
-          icon = '🔗';
-          break;
-      }
-
-      return (
-        <div
-          key={toast.id}
-          className={`${toast.fadingOut ? 'animate-fade-out-right' : 'animate-slide-in-right'} bg-black/80 backdrop-blur-md border ${borderClass} rounded flex items-center gap-3 px-4 py-3 pointer-events-auto cursor-pointer hover:bg-black/90 transition-colors`}
-          onClick={() => removeToast(toast.id)}
-        >
-          <div className="text-lg">{icon}</div>
-          <div className={`font-mono text-sm tracking-wide ${textClass}`}>
-            {toast.message}
-          </div>
-        </div>
-      );
-    })}
+    <AnimatePresence>
+      {toasts.map(toast => (
+        <Toast key={toast.id} toast={toast} removeToast={removeToast} />
+      ))}
+    </AnimatePresence>
   </div>
     </>
   );

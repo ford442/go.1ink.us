@@ -494,17 +494,13 @@ function App() {
   // Toast Notifications State
   const [toasts, setToasts] = useState([]);
 
-  const removeToast = (id) => {
-    setToasts(prev => prev.map(t => t.id === id ? { ...t, fadingOut: true } : t));
-    // Wait for the fade out animation to finish before removing
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 300); // matches the 0.3s duration of fade-out-right
-  };
+  const removeToast = useCallback((id) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
 
-  const addToast = (message, type = 'info') => {
+  const addToast = (message, type = 'info', duration = 3000) => {
     const id = Date.now() + Math.random().toString(36).substr(2, 9);
-    setToasts(prev => [...prev, { id, message, type }]);
+    setToasts(prev => [...prev, { id, message, type, duration }]);
 
     if (type === 'error') {
       soundSystem.playError();
@@ -513,11 +509,6 @@ function App() {
     } else {
       soundSystem.playClick();
     }
-
-    // Auto-remove after 3 seconds
-    setTimeout(() => {
-      removeToast(id);
-    }, 3000);
   };
 
   const changeTheme = (newTheme) => {
@@ -538,7 +529,7 @@ function App() {
       setFavorites(prev => prev.filter(id => id !== project.id));
       addActivityLog(`FAVORITE REMOVED: [${project.title.toUpperCase()}]`);
     } else {
-      addToast(`> SYS_UPDATE: [${project.title.toUpperCase()}] FAVORITED`, 'success');
+      addToast(`> SYS_UPDATE: [${project.title.toUpperCase()}] FAVORITED`, 'favorite');
       setFavorites(prev => [...prev, project.id]);
       addActivityLog(`FAVORITE ADDED: [${project.title.toUpperCase()}]`);
     }
@@ -547,7 +538,7 @@ function App() {
   const handleCopyLink = (project) => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(project.url).then(() => {
-        addToast(`> SYS_CMD: [${project.title.toUpperCase()}] LINK_COPIED`, 'info');
+        addToast(`> SYS_CMD: [${project.title.toUpperCase()}] LINK_COPIED`, 'copy');
       }).catch(() => {
         addToast(`> SYS_ERR: LINK_COPY_FAILED`, 'error');
       });
