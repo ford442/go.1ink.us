@@ -7,7 +7,7 @@ import { useAppContext } from '../AppContext';
 import useVoiceCommand from '../hooks/useVoiceCommand';
 
 export default function CommandHeader() {
-  const { formatUptime, systemStats, soundEnabled, setSoundEnabled, isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, totalProjects } = useAppContext();
+  const { formatUptime, systemStats, soundEnabled, setSoundEnabled, isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, totalProjects, isGodMode } = useAppContext();
   const { isSupported, isListening, startListening, stopListening } = useVoiceCommand();
 
   return (
@@ -19,6 +19,11 @@ export default function CommandHeader() {
         <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]"></div>
         <span className="text-green-400 tracking-wider font-bold">SYS.ONLINE</span>
       </div>
+      {isGodMode && (
+        <div className="flex items-center gap-2 border-l border-accent-500/30 pl-4">
+          <span className="text-amber-400 font-bold tracking-widest animate-pulse shadow-[0_0_10px_rgba(251,191,36,0.8)]">OVERCLOCKED</span>
+        </div>
+      )}
       <div className="hidden sm:flex items-center gap-2 text-accent-200/70 border-l border-accent-500/30 pl-4">
         <span className="opacity-50">UPTIME:</span>
         <span className="text-accent-100">{formatUptime(systemStats.uptime)}</span>

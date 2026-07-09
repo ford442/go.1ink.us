@@ -2,13 +2,14 @@ import React, { useRef, useEffect, memo } from 'react';
 
 // Extract Particle class outside of the component to avoid recreating it
 class Particle {
-  constructor(canvas) {
+  constructor(canvas, isGodMode) {
     this.canvas = canvas;
     this.x = Math.random() * canvas.width;
     this.y = Math.random() * canvas.height;
-    this.vx = (Math.random() - 0.5) * 0.5;
-    this.vy = (Math.random() - 0.5) * 0.5;
-    this.radius = Math.random() * 1.6 + 0.4;
+    const speedMultiplier = isGodMode ? 3 : 0.5;
+    this.vx = (Math.random() - 0.5) * speedMultiplier;
+    this.vy = (Math.random() - 0.5) * speedMultiplier;
+    this.radius = Math.random() * (isGodMode ? 3 : 1.6) + (isGodMode ? 1 : 0.4);
   }
 
   update() {
@@ -27,7 +28,7 @@ class Particle {
   }
 }
 
-const ParticleNetwork = memo(() => {
+const ParticleNetwork = memo(({ isGodMode }) => {
   const canvasRef = useRef(null);
   const colorRef = useRef('34, 211, 238'); // default cyan rgb
 
@@ -61,9 +62,10 @@ const ParticleNetwork = memo(() => {
 
     const initParticles = () => {
       particles = [];
-      const numParticles = Math.min(Math.floor((window.innerWidth * window.innerHeight) / 14500), 110);
+      const baseParticles = Math.min(Math.floor((window.innerWidth * window.innerHeight) / 14500), 110);
+      const numParticles = isGodMode ? baseParticles * 2 : baseParticles;
       for (let i = 0; i < numParticles; i++) {
-        particles.push(new Particle(canvas));
+        particles.push(new Particle(canvas, isGodMode));
       }
     };
 
@@ -133,7 +135,7 @@ const ParticleNetwork = memo(() => {
       window.removeEventListener('mouseout', handleMouseOut);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [isGodMode]);
 
   return (
     <canvas

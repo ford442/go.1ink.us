@@ -2,12 +2,16 @@ import { useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import soundSystem from '../SoundSystem';
 
+const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+
 export default function useGlobalShortcuts({
   addActivityLog,
   contextMenu,
   isDataMode,
   isOmniOpen,
   isTerminalOpen,
+  isGodMode,
+  setIsGodMode,
   selectedProjectRef,
   setActiveFilters,
   setContextMenu,
@@ -24,9 +28,33 @@ export default function useGlobalShortcuts({
 }) {
   const searchInputRef = useRef(null);
 
+
+  const konamiIndexRef = useRef(0);
+
   // Global keybindings for shortcuts and modes
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Konami Code logic
+      if (e.key === konamiCode[konamiIndexRef.current]) {
+        konamiIndexRef.current++;
+        if (konamiIndexRef.current === konamiCode.length) {
+          setIsGodMode(prev => {
+            const nextState = !prev;
+            if (nextState) {
+              soundSystem.playEpicUnlock();
+              addActivityLog('SYS_OVERRIDE: GOD_MODE_ACTIVATED');
+            } else {
+              soundSystem.playAlert();
+              addActivityLog('SYS_OVERRIDE: GOD_MODE_DEACTIVATED');
+            }
+            return nextState;
+          });
+          konamiIndexRef.current = 0;
+        }
+      } else {
+        konamiIndexRef.current = 0;
+      }
+
       // Toggle Data Decryption Mode on Alt down
       if (e.key === 'Alt' && !isDataMode) {
         setIsDataMode(true);
@@ -205,6 +233,8 @@ export default function useGlobalShortcuts({
     isDataMode,
     isOmniOpen,
     isTerminalOpen,
+  isGodMode,
+  setIsGodMode,
     selectedProjectRef,
     setActiveFilters,
     setContextMenu,

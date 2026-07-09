@@ -4,7 +4,7 @@ import MatrixRain from '../MatrixRain';
 import { useAppContext } from '../AppContext';
 
 export default function BackgroundElements() {
-  const { starfieldRef, deepGridRef, baseGridRef, gridSpotlightRef, canvasRef, isMatrixMode, theme, isWarping } = useAppContext();
+  const { starfieldRef, deepGridRef, baseGridRef, gridSpotlightRef, canvasRef, isMatrixMode, theme, isWarping, isGodMode } = useAppContext();
 
   return (
     <>
@@ -29,7 +29,7 @@ export default function BackgroundElements() {
     </div>
 
     {/* Interactive Particle Network or Matrix Rain */}
-    {isMatrixMode ? <MatrixRain theme={theme} /> : <ParticleNetwork theme={theme} />}
+    {isMatrixMode ? <MatrixRain theme={theme} /> : <ParticleNetwork theme={theme} isGodMode={isGodMode} />}
 
     {/* Foreground Floating Tech Debris (Extreme Depth Layering) */}
     <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden mix-blend-screen">
