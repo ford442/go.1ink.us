@@ -82,7 +82,7 @@ export default function Sidebar() {
                   }
                 }
               }}
-              placeholder="Search projects..."
+              placeholder="Search projects, tags, tech..."
               autoComplete="off"
               spellCheck="false"
               className="w-full bg-black/20 backdrop-blur-xl border border-white/10 text-white pl-10 pr-24 py-3 rounded-xl focus:outline-none focus:gold-glow focus:bg-black/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-4 focus-visible:ring-offset-black transition-all duration-300 shadow-lg placeholder-gray-500 text-sm"

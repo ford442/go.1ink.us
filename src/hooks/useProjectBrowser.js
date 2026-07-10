@@ -30,7 +30,8 @@ export default function useProjectBrowser({
       return terms.every(term =>
         project.title.toLowerCase().includes(term) ||
         project.description.toLowerCase().includes(term) ||
-        (project.tags && project.tags.some(tag => tag.toLowerCase().includes(term)))
+        (project.tags && project.tags.some(tag => tag.toLowerCase().includes(term))) ||
+        (project.tech && project.tech.some(tech => tech.toLowerCase().includes(term)))
       );
     });
   }, [enhancedProjects, searchQuery]);
