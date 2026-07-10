@@ -257,6 +257,29 @@ class ProceduralSoundSystem {
         }
     }
 
+
+    playEpicUnlock() {
+        if (!this.isEnabled || !this.audioContext) return;
+        const now = this.audioContext.currentTime;
+        const playNote = (freq, delay, type = 'sine', dur = 0.5) => {
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            gain.gain.setValueAtTime(0, now + delay);
+            gain.gain.linearRampToValueAtTime(0.15, now + delay + 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + delay + dur);
+            osc.start(now + delay);
+            osc.stop(now + delay + dur);
+        };
+        playNote(440, 0, 'triangle', 0.4);
+        playNote(554, 0.2, 'triangle', 0.4);
+        playNote(659, 0.4, 'triangle', 0.4);
+        playNote(880, 0.6, 'sawtooth', 1.0);
+    }
+
     playSuccess() {
         // Pleasant ascending chime – precise envelope version (from main)
         if (!this.isEnabled || !this.audioContext) return;

@@ -95,3 +95,10 @@ html, body {
   background: rgba(var(--rgb-accent-400), 0.9);
   box-shadow: 0 0 15px rgba(var(--rgb-accent-400), 0.6);
 }
+
+/* God Mode Easter Egg */
+body.god-mode {
+  --rgb-accent-400: 255, 215, 0; /* gold */
+  --color-accent-400: #ffd700;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+}
