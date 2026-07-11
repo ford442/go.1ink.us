@@ -99,6 +99,8 @@ const OmniPalette = ({
       if (item.type === 'project' && item.description?.toLowerCase().includes(q)) return true;
       // Check project tags
       if (item.type === 'project' && item.project.tags?.some(t => t.toLowerCase().includes(q))) return true;
+      // Check project tech
+      if (item.type === 'project' && item.project.tech?.some(t => t.toLowerCase().includes(q))) return true;
       return false;
     });
   }, [query, commands]);
@@ -194,7 +196,7 @@ const OmniPalette = ({
             ref={inputRef}
             type="text"
             className="flex-1 bg-transparent border-none text-white text-lg focus:outline-none placeholder-gray-500 font-mono"
-            placeholder="Search projects, filters, or type a command..."
+            placeholder="Search projects, tags, tech, filters, or type a command..."
             value={query}
             onChange={e => {
                 setQuery(e.target.value);
