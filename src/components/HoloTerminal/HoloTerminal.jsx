@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTerminalContext } from '../../app/context/TerminalContext';
+import { useSettingsContext } from '../../app/context/SettingsContext';
 import SystemMonitor from './SystemMonitor';
 import AudioVisualizer from './AudioVisualizer';
 import CommandLog from './CommandLog';
@@ -7,6 +8,7 @@ import soundSystem from '../../lib/SoundSystem';
 
 const HoloTerminal = () => {
   const { isHoloTerminalOpen, setIsHoloTerminalOpen, handleTerminalSubmit, terminalInput, setTerminalInput, terminalInputRef, handleTerminalKeyDown } = useTerminalContext();
+  const { isCrtEnabled, isMatrixMode } = useSettingsContext();
   const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
@@ -71,13 +73,13 @@ const HoloTerminal = () => {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-2 gap-1 mt-auto">
-              <button onClick={() => executeQuickCommand('sys')} className="bg-accent-500/10 hover:bg-accent-500/30 border border-accent-500/30 text-[9px] font-mono text-accent-200 py-1 rounded transition-colors uppercase tracking-wider">
+              <button onClick={() => executeQuickCommand('stats')} className="bg-accent-500/10 hover:bg-accent-500/30 border border-accent-500/30 text-[9px] font-mono text-accent-200 py-1 rounded transition-colors uppercase tracking-wider">
                 System Info
               </button>
-              <button onClick={() => executeQuickCommand('matrix on')} className="bg-emerald-500/10 hover:bg-emerald-500/30 border border-emerald-500/30 text-[9px] font-mono text-emerald-200 py-1 rounded transition-colors uppercase tracking-wider">
+              <button onClick={() => executeQuickCommand(isMatrixMode ? 'matrix off' : 'matrix on')} className="bg-emerald-500/10 hover:bg-emerald-500/30 border border-emerald-500/30 text-[9px] font-mono text-emerald-200 py-1 rounded transition-colors uppercase tracking-wider">
                 Init Matrix
               </button>
-              <button onClick={() => executeQuickCommand('crt toggle')} className="bg-accent-500/10 hover:bg-accent-500/30 border border-accent-500/30 text-[9px] font-mono text-accent-200 py-1 rounded transition-colors uppercase tracking-wider col-span-2">
+              <button onClick={() => executeQuickCommand(isCrtEnabled ? 'crt off' : 'crt on')} className="bg-accent-500/10 hover:bg-accent-500/30 border border-accent-500/30 text-[9px] font-mono text-accent-200 py-1 rounded transition-colors uppercase tracking-wider col-span-2">
                 Toggle CRT
               </button>
             </div>

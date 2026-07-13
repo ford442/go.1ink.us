@@ -12,6 +12,7 @@ import Sidebar from '../components/Sidebar';
 import MainContent from '../components/MainContent';
 import ProjectQuickView from '../components/ProjectQuickView';
 import TerminalBar from '../components/TerminalBar';
+import HoloTerminal from '../components/HoloTerminal/HoloTerminal';
 import ContextMenu from '../components/ContextMenu';
 import SystemOverlays from '../components/SystemOverlays';
 import useBootSequence from '../hooks/useBootSequence';
@@ -623,11 +624,11 @@ function App() {
     handleTerminalKeyDown,
     handleTerminalSubmit,
     isTerminalClosing,
-    isTerminalOpen,
     isHoloTerminalOpen,
+    setIsHoloTerminalOpen,
+    isTerminalOpen,
     setIsTerminalClosing,
     setIsTerminalOpen,
-    setIsHoloTerminalOpen,
     setTerminalInput,
     terminalEndRef,
     terminalHistory,
@@ -640,6 +641,9 @@ function App() {
     contextMenu,
     isDataMode,
     isOmniOpen,
+    isTerminalClosing,
+    isHoloTerminalOpen,
+    setIsHoloTerminalOpen,
     isTerminalOpen,
     isGodMode,
     setIsGodMode,
@@ -827,6 +831,7 @@ function App() {
 
         <ProjectQuickView />
         <TerminalBar />
+        <HoloTerminal />
         <ContextMenu />
         <SystemOverlays />
       </div>
