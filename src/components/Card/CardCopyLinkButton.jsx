@@ -1,5 +1,5 @@
-import Tooltip from '../../Tooltip';
-import soundSystem from '../../SoundSystem';
+import Tooltip from '../Tooltip';
+import soundSystem from '../../lib/SoundSystem';
 
 const VARIANTS = {
   grid: {

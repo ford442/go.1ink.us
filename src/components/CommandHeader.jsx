@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import AudioVisualizer from '../AudioVisualizer';
-import Clock from '../Clock';
-import SystemClock from '../SystemClock';
-import TelemetryGraph from '../TelemetryGraph';
-import soundSystem from '../SoundSystem';
-import { useSettingsContext } from '../context/SettingsContext';
-import { useBrowserContext } from '../context/BrowserContext';
+import AudioVisualizer from './AudioVisualizer';
+import Clock from './Clock';
+import TelemetryGraph from './TelemetryGraph';
+import soundSystem from '../lib/SoundSystem';
+import { useSettingsContext } from '../app/context/SettingsContext';
+import { useBrowserContext } from '../app/context/BrowserContext';
 import useVoiceCommand from '../hooks/useVoiceCommand';
 
 // Format uptime seconds to HH:MM:SS
@@ -17,7 +16,7 @@ function formatUptime(seconds) {
 }
 
 export default function CommandHeader() {
-  const { soundEnabled, setSoundEnabled, isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, isGodMode } = useSettingsContext();
+  const { isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, isGodMode } = useSettingsContext();
   const { totalProjects } = useBrowserContext();
   const { isSupported, isListening, startListening, stopListening } = useVoiceCommand();
 
@@ -96,7 +95,7 @@ export default function CommandHeader() {
       </div>
 
       <div className="hidden lg:flex items-center">
-        <SystemClock />
+        <Clock precision="seconds" label="SYS.TIME:" />
       </div>
     </div>
 
@@ -122,31 +121,13 @@ export default function CommandHeader() {
       <div className="hidden sm:flex items-center gap-2 border-r border-accent-500/30 pr-4">
          <button
            onClick={() => {
-             setSoundEnabled(prev => !prev);
-             if (!soundEnabled) {
-               soundSystem.enable();
-               soundSystem.playClick();
-             }
-           }}
-           className={`text-xs font-mono transition-colors ${soundEnabled ? 'text-accent-400' : 'text-gray-500 hover:text-white'}`}
-           aria-label="Toggle Sound"
-         >
-           AUDIO: {soundEnabled ? 'ON' : 'OFF'}
-         </button>
-      </div>
-
-      <div className="hidden lg:flex items-center gap-2 border-r border-accent-500/30 pr-4">
-         <span className="opacity-50 text-accent-200/70 mr-1">AUDIO:</span>
-         <button
-           onClick={() => {
-             const newState = !isSoundEnabled;
-             setIsSoundEnabled(newState);
-             if (newState) {
-               soundSystem.enable(); // Synchronous enable for immediate playback
+             const nextEnabled = !isSoundEnabled;
+             setIsSoundEnabled(nextEnabled);
+             if (nextEnabled) {
                soundSystem.playAlert();
              }
            }}
-           className={`text-accent-400 hover:text-white transition-colors ${!isSoundEnabled ? 'opacity-50' : ''}`}
+           className={`flex items-center gap-1.5 text-xs font-mono transition-colors ${isSoundEnabled ? 'text-accent-400' : 'text-gray-500 hover:text-white'}`}
            aria-label="Toggle Audio"
          >
            {isSoundEnabled ? (
@@ -158,6 +139,7 @@ export default function CommandHeader() {
                <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
              </svg>
            )}
+           <span>AUDIO: {isSoundEnabled ? 'ON' : 'OFF'}</span>
          </button>
       </div>
 
@@ -220,7 +202,7 @@ export default function CommandHeader() {
       <div className="hidden md:flex">
          <AudioVisualizer theme={theme} />
       </div>
-      <Clock />
+      <Clock precision="milliseconds" />
     </div>
   </div>
     </>

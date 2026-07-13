@@ -1,11 +1,11 @@
-import ActivityFeed from '../ActivityFeed';
-import RadarHUD from '../RadarHUD';
-import projectData from '../projectData';
-import soundSystem from '../SoundSystem';
-import { CATEGORIES, CATEGORY_ICONS, CATEGORY_BUTTON_STYLES } from '../constants';
-import { useBrowserContext } from '../context/BrowserContext';
-import { useActivityContext } from '../context/ActivityContext';
-import { useSettingsContext } from '../context/SettingsContext';
+import ActivityFeed from './ActivityFeed';
+import RadarHUD from '../effects/RadarHUD';
+import projectData from '../data/projectData';
+import soundSystem from '../lib/SoundSystem';
+import { CATEGORIES, CATEGORY_ICONS, CATEGORY_BUTTON_STYLES } from '../data/constants';
+import { useBrowserContext } from '../app/context/BrowserContext';
+import { useActivityContext } from '../app/context/ActivityContext';
+import { useSettingsContext } from '../app/context/SettingsContext';
 
 export default function Sidebar() {
   const { searchInputRef, searchQuery, setSearchQuery, setCurrentPage, filteredProjects, suggestedTags, toggleFilter, isMobileFiltersOpen, setIsMobileFiltersOpen, activeFilters, sortOption, setSortOption, activeFiltersSet, counts, setHoveredTag, favoriteCount, activeCategories, handleTagClick, favorites, setRandomSeed } = useBrowserContext();

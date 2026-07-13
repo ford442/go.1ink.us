@@ -1,5 +1,5 @@
-import DecryptText from '../../DecryptText';
-import soundSystem from '../../SoundSystem';
+import DecryptText from '../DecryptText';
+import soundSystem from '../../lib/SoundSystem';
 import CardMedia from './CardMedia';
 import CardTechBadges from './CardTechBadges';
 import CardTagList from './CardTagList';

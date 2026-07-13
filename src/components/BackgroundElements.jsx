@@ -1,9 +1,9 @@
-import Starfield from '../Starfield';
-import ParticleNetwork from '../ParticleNetwork';
-import MatrixRain from '../MatrixRain';
-import { useEffectsContext } from '../context/EffectsContext';
-import { useSettingsContext } from '../context/SettingsContext';
-import { useOverlayContext } from '../context/OverlayContext';
+import Starfield from '../effects/Starfield';
+import ParticleNetwork from '../effects/ParticleNetwork';
+import MatrixRain from '../effects/MatrixRain';
+import { useEffectsContext } from '../app/context/EffectsContext';
+import { useSettingsContext } from '../app/context/SettingsContext';
+import { useOverlayContext } from '../app/context/OverlayContext';
 
 export default function BackgroundElements() {
   const { starfieldRef, deepGridRef, baseGridRef, gridSpotlightRef, canvasRef } = useEffectsContext();

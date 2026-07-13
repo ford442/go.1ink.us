@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import projectData from './projectData';
-import { useActivityContext } from './context/ActivityContext';
+import projectData from '../data/projectData';
+import { useActivityContext } from '../app/context/ActivityContext';
 
 const LOG_TEMPLATES = [
   "INCOMING TCP_CONN FROM [IP]",

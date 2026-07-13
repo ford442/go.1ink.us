@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import soundSystem from '../../SoundSystem';
+import soundSystem from '../../lib/SoundSystem';
 import useCardTilt from './useCardTilt';
 import useCardHover from './useCardHover';
 import useCardMedia from './useCardMedia';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import soundSystem from './SoundSystem';
-import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES } from './constants';
+import soundSystem from '../lib/SoundSystem';
+import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES } from '../data/constants';
 
 const OmniPalette = ({
   isOpen,
@@ -19,6 +19,8 @@ const OmniPalette = ({
   isLockdown,
   onToggleLockdown,
   onChangeDisplayMode,
+  isHoloTerminalOpen,
+  onToggleHoloTerminal,
   onChangeSortOption
 }) => {
   const [query, setQuery] = useState('');
@@ -37,6 +39,7 @@ const OmniPalette = ({
       { id: 'toggle-matrix', type: 'protocol', label: `Matrix Mode: ${isMatrixMode ? 'Disable' : 'Enable'}`, action: onToggleMatrixMode, icon: '🌧️' },
       { id: 'toggle-sound', type: 'protocol', label: `Audio: ${isSoundEnabled ? 'Disable' : 'Enable'}`, action: onToggleSound, icon: '🔊' },
       { id: 'toggle-lockdown', type: 'protocol', label: isLockdown ? 'Override Lockdown' : 'Engage Lockdown', action: onToggleLockdown, icon: '🔒' },
+      { id: 'toggle-holoterminal', type: 'protocol', label: `Holo Terminal: ${isHoloTerminalOpen ? 'Close' : 'Open'}`, action: onToggleHoloTerminal, icon: '💻' },
       { id: 'view-grid', type: 'protocol', label: 'View: Grid', action: () => onChangeDisplayMode('grid'), icon: '🔲' },
       { id: 'view-matrix', type: 'protocol', label: 'View: Matrix', action: () => onChangeDisplayMode('matrix'), icon: '☰' },
       { id: 'view-map', type: 'protocol', label: 'View: Neural Map', action: () => onChangeDisplayMode('map'), icon: '🌌' },
@@ -78,7 +81,7 @@ const OmniPalette = ({
     }));
 
     return [...projectItems, ...categoryFilters, ...protocols];
-  }, [projects, activeFilters, onToggleFilter, onProjectSelect, onChangeTheme, isCrtEnabled, onToggleCrt, isMatrixMode, onToggleMatrixMode, isSoundEnabled, onToggleSound, isLockdown, onToggleLockdown, onChangeDisplayMode, onChangeSortOption]);
+  }, [projects, activeFilters, onToggleFilter, onProjectSelect, onChangeTheme, isCrtEnabled, onToggleCrt, isMatrixMode, onToggleMatrixMode, isSoundEnabled, onToggleSound, isLockdown, onToggleLockdown, onChangeDisplayMode, onChangeSortOption, isHoloTerminalOpen, onToggleHoloTerminal]);
 
   // Filter commands based on query
   const filteredItems = useMemo(() => {

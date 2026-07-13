@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import soundSystem from '../../SoundSystem';
+import soundSystem from '../../lib/SoundSystem';
 
 // Hover-delay micro-interactions: immediate hover state plus a 700ms-delayed
 // "deep focus" state (used for the image zoom/lift), and a simulated

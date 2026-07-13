@@ -3,11 +3,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Card from './Card';
 import SystemMap from './SystemMap';
-import ConstellationOverlay from '../ConstellationOverlay';
-import { CATEGORY_ICONS } from '../constants';
-import { useBrowserContext } from '../context/BrowserContext';
-import { useSettingsContext } from '../context/SettingsContext';
-import { useOverlayContext } from '../context/OverlayContext';
+import ConstellationOverlay from '../effects/ConstellationOverlay';
+import { CATEGORY_ICONS } from '../data/constants';
+import { useBrowserContext } from '../app/context/BrowserContext';
+import { useSettingsContext } from '../app/context/SettingsContext';
+import { useOverlayContext } from '../app/context/OverlayContext';
 
 export default function MainContent() {
   const { filteredProjects, activeFilters, searchQuery, setSearchQuery, setActiveFilters, setCurrentPage, toggleFilter, sortOption, hoveredTag, paginatedProjects, focusedCardIndex, setFocusedCardIndex, favorites, toggleFavorite, handleCopyLink, handleTagClick, activeFiltersSet, draggedFavoriteId, dragOverFavoriteId, handleDragStart, handleDragOver, handleDragEnd, handleDrop, setHoveredTag, totalPages, currentPage, handlePageChange, suggestedTags } = useBrowserContext();

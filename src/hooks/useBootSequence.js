@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import soundSystem from '../SoundSystem';
+import soundSystem from '../lib/SoundSystem';
 
-export default function useBootSequence() {
+export default function useBootSequence({ isSoundEnabled }) {
   // Ensure page loads scrolled to top
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -87,27 +87,8 @@ export default function useBootSequence() {
   // Boot screen hidden — site loads directly into the project grid
   const [showBootScreen, setShowBootScreen] = useState(false);
 
-  // Audio State
-  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('curator_sound') === 'true';
-    }
-    return false;
-  });
-
   // Data Decryption (X-Ray) Mode
   const [isDataMode, setIsDataMode] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('curator_sound', isSoundEnabled);
-      if (isSoundEnabled) {
-        soundSystem.enable();
-      } else {
-        soundSystem.disable();
-      }
-    }
-  }, [isSoundEnabled]);
 
   useEffect(() => {
     if (isBooting && isSoundEnabled) {
@@ -186,10 +167,8 @@ export default function useBootSequence() {
     clickEffects,
     isBooting,
     isDataMode,
-    isSoundEnabled,
     scanProgress,
     setIsDataMode,
-    setIsSoundEnabled,
     showBootScreen,
     startScan,
     stopScan,

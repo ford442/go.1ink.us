@@ -1,4 +1,4 @@
-import soundSystem from '../../SoundSystem';
+import soundSystem from '../../lib/SoundSystem';
 import { getCardWrapperClasses } from './cardStyles';
 
 // X-ray / data-mode branch: renders the raw project payload instead of the

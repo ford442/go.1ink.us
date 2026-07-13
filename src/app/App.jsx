@@ -1,24 +1,25 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { flushSync } from 'react-dom';
-import CustomCursor from './CustomCursor';
-import projectData from './projectData';
-import soundSystem from './SoundSystem';
-import { TAG_TO_CATEGORIES } from './constants';
+import CustomCursor from '../effects/CustomCursor';
+import projectData from '../data/projectData';
+import soundSystem from '../lib/SoundSystem';
+import { TAG_TO_CATEGORIES } from '../data/constants';
 import AppProviders from './context/AppProviders';
-import BootScreen from './components/BootScreen';
-import CommandHeader from './components/CommandHeader';
-import BackgroundElements from './components/BackgroundElements';
-import Sidebar from './components/Sidebar';
-import MainContent from './components/MainContent';
-import ProjectQuickView from './components/ProjectQuickView';
-import TerminalBar from './components/TerminalBar';
-import ContextMenu from './components/ContextMenu';
-import SystemOverlays from './components/SystemOverlays';
-import useBootSequence from './hooks/useBootSequence';
-import useTerminalController from './hooks/useTerminalController';
-import useGlobalShortcuts from './hooks/useGlobalShortcuts';
-import useBackgroundEffects from './hooks/useBackgroundEffects';
-import useProjectBrowser from './hooks/useProjectBrowser';
+import BootScreen from '../components/BootScreen';
+import CommandHeader from '../components/CommandHeader';
+import BackgroundElements from '../components/BackgroundElements';
+import Sidebar from '../components/Sidebar';
+import MainContent from '../components/MainContent';
+import ProjectQuickView from '../components/ProjectQuickView';
+import TerminalBar from '../components/TerminalBar';
+import HoloTerminal from '../components/HoloTerminal/HoloTerminal';
+import ContextMenu from '../components/ContextMenu';
+import SystemOverlays from '../components/SystemOverlays';
+import useBootSequence from '../hooks/useBootSequence';
+import useTerminalController from '../hooks/useTerminalController';
+import useGlobalShortcuts from '../hooks/useGlobalShortcuts';
+import useBackgroundEffects from '../hooks/useBackgroundEffects';
+import useProjectBrowser from '../hooks/useProjectBrowser';
 import { useScroll, useVelocity, useSpring } from 'framer-motion';
 import './App.css';
 
@@ -50,18 +51,16 @@ function App() {
     clickEffects,
     isBooting,
     isDataMode,
-    isSoundEnabled,
     scanProgress,
     setIsDataMode,
-    setIsSoundEnabled,
     showBootScreen,
     startScan,
     stopScan,
     userActivityLogs
-  } = useBootSequence();
+  } = useBootSequence({ isSoundEnabled });
 
   // Sound System State
-  const [soundEnabled, setSoundEnabled] = useState(() => {
+  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('curator_sound');
       if (stored !== null) {
@@ -88,8 +87,8 @@ function App() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('curator_sound', soundEnabled);
-      if (soundEnabled) {
+      localStorage.setItem('curator_sound', isSoundEnabled);
+      if (isSoundEnabled) {
         soundSystem.enable();
         soundSystem.startAmbience();
       } else {
@@ -97,7 +96,7 @@ function App() {
         soundSystem.disable();
       }
     }
-  }, [soundEnabled]);
+  }, [isSoundEnabled]);
 
   // CRT Global Effect State
   const [isCrtEnabled, setIsCrtEnabled] = useState(() => {
@@ -616,7 +615,7 @@ function App() {
     setIsMatrixMode,
     setRandomSeed,
     setSortOption,
-    setSoundEnabled,
+    setIsSoundEnabled,
     toggleFavorite,
     toggleFilter
   });
@@ -625,11 +624,11 @@ function App() {
     handleTerminalKeyDown,
     handleTerminalSubmit,
     isTerminalClosing,
-    isTerminalOpen,
     isHoloTerminalOpen,
+    setIsHoloTerminalOpen,
+    isTerminalOpen,
     setIsTerminalClosing,
     setIsTerminalOpen,
-    setIsHoloTerminalOpen,
     setTerminalInput,
     terminalEndRef,
     terminalHistory,
@@ -642,6 +641,9 @@ function App() {
     contextMenu,
     isDataMode,
     isOmniOpen,
+    isTerminalClosing,
+    isHoloTerminalOpen,
+    setIsHoloTerminalOpen,
     isTerminalOpen,
     isGodMode,
     setIsGodMode,
@@ -681,10 +683,8 @@ function App() {
     setIsCrtEnabled,
     setIsMatrixMode,
     setIsSoundEnabled,
-    setSoundEnabled,
-    soundEnabled,
     theme
-  }), [changeTheme, displayMode, handleDisplayModeChange, isCrtEnabled, isGlitching, isGodMode, isMatrixMode, isSoundEnabled, setIsSoundEnabled, soundEnabled, theme]);
+  }), [changeTheme, displayMode, handleDisplayModeChange, isCrtEnabled, isGlitching, isGodMode, isMatrixMode, setDisplayMode, setIsCrtEnabled, setIsMatrixMode, setIsSoundEnabled, isSoundEnabled, theme]);
 
   const browserValue = useMemo(() => ({
     activeCategories,
@@ -831,6 +831,7 @@ function App() {
 
         <ProjectQuickView />
         <TerminalBar />
+        <HoloTerminal />
         <ContextMenu />
         <SystemOverlays />
       </div>

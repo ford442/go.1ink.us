@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import projectData from '../projectData';
-import soundSystem from '../SoundSystem';
-import { CATEGORIES, TAG_TO_CATEGORIES } from '../constants';
+import projectData from '../data/projectData';
+import soundSystem from '../lib/SoundSystem';
+import { CATEGORIES, TAG_TO_CATEGORIES } from '../data/constants';
 
 export default function useTerminalController({
   addActivityLog,
@@ -14,9 +14,9 @@ export default function useTerminalController({
   setIsCrtEnabled,
   setIsLockdown,
   setIsMatrixMode,
+  setIsSoundEnabled,
   setRandomSeed,
   setSortOption,
-  setSoundEnabled,
   toggleFavorite,
   toggleFilter
 }) {
@@ -24,6 +24,7 @@ export default function useTerminalController({
   // Terminal Command Bar State
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [isTerminalClosing, setIsTerminalClosing] = useState(false); // For exit animation
+  const [isHoloTerminalOpen, setIsHoloTerminalOpen] = useState(false);
   const [terminalHistory, setTerminalHistory] = useState([
     { type: 'system', text: 'CURATOR_OS v1.0.4 - TERMINAL INITIALIZED' },
     { type: 'system', text: 'Type "help" for a list of commands.' }
@@ -100,11 +101,11 @@ export default function useTerminalController({
   }, [commandHistory, historyIndex, terminalInput]);
 
   // Terminal Command Processor
-  const handleTerminalSubmit = useCallback((e) => {
+  const handleTerminalSubmit = useCallback((e, overrideCommand) => {
     e.preventDefault();
-    if (!terminalInput.trim()) return;
+    const commandStr = overrideCommand || terminalInput.trim();
+    if (!commandStr) return;
 
-    const commandStr = terminalInput.trim();
     const [command, ...args] = commandStr.split(/\s+/);
 
     setCommandHistory(prev => [...prev, commandStr]);
@@ -131,10 +132,16 @@ export default function useTerminalController({
           `  sound <val>  - Toggle UI audio feedback (on, off)\n` +
           `  crt <val>    - Toggle CRT retro effect (on, off)\n` +
           `  matrix <val> - Toggle Matrix Rain background (on, off)\n` +
+          `  holo         - Toggle Holo Terminal\n` +
           `  stats        - View system diagnostics\n` +
           `  clear        - Flush terminal buffer\n` +
           `  lockdown     - Engage system lockdown protocol\n` +
           `  exit / close - Terminate command session`;
+        break;
+
+      case 'holo':
+        setIsHoloTerminalOpen(!isHoloTerminalOpen);
+        responseText = `> HOLO_TERMINAL ${!isHoloTerminalOpen ? 'ENGAGED' : 'DISENGAGED'}`;
         break;
 
       case 'lockdown':
@@ -169,13 +176,11 @@ export default function useTerminalController({
         } else {
           const stateParam = args[0].toLowerCase();
           if (stateParam === 'on') {
-            setSoundEnabled(true);
-            soundSystem.enable();
+            setIsSoundEnabled(true);
             responseText = `> AUDIO_FEEDBACK_SYSTEM: ONLINE`;
             responseType = 'success';
           } else if (stateParam === 'off') {
-            setSoundEnabled(false);
-            soundSystem.disable();
+            setIsSoundEnabled(false);
             responseText = `> AUDIO_FEEDBACK_SYSTEM: OFFLINE`;
             responseType = 'success';
           } else {
@@ -444,11 +449,14 @@ export default function useTerminalController({
     setIsCrtEnabled,
     setIsLockdown,
     setIsMatrixMode,
+    setHistoryIndex,
     setRandomSeed,
     setSortOption,
-    setSoundEnabled,
+    setIsSoundEnabled,
+    setTerminalInput,
     terminalHistory,
     terminalInput,
+    isHoloTerminalOpen,
     toggleFavorite,
     toggleFilter
   ]);
@@ -477,6 +485,8 @@ export default function useTerminalController({
     handleTerminalKeyDown,
     handleTerminalSubmit,
     historyIndex,
+    isHoloTerminalOpen,
+    setIsHoloTerminalOpen,
     isTerminalClosing,
     isTerminalOpen,
     setIsTerminalClosing,

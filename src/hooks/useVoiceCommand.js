@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useBrowserContext } from '../context/BrowserContext';
-import { useSettingsContext } from '../context/SettingsContext';
-import { useOverlayContext } from '../context/OverlayContext';
-import { useActivityContext } from '../context/ActivityContext';
-import soundSystem from '../SoundSystem';
+import { useBrowserContext } from '../app/context/BrowserContext';
+import { useSettingsContext } from '../app/context/SettingsContext';
+import { useOverlayContext } from '../app/context/OverlayContext';
+import { useActivityContext } from '../app/context/ActivityContext';
+import soundSystem from '../lib/SoundSystem';
 
 export default function useVoiceCommand() {
   const { setSearchQuery } = useBrowserContext();
