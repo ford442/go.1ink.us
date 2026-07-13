@@ -2,6 +2,10 @@
 
 A React application showcasing various web projects built with Vite and styled with Tailwind CSS.
 
+## Requirements
+
+- Node.js `^20.19.0 || >=22.12.0` (required by Vite 7)
+
 ## Features
 
 - **React + Vite**: Fast development with Hot Module Replacement (HMR)
