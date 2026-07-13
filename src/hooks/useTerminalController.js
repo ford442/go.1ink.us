@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import projectData from '../projectData';
-import soundSystem from '../SoundSystem';
-import { CATEGORIES, TAG_TO_CATEGORIES } from '../constants';
+import projectData from '../data/projectData';
+import soundSystem from '../lib/SoundSystem';
+import { CATEGORIES, TAG_TO_CATEGORIES } from '../data/constants';
 
 export default function useTerminalController({
   addActivityLog,
@@ -442,9 +442,11 @@ export default function useTerminalController({
     setIsCrtEnabled,
     setIsLockdown,
     setIsMatrixMode,
+    setHistoryIndex,
     setRandomSeed,
     setSortOption,
-    setSoundEnabled,
+    setIsSoundEnabled,
+    setTerminalInput,
     terminalHistory,
     terminalInput,
     toggleFavorite,

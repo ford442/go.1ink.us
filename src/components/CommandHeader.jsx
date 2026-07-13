@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import AudioVisualizer from '../AudioVisualizer';
-import Clock from '../Clock';
-import SystemClock from '../SystemClock';
-import TelemetryGraph from '../TelemetryGraph';
-import soundSystem from '../SoundSystem';
-import { useSettingsContext } from '../context/SettingsContext';
-import { useBrowserContext } from '../context/BrowserContext';
+import AudioVisualizer from './AudioVisualizer';
+import Clock from './Clock';
+import TelemetryGraph from './TelemetryGraph';
+import soundSystem from '../lib/SoundSystem';
+import { useSettingsContext } from '../app/context/SettingsContext';
+import { useBrowserContext } from '../app/context/BrowserContext';
 import useVoiceCommand from '../hooks/useVoiceCommand';
 
 // Format uptime seconds to HH:MM:SS
@@ -17,8 +16,7 @@ function formatUptime(seconds) {
 }
 
 export default function CommandHeader() {
-  const { formatUptime, systemStats, isSoundEnabled, toggleSound, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, totalProjects, isGodMode } = useAppContext();
-  const { soundEnabled, setSoundEnabled, isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, isGodMode } = useSettingsContext();
+  const { isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, isGodMode } = useSettingsContext();
   const { totalProjects } = useBrowserContext();
   const { isSupported, isListening, startListening, stopListening } = useVoiceCommand();
 
@@ -97,7 +95,7 @@ export default function CommandHeader() {
       </div>
 
       <div className="hidden lg:flex items-center">
-        <SystemClock />
+        <Clock precision="seconds" label="SYS.TIME:" />
       </div>
     </div>
 
@@ -123,8 +121,9 @@ export default function CommandHeader() {
       <div className="hidden sm:flex items-center gap-2 border-r border-accent-500/30 pr-4">
          <button
            onClick={() => {
-             toggleSound();
-             if (!isSoundEnabled) {
+             const nextEnabled = !isSoundEnabled;
+             setIsSoundEnabled(nextEnabled);
+             if (nextEnabled) {
                soundSystem.playAlert();
              }
            }}
@@ -203,7 +202,7 @@ export default function CommandHeader() {
       <div className="hidden md:flex">
          <AudioVisualizer theme={theme} />
       </div>
-      <Clock />
+      <Clock precision="milliseconds" />
     </div>
   </div>
     </>

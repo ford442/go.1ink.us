@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import soundSystem from '../SoundSystem';
+import soundSystem from '../lib/SoundSystem';
 
 // Tracks user activity (mouse/keyboard/touch/scroll) and flips `isIdle`
 // after `timeoutMs` of silence, so long as boot isn't in progress.

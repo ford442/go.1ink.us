@@ -1,6 +1,6 @@
-import { CATEGORY_ICONS, TAG_TO_CATEGORIES } from '../constants';
-import { useOverlayContext } from '../context/OverlayContext';
-import { useBrowserContext } from '../context/BrowserContext';
+import { CATEGORY_ICONS, TAG_TO_CATEGORIES } from '../data/constants';
+import { useOverlayContext } from '../app/context/OverlayContext';
+import { useBrowserContext } from '../app/context/BrowserContext';
 
 export default function ProjectQuickView() {
   const { selectedProject, closeProjectModal, modalRef, modalImageLoaded, setModalImageLoaded } = useOverlayContext();

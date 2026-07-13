@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import soundSystem from '../SoundSystem';
+import soundSystem from '../lib/SoundSystem';
 
 export default function useBootSequence({ isSoundEnabled }) {
   // Ensure page loads scrolled to top

@@ -1,6 +1,6 @@
-import Tooltip from '../../Tooltip';
-import DecryptText from '../../DecryptText';
-import soundSystem from '../../SoundSystem';
+import Tooltip from '../Tooltip';
+import DecryptText from '../DecryptText';
+import soundSystem from '../../lib/SoundSystem';
 import { getCardWrapperClasses } from './cardStyles';
 import CardMedia from './CardMedia';
 import CardTechBadges from './CardTechBadges';

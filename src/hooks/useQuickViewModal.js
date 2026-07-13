@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import soundSystem from '../SoundSystem';
+import soundSystem from '../lib/SoundSystem';
 
 // Project quick-view modal: open/close (with the hyperspace warp
 // transition), focus trap, and body scroll lock. `isLockdown`/`addToast`/

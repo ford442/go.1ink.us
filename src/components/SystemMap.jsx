@@ -1,9 +1,9 @@
 import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
-import { useBrowserContext } from '../context/BrowserContext';
-import { useOverlayContext } from '../context/OverlayContext';
-import { useSettingsContext } from '../context/SettingsContext';
-import { CATEGORY_THEMES } from '../constants';
+import { useBrowserContext } from '../app/context/BrowserContext';
+import { useOverlayContext } from '../app/context/OverlayContext';
+import { useSettingsContext } from '../app/context/SettingsContext';
+import { CATEGORY_THEMES } from '../data/constants';
 
 // Compute link similarities based on shared tags and categories
 const computeGraphData = (projects) => {

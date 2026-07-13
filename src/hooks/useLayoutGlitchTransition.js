@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import soundSystem from '../SoundSystem';
+import soundSystem from '../lib/SoundSystem';
 
 // Brief glitch animation played whenever displayMode changes (grid/list/
 // matrix/map), whether triggered by a click or a keyboard shortcut.

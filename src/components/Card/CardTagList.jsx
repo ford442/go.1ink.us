@@ -1,5 +1,5 @@
 import highlightMatch from './highlightMatch';
-import soundSystem from '../../SoundSystem';
+import soundSystem from '../../lib/SoundSystem';
 
 const VARIANTS = {
   grid: {
