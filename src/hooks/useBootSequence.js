@@ -57,7 +57,7 @@ export default function useBootSequence() {
   const [scanProgress, setScanProgress] = useState(0);
   const scanIntervalRef = useRef(null);
 
-  const startScan = (e) => {
+  const startScan = useCallback((e) => {
     if (e && e.preventDefault && e.type !== 'touchstart') e.preventDefault();
     if (bootStep !== 1) return;
 
@@ -75,14 +75,14 @@ export default function useBootSequence() {
         return prev + 2; // Fills in ~1.5s (30ms * 50 steps)
       });
     }, 30);
-  };
+  }, [bootStep]);
 
-  const stopScan = () => {
+  const stopScan = useCallback(() => {
     if (bootStep === 1) {
       clearInterval(scanIntervalRef.current);
       setScanProgress(0);
     }
-  };
+  }, [bootStep]);
 
   // Boot screen hidden — site loads directly into the project grid
   const [showBootScreen, setShowBootScreen] = useState(false);

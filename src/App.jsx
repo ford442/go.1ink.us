@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { flushSync } from 'react-dom';
 import CustomCursor from './CustomCursor';
 import projectData from './projectData';
 import soundSystem from './SoundSystem';
 import { TAG_TO_CATEGORIES } from './constants';
-import { AppContext } from './AppContext';
+import AppProviders from './context/AppProviders';
 import BootScreen from './components/BootScreen';
 import CommandHeader from './components/CommandHeader';
 import BackgroundElements from './components/BackgroundElements';
@@ -147,49 +147,6 @@ function App() {
     addActivityLog(`SYS_THEME_UPDATED: [${theme.toUpperCase()}]`);
   }, [theme, addActivityLog]);
 
-
-  // Command Center Header State
-  const [systemStats, setSystemStats] = useState({
-    uptime: 999990, // Random high start
-    connections: 1337,
-    memory: 42
-  });
-
-  // Animated Command Center Header Logic
-  useEffect(() => {
-    const slowTimer = setInterval(() => {
-      setSystemStats(prev => {
-        // Fluctuate connections slightly
-        let newConnections = prev.connections + Math.floor(Math.random() * 5) - 2;
-        if (newConnections < 1000) newConnections = 1000 + Math.floor(Math.random() * 50);
-
-        // Fluctuate memory
-        let newMemory = prev.memory + (Math.random() > 0.5 ? 1 : -1);
-        if (newMemory < 20) newMemory = 20;
-        if (newMemory > 80) newMemory = 80;
-
-        return {
-          ...prev,
-          uptime: prev.uptime + 1,
-          connections: newConnections,
-          memory: newMemory
-        };
-      });
-    }, 1000);
-
-    return () => {
-      clearInterval(slowTimer);
-    };
-  }, []);
-
-  // Format uptime to HH:MM:SS
-  const formatUptime = (seconds) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
-
   // Tag Constellation Hover State
   const [hoveredTag, setHoveredTag] = useState(null);
 
@@ -266,11 +223,13 @@ function App() {
     }
   }, [displayMode]);
 
-  const handleDisplayModeChange = (newMode) => {
-    if (newMode === displayMode) return;
-    setDisplayMode(newMode);
-    addActivityLog(`SYS.UI: LAYOUT_UPDATED_${newMode.toUpperCase()}`);
-  };
+  const handleDisplayModeChange = useCallback((newMode) => {
+    setDisplayMode(prevMode => {
+      if (newMode === prevMode) return prevMode;
+      addActivityLog(`SYS.UI: LAYOUT_UPDATED_${newMode.toUpperCase()}`);
+      return newMode;
+    });
+  }, [addActivityLog]);
 
   // Sync display mode to localStorage
   useEffect(() => {
@@ -300,16 +259,38 @@ function App() {
   const [isIdle, setIsIdle] = useState(false);
   const lastActivityRef = useRef(0);
 
+  // Toast Notifications State
+  const [toasts, setToasts] = useState([]);
+
+  const removeToast = useCallback((id) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
+
+  const addToast = useCallback((message, type = 'info', duration = 3000) => {
+    const id = Date.now() + Math.random().toString(36).substr(2, 9);
+    setToasts(prev => [...prev, { id, message, type, duration }]);
+
+    if (type === 'error') {
+      soundSystem.playError();
+    } else if (type === 'success') {
+      soundSystem.playSuccess();
+    } else {
+      soundSystem.playClick();
+    }
+  }, []);
+
   // System Idle Protocol Logic
   useEffect(() => {
     lastActivityRef.current = Date.now();
 
     const updateActivity = () => {
       lastActivityRef.current = Date.now();
-      if (isIdle) {
-        setIsIdle(false);
-        soundSystem.playTone(600, 'sine', 0.05); // Play a subtle sound when waking up
-      }
+      setIsIdle(prevIdle => {
+        if (prevIdle) {
+          soundSystem.playTone(600, 'sine', 0.05); // Play a subtle sound when waking up
+        }
+        return false;
+      });
     };
 
     // Attach to window
@@ -319,7 +300,7 @@ function App() {
     const idleCheckInterval = setInterval(() => {
       const currentTime = Date.now();
       // 60 seconds (60000ms) of inactivity triggers idle mode
-      if (currentTime - lastActivityRef.current > 60000 && !isIdle && !isBooting) {
+      if (currentTime - lastActivityRef.current > 60000 && !isBooting) {
         setIsIdle(true);
       }
     }, 1000);
@@ -328,10 +309,13 @@ function App() {
       events.forEach(event => window.removeEventListener(event, updateActivity));
       clearInterval(idleCheckInterval);
     };
-  }, [isIdle, isBooting]);
+  }, [isBooting]);
+
+  // Warp Speed State
+  const [isWarping, setIsWarping] = useState(false);
 
   // Open the Project Quick View modal
-  const handleProjectSelect = (project) => {
+  const handleProjectSelect = useCallback((project) => {
     if (isLockdown) {
       soundSystem.playDenied();
       addToast("> SYS_ERR: ACCESS DENIED - SYSTEM IN LOCKDOWN", "error");
@@ -357,7 +341,7 @@ function App() {
         setIsWarping(false);
       }
     }, 600); // Duration to let the warp effect play before opening modal
-  };
+  }, [isLockdown, addToast, addActivityLog]);
 
   // Close the Project Quick View modal
   const closeProjectModal = useCallback(() => {
@@ -450,101 +434,82 @@ function App() {
   const [draggedFavoriteId, setDraggedFavoriteId] = useState(null);
   const [dragOverFavoriteId, setDragOverFavoriteId] = useState(null);
 
-  // Warp Speed State
-  const [isWarping, setIsWarping] = useState(false);
-
-  const handleDragStart = (e, projectId) => {
+  const handleDragStart = useCallback((e, projectId) => {
     setDraggedFavoriteId(projectId);
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', projectId);
     }
-  };
+  }, []);
 
-  const handleDragOver = (e, projectId) => {
+  const handleDragOver = useCallback((e, projectId) => {
     e.preventDefault(); // Necessary to allow dropping
     if (e.dataTransfer) {
       e.dataTransfer.dropEffect = 'move';
     }
-    if (dragOverFavoriteId !== projectId) {
-      setDragOverFavoriteId(projectId);
-    }
-  };
-
-  const handleDragEnd = () => {
-    setDraggedFavoriteId(null);
-    setDragOverFavoriteId(null);
-  };
-
-  const handleDrop = (e, targetProjectId) => {
-    e.preventDefault();
-    if (!draggedFavoriteId || draggedFavoriteId === targetProjectId) {
-      handleDragEnd();
-      return;
-    }
-
-    setFavorites(prevFavorites => {
-      const draggedIndex = prevFavorites.indexOf(draggedFavoriteId);
-      const targetIndex = prevFavorites.indexOf(targetProjectId);
-
-      if (draggedIndex === -1 || targetIndex === -1) return prevFavorites;
-
-      const newFavorites = [...prevFavorites];
-      newFavorites.splice(draggedIndex, 1);
-      newFavorites.splice(targetIndex, 0, draggedFavoriteId);
-
-      return newFavorites;
-    });
-
-    addToast(`> SYS_CMD: FAVORITES_REORDERED`, 'success');
-    handleDragEnd();
-  };
-
-  // Toast Notifications State
-  const [toasts, setToasts] = useState([]);
-
-  const removeToast = useCallback((id) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
+    setDragOverFavoriteId(prev => (prev !== projectId ? projectId : prev));
   }, []);
 
-  const addToast = (message, type = 'info', duration = 3000) => {
-    const id = Date.now() + Math.random().toString(36).substr(2, 9);
-    setToasts(prev => [...prev, { id, message, type, duration }]);
+  const handleDragEnd = useCallback(() => {
+    setDraggedFavoriteId(null);
+    setDragOverFavoriteId(null);
+  }, []);
 
-    if (type === 'error') {
-      soundSystem.playError();
-    } else if (type === 'success') {
-      soundSystem.playSuccess();
-    } else {
-      soundSystem.playClick();
-    }
-  };
+  const handleDrop = useCallback((e, targetProjectId) => {
+    e.preventDefault();
+    setDraggedFavoriteId(currentDraggedId => {
+      if (!currentDraggedId || currentDraggedId === targetProjectId) {
+        setDragOverFavoriteId(null);
+        return null;
+      }
 
-  const changeTheme = (newTheme) => {
-    if (theme !== newTheme) {
-      setTheme(newTheme);
+      setFavorites(prevFavorites => {
+        const draggedIndex = prevFavorites.indexOf(currentDraggedId);
+        const targetIndex = prevFavorites.indexOf(targetProjectId);
+
+        if (draggedIndex === -1 || targetIndex === -1) return prevFavorites;
+
+        const newFavorites = [...prevFavorites];
+        newFavorites.splice(draggedIndex, 1);
+        newFavorites.splice(targetIndex, 0, currentDraggedId);
+
+        return newFavorites;
+      });
+
+      addToast(`> SYS_CMD: FAVORITES_REORDERED`, 'success');
+      setDragOverFavoriteId(null);
+      return null;
+    });
+  }, [addToast]);
+
+  const changeTheme = useCallback((newTheme) => {
+    setTheme(prevTheme => {
+      if (prevTheme === newTheme) return prevTheme;
       addToast(`> SYS_UPDATE: COLOR_PROTOCOL_${newTheme.toUpperCase()}`, 'info');
-    }
-  };
-  const toggleFavorite = (project) => {
+      return newTheme;
+    });
+  }, [addToast]);
+
+  const toggleFavorite = useCallback((project) => {
     if (isLockdown) {
       soundSystem.playDenied();
       addToast('> SYS_ERR: ACCESS DENIED - SYSTEM IN LOCKDOWN', 'error');
       return;
     }
-    const isFavorited = favorites.includes(project.id);
-    if (isFavorited) {
-      addToast(`> SYS_UPDATE: [${project.title.toUpperCase()}] REMOVED`, 'warning');
-      setFavorites(prev => prev.filter(id => id !== project.id));
-      addActivityLog(`FAVORITE REMOVED: [${project.title.toUpperCase()}]`);
-    } else {
+    setFavorites(prev => {
+      const isFavorited = prev.includes(project.id);
+      if (isFavorited) {
+        addToast(`> SYS_UPDATE: [${project.title.toUpperCase()}] REMOVED`, 'warning');
+        addActivityLog(`FAVORITE REMOVED: [${project.title.toUpperCase()}]`);
+        return prev.filter(id => id !== project.id);
+      }
       addToast(`> SYS_UPDATE: [${project.title.toUpperCase()}] FAVORITED`, 'favorite');
-      setFavorites(prev => [...prev, project.id]);
       addActivityLog(`FAVORITE ADDED: [${project.title.toUpperCase()}]`);
-    }
-  };
+      return [...prev, project.id];
+    });
+  }, [isLockdown, addToast, addActivityLog]);
 
-  const handleCopyLink = (project) => {
+  const handleCopyLink = useCallback((project) => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(project.url).then(() => {
         addToast(`> SYS_CMD: [${project.title.toUpperCase()}] LINK_COPIED`, 'copy');
@@ -554,21 +519,21 @@ function App() {
     } else {
       addToast(`> SYS_ERR: CLIPBOARD_NOT_SUPPORTED`, 'error');
     }
-  };
+  }, [addToast]);
 
   // Context Menu Handlers
-  const handleContextMenu = (e, project) => {
+  const handleContextMenu = useCallback((e, project) => {
     e.preventDefault();
     setContextMenu({
       mouseX: e.clientX,
       mouseY: e.clientY,
       project
     });
-  };
+  }, []);
 
-  const closeContextMenu = () => {
+  const closeContextMenu = useCallback(() => {
     setContextMenu(null);
-  };
+  }, []);
 
   useEffect(() => {
     if (!contextMenu) return;
@@ -580,7 +545,7 @@ function App() {
       window.removeEventListener('click', closeContextMenu);
       window.removeEventListener('scroll', closeContextMenu);
     };
-  }, [contextMenu]);
+  }, [contextMenu, closeContextMenu]);
 
   // Pagination Logic
   const [currentPage, setCurrentPage] = useState(1);
@@ -697,12 +662,142 @@ function App() {
 
   const { baseGridRef, canvasRef, deepGridRef, gridSpotlightRef, starfieldRef } = useBackgroundEffects();
 
-  const appContext = {
-    activeCategories, activeFilters, activeFiltersSet, addActivityLog, addToast, baseGridRef, bootLogs, bootStep, canvasRef, changeTheme, clickEffects, closeContextMenu, closeProjectModal, contextMenu, counts, currentPage, deepGridRef, displayMode, dragOverFavoriteId, draggedFavoriteId, favoriteCount, favorites, filteredProjects, focusedCardIndex, formatUptime, gridSpotlightRef, handleContextMenu, handleCopyLink, handleDisplayModeChange, handleDragEnd, handleDragOver, handleDragStart, handleDrop, handlePageChange, handleProjectSelect, handleTagClick, handleTerminalKeyDown, handleTerminalSubmit, hoveredTag, isBooting, isCrtEnabled, isDataMode, isGlitching, isGodMode, isIdle, isLockdown, isMatrixMode, isMobileFiltersOpen, isOmniOpen, isSoundEnabled, isHoloTerminalOpen, isTerminalClosing, isTerminalOpen, isWarping, modalImageLoaded, modalRef, paginatedProjects, removeToast, scanProgress, searchInputRef, searchQuery, selectedProject, setActiveFilters, setCurrentPage, setDisplayMode, setFocusedCardIndex, setIsCrtEnabled, setIsDataMode, setIsGodMode, setIsLockdown, setIsMatrixMode, setIsMobileFiltersOpen, setIsOmniOpen, setIsSoundEnabled, setIsHoloTerminalOpen, setIsTerminalClosing, setIsTerminalOpen, setModalImageLoaded, setRandomSeed, setSearchQuery, setSelectedProject, setSortOption, setSoundEnabled, setTerminalInput, setHoveredTag, showBootScreen, sortOption, soundEnabled, starfieldRef, startScan, stopScan, suggestedTags, systemStats, terminalEndRef, terminalHistory, terminalInput, terminalInputRef, theme, toasts, totalProjects: enhancedProjects.length, toggleFavorite, toggleFilter, totalPages, userActivityLogs
-  };
+  const totalProjects = enhancedProjects.length;
+
+  // Context is split by update frequency so a change in one domain (e.g. a
+  // search keystroke) can't force components subscribed only to another
+  // domain (e.g. the starfield background) to re-render. See src/context/
+  // and AGENTS.md for the domain map.
+  const settingsValue = useMemo(() => ({
+    changeTheme,
+    displayMode,
+    handleDisplayModeChange,
+    isCrtEnabled,
+    isGlitching,
+    isGodMode,
+    isMatrixMode,
+    isSoundEnabled,
+    setDisplayMode,
+    setIsCrtEnabled,
+    setIsMatrixMode,
+    setIsSoundEnabled,
+    setSoundEnabled,
+    soundEnabled,
+    theme
+  }), [changeTheme, displayMode, handleDisplayModeChange, isCrtEnabled, isGlitching, isGodMode, isMatrixMode, isSoundEnabled, setIsSoundEnabled, soundEnabled, theme]);
+
+  const browserValue = useMemo(() => ({
+    activeCategories,
+    activeFilters,
+    activeFiltersSet,
+    counts,
+    currentPage,
+    draggedFavoriteId,
+    dragOverFavoriteId,
+    favoriteCount,
+    favorites,
+    filteredProjects,
+    focusedCardIndex,
+    handleCopyLink,
+    handleDragEnd,
+    handleDragOver,
+    handleDragStart,
+    handleDrop,
+    handlePageChange,
+    handleTagClick,
+    hoveredTag,
+    isMobileFiltersOpen,
+    paginatedProjects,
+    projectsMatchingQuery,
+    randomSeed,
+    searchInputRef,
+    searchQuery,
+    setActiveFilters,
+    setCurrentPage,
+    setFocusedCardIndex,
+    setHoveredTag,
+    setIsMobileFiltersOpen,
+    setRandomSeed,
+    setSearchQuery,
+    setSortOption,
+    sortOption,
+    suggestedTags,
+    toggleFavorite,
+    toggleFilter,
+    totalPages,
+    totalProjects
+  }), [activeCategories, activeFilters, activeFiltersSet, counts, currentPage, draggedFavoriteId, dragOverFavoriteId, favoriteCount, favorites, filteredProjects, focusedCardIndex, handleCopyLink, handleDragEnd, handleDragOver, handleDragStart, handleDrop, handlePageChange, handleTagClick, hoveredTag, isMobileFiltersOpen, paginatedProjects, projectsMatchingQuery, randomSeed, searchInputRef, searchQuery, suggestedTags, toggleFavorite, toggleFilter, totalPages, totalProjects, sortOption]);
+
+  const terminalValue = useMemo(() => ({
+    handleTerminalKeyDown,
+    handleTerminalSubmit,
+    isHoloTerminalOpen,
+    isTerminalClosing,
+    isTerminalOpen,
+    setIsHoloTerminalOpen,
+    setIsTerminalClosing,
+    setIsTerminalOpen,
+    setTerminalInput,
+    terminalEndRef,
+    terminalHistory,
+    terminalInput,
+    terminalInputRef
+  }), [handleTerminalKeyDown, handleTerminalSubmit, isHoloTerminalOpen, isTerminalClosing, isTerminalOpen, setIsHoloTerminalOpen, setIsTerminalClosing, setIsTerminalOpen, setTerminalInput, terminalEndRef, terminalHistory, terminalInput, terminalInputRef]);
+
+  const overlayValue = useMemo(() => ({
+    addToast,
+    clickEffects,
+    closeContextMenu,
+    closeProjectModal,
+    contextMenu,
+    handleContextMenu,
+    handleProjectSelect,
+    isDataMode,
+    isIdle,
+    isLockdown,
+    isOmniOpen,
+    isWarping,
+    modalImageLoaded,
+    modalRef,
+    removeToast,
+    selectedProject,
+    setIsDataMode,
+    setIsLockdown,
+    setIsOmniOpen,
+    setModalImageLoaded,
+    setSelectedProject,
+    toasts
+  }), [addToast, clickEffects, closeContextMenu, closeProjectModal, contextMenu, handleContextMenu, handleProjectSelect, isDataMode, isIdle, isLockdown, isOmniOpen, isWarping, modalImageLoaded, removeToast, selectedProject, setIsDataMode, toasts]);
+
+  const effectsValue = useMemo(() => ({
+    baseGridRef,
+    canvasRef,
+    deepGridRef,
+    gridSpotlightRef,
+    starfieldRef
+  }), [baseGridRef, canvasRef, deepGridRef, gridSpotlightRef, starfieldRef]);
+
+  const activityValue = useMemo(() => ({
+    addActivityLog,
+    bootLogs,
+    bootStep,
+    isBooting,
+    scanProgress,
+    showBootScreen,
+    startScan,
+    stopScan,
+    userActivityLogs
+  }), [addActivityLog, bootLogs, bootStep, isBooting, scanProgress, showBootScreen, startScan, stopScan, userActivityLogs]);
 
   return (
-    <AppContext.Provider value={appContext}>
+    <AppProviders
+      settings={settingsValue}
+      browser={browserValue}
+      terminal={terminalValue}
+      overlay={overlayValue}
+      effects={effectsValue}
+      activity={activityValue}
+    >
       <div className={`min-h-screen bg-gradient-to-br from-gray-950 via-indigo-950 to-slate-950 relative overflow-hidden font-sans ${isCrtEnabled ? 'crt-flicker' : ''}`}>
         {isCrtEnabled && (
           <>
@@ -739,7 +834,7 @@ function App() {
         <ContextMenu />
         <SystemOverlays />
       </div>
-    </AppContext.Provider>
+    </AppProviders>
   );
 }
 

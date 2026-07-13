@@ -5,10 +5,14 @@ import Card from '../Card';
 import SystemMap from './SystemMap';
 import ConstellationOverlay from '../ConstellationOverlay';
 import { CATEGORY_ICONS } from '../constants';
-import { useAppContext } from '../AppContext';
+import { useBrowserContext } from '../context/BrowserContext';
+import { useSettingsContext } from '../context/SettingsContext';
+import { useOverlayContext } from '../context/OverlayContext';
 
 export default function MainContent() {
-  const { filteredProjects, activeFilters, searchQuery, setSearchQuery, setActiveFilters, setCurrentPage, toggleFilter, handleDisplayModeChange, displayMode, sortOption, isGlitching, hoveredTag, paginatedProjects, focusedCardIndex, setFocusedCardIndex, selectedProject, favorites, toggleFavorite, handleContextMenu, handleCopyLink, handleProjectSelect, handleTagClick, isDataMode, activeFiltersSet, draggedFavoriteId, dragOverFavoriteId, handleDragStart, handleDragOver, handleDragEnd, handleDrop, setHoveredTag, totalPages, currentPage, handlePageChange, suggestedTags, isWarping } = useAppContext();
+  const { filteredProjects, activeFilters, searchQuery, setSearchQuery, setActiveFilters, setCurrentPage, toggleFilter, sortOption, hoveredTag, paginatedProjects, focusedCardIndex, setFocusedCardIndex, favorites, toggleFavorite, handleCopyLink, handleTagClick, activeFiltersSet, draggedFavoriteId, dragOverFavoriteId, handleDragStart, handleDragOver, handleDragEnd, handleDrop, setHoveredTag, totalPages, currentPage, handlePageChange, suggestedTags } = useBrowserContext();
+  const { displayMode, isGlitching, handleDisplayModeChange } = useSettingsContext();
+  const { selectedProject, handleContextMenu, handleProjectSelect, isDataMode, isWarping } = useOverlayContext();
 
   // 🌌 CURATOR FEATURE: Global Holographic Command Table Perspective
   const gridRef = useRef(null);

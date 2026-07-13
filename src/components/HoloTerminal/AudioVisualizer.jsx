@@ -1,10 +1,10 @@
 import React, { useRef, useEffect } from 'react';
 import soundSystem from '../../SoundSystem';
-import { useAppContext } from '../../AppContext';
+import { useSettingsContext } from '../../context/SettingsContext';
 
 const AudioVisualizer = () => {
   const canvasRef = useRef(null);
-  const { isSoundEnabled } = useAppContext();
+  const { isSoundEnabled } = useSettingsContext();
 
   useEffect(() => {
     const canvas = canvasRef.current;

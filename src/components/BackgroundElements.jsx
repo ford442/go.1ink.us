@@ -1,10 +1,14 @@
 import Starfield from '../Starfield';
 import ParticleNetwork from '../ParticleNetwork';
 import MatrixRain from '../MatrixRain';
-import { useAppContext } from '../AppContext';
+import { useEffectsContext } from '../context/EffectsContext';
+import { useSettingsContext } from '../context/SettingsContext';
+import { useOverlayContext } from '../context/OverlayContext';
 
 export default function BackgroundElements() {
-  const { starfieldRef, deepGridRef, baseGridRef, gridSpotlightRef, canvasRef, isMatrixMode, theme, isWarping, isGodMode } = useAppContext();
+  const { starfieldRef, deepGridRef, baseGridRef, gridSpotlightRef, canvasRef } = useEffectsContext();
+  const { isMatrixMode, theme, isGodMode } = useSettingsContext();
+  const { isWarping } = useOverlayContext();
 
   return (
     <>

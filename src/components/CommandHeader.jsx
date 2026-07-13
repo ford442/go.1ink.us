@@ -1,14 +1,59 @@
+import { useEffect, useState } from 'react';
 import AudioVisualizer from '../AudioVisualizer';
 import Clock from '../Clock';
 import SystemClock from '../SystemClock';
 import TelemetryGraph from '../TelemetryGraph';
 import soundSystem from '../SoundSystem';
-import { useAppContext } from '../AppContext';
+import { useSettingsContext } from '../context/SettingsContext';
+import { useBrowserContext } from '../context/BrowserContext';
 import useVoiceCommand from '../hooks/useVoiceCommand';
 
+// Format uptime seconds to HH:MM:SS
+function formatUptime(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
 export default function CommandHeader() {
-  const { formatUptime, systemStats, soundEnabled, setSoundEnabled, isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, totalProjects, isGodMode } = useAppContext();
+  const { soundEnabled, setSoundEnabled, isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, isGodMode } = useSettingsContext();
+  const { totalProjects } = useBrowserContext();
   const { isSupported, isListening, startListening, stopListening } = useVoiceCommand();
+
+  // Command Center Header stats — local to this component so the 1Hz tick
+  // doesn't ripple through the shared context and re-render the rest of the app.
+  const [systemStats, setSystemStats] = useState({
+    uptime: 999990, // Random high start
+    connections: 1337,
+    memory: 42
+  });
+
+  useEffect(() => {
+    const slowTimer = setInterval(() => {
+      setSystemStats(prev => {
+        // Fluctuate connections slightly
+        let newConnections = prev.connections + Math.floor(Math.random() * 5) - 2;
+        if (newConnections < 1000) newConnections = 1000 + Math.floor(Math.random() * 50);
+
+        // Fluctuate memory
+        let newMemory = prev.memory + (Math.random() > 0.5 ? 1 : -1);
+        if (newMemory < 20) newMemory = 20;
+        if (newMemory > 80) newMemory = 80;
+
+        return {
+          ...prev,
+          uptime: prev.uptime + 1,
+          connections: newConnections,
+          memory: newMemory
+        };
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(slowTimer);
+    };
+  }, []);
 
   return (
     <>
