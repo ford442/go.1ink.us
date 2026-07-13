@@ -1,4 +1,6 @@
-const projectData = [
+import type { Project } from './types';
+
+const projectData: Project[] = [
   {
     id: 1,
     title: "Cave Crystals",

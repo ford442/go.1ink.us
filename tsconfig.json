@@ -1,0 +1,27 @@
+{
+  // Phased JS -> TS migration (see AGENTS.md "TypeScript Migration").
+  // allowJs+checkJs:false means .js/.jsx files are included for module
+  // resolution but not type-checked yet, so `tsc --noEmit` only holds
+  // already-converted .ts/.tsx files to account. strict is intentionally
+  // off for now — the migration plan turns it on as its last phase, once
+  // enough of the codebase is converted that it's worth enforcing broadly.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "checkJs": false,
+    "strict": false,
+    "noEmit": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

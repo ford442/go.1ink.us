@@ -9,9 +9,9 @@
 - **Importance**: High — this is often the first thing people see.
 
 ## Technology Stack
-- JavaScript / TypeScript + Vite
-- HTML + CSS (likely Tailwind or custom)
-- Possibly some WebGL/WebGPU for visual flair
+- JavaScript (React 19 + Vite 7), migrating to TypeScript file-by-file — see AGENTS.md's "TypeScript Migration" section before assuming a file has types
+- Tailwind CSS
+- No WebGL/WebGPU currently; `react-force-graph-2d` (canvas 2D) powers the Neural Map view
 
 ## Grok Guidelines
 - **Clarity & Polish**: The site should feel clean, fast, and welcoming while showcasing your work beautifully.
