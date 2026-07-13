@@ -56,7 +56,7 @@ function App() {
     startScan,
     stopScan,
     userActivityLogs
-  } = useBootSequence();
+  } = useBootSequence({ isSoundEnabled });
 
   // Sound System State
   const [isSoundEnabled, setIsSoundEnabled] = useState(() => {

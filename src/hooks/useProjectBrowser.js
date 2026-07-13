@@ -105,14 +105,13 @@ export default function useProjectBrowser({
         setActiveFilters([]);
         addActivityLog(`FILTERS CLEARED`);
       } else {
-        setActiveFilters(prev => {
-          if (prev.includes(filterParam)) {
-            addActivityLog(`FILTER REMOVED: [${filterParam}]`);
-            return prev.filter(f => f !== filterParam);
-          }
+        if (activeFilters.includes(filterParam)) {
+          addActivityLog(`FILTER REMOVED: [${filterParam}]`);
+          setActiveFilters(activeFilters.filter(f => f !== filterParam));
+        } else {
           addActivityLog(`FILTER ADDED: [${filterParam}]`);
-          return [...prev, filterParam];
-        });
+          setActiveFilters([...activeFilters, filterParam]);
+        }
       }
       setCurrentPage(1);
     };
@@ -124,7 +123,7 @@ export default function useProjectBrowser({
     } else {
       updateState();
     }
-  }, [addActivityLog, setActiveFilters, setCurrentPage]);
+  }, [activeFilters, addActivityLog, setActiveFilters, setCurrentPage]);
 
   const handleTagClick = useCallback((tag) => {
     toggleFilter(tag);

@@ -121,8 +121,9 @@ export default function CommandHeader() {
       <div className="hidden sm:flex items-center gap-2 border-r border-accent-500/30 pr-4">
          <button
            onClick={() => {
-             setIsSoundEnabled(prev => !prev);
-             if (!isSoundEnabled) {
+             const nextEnabled = !isSoundEnabled;
+             setIsSoundEnabled(nextEnabled);
+             if (nextEnabled) {
                soundSystem.playAlert();
              }
            }}

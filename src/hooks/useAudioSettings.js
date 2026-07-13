@@ -25,20 +25,10 @@ export default function useAudioSettings() {
     }
   }, [isSoundEnabled]);
 
-  // Flips the flag, unlocking/resuming the AudioContext synchronously within
-  // the triggering user gesture so the very first sound isn't swallowed by
-  // browser autoplay policy while React's effect is still pending. The effect
-  // below still handles persistence and keeps ambience state aligned.
+  // Flips the flag. The effect below handles persistence, AudioContext
+  // lifecycle, and ambience; keep the updater focused on state only.
   const toggleSound = useCallback(() => {
-    setIsSoundEnabled(prev => {
-      const next = !prev;
-      if (next) {
-        soundSystem.enable();
-      } else {
-        soundSystem.disable();
-      }
-      return next;
-    });
+    setIsSoundEnabled(prev => !prev);
   }, []);
 
   return { isSoundEnabled, setIsSoundEnabled, toggleSound };
