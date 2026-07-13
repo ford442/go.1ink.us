@@ -1,0 +1,166 @@
+import type { Project } from './types';
+
+const projectData: Project[] = [
+  {
+    id: 1,
+    title: "Cave Crystals",
+    description: "An immersive web-based exploration game.",
+    url: "https://go.1ink.us/cave-crystals/index.html",
+    image: "/crystalcave.png",
+    icon: "💎",
+    tags: ["Game", "Web", "Adventure"],
+    tech: ["HTML5 Canvas", "JavaScript", "GLSL"]
+  },
+  {
+    id: 2,
+    title: "Hyphon",
+    description: "A professional web-based Digital Audio Workstation (DAW).",
+    url: "https://go.1ink.us/hyphon",
+    image: "/hyphon.png",
+    icon: "🎹",
+    tags: ["Audio", "DAW", "Music"],
+    tech: ["Web Audio API", "React", "Node.js"]
+  },
+  {
+    id: 3,
+    title: "Pixelocity",
+    description: "Real-time image, video, and webcam shader booth.",
+    url: "https://go.1ink.us/pixelocity/index.html",
+    image: "/pixel.png",
+    icon: "🌈",
+    tags: ["Graphics", "Shaders", "Video"],
+    tech: ["WebGL", "GLSL", "React"]
+  },
+  {
+    id: 4,
+    title: "Lite Brite",
+    description: "A playful interactive light toy in web form.",
+    url: "https://go.1ink.us/litebrite/index.html",
+    image: "/litebrite.png",
+    icon: "✨",
+    tags: ["Interactive", "Art", "Toy"],
+    tech: ["HTML5", "CSS3", "Vanilla JS"]
+  },
+  {
+    id: 5,
+    title: "Brain Viz",
+    description: "Visualizations for brain data and networks.",
+    url: "https://go.1ink.us/brain-viz",
+    image: "/brain-viz.png",
+    icon: "🧠",
+    tags: ["Visualization", "Data", "Science"],
+    tech: ["D3.js", "Three.js", "React"]
+  },
+  {
+    id: 6,
+    title: "Rain Chime",
+    description: "Ambient rain chime soundscapes and visuals.",
+    url: "https://go.1ink.us/rain-chime",
+    image: "/rain-chime.png",
+    icon: "🔔",
+    tags: ["Sound", "Ambient", "Relaxation"],
+    tech: ["Web Audio API", "Canvas", "JS"]
+  },
+  {
+    id: 7,
+    title: "Weather Clock",
+    description: "A clock that visualizes current weather.",
+    url: "https://go.1ink.us/weather-clock",
+    image: "/weather-clock.png",
+    icon: "⏰",
+    tags: ["Utility", "Weather", "Clock"],
+    tech: ["REST API", "React", "CSS Grid"]
+  },
+  {
+    id: 8,
+    title: "Streetview",
+    description: "A 360° street-level exploration tool.",
+    url: "https://go.1ink.us/streetview",
+    image: "/streetview.png",
+    icon: "🗺️",
+    tags: ["Maps", "360", "Exploration"],
+    tech: ["Google Maps API", "WebGL"]
+  },
+  {
+    id: 9,
+    title: "Candy World",
+    description: "A sugary, colorful game world.",
+    url: "https://go.1ink.us/candy-world/v0.9/index.html",
+    image: "/candy-world.png",
+    icon: "🍬",
+    tags: ["Game", "Fun", "Candy"],
+    tech: ["Phaser.js", "JavaScript", "HTML5"]
+  },
+  {
+    id: 10,
+    title: "UI Components",
+    description: "Reusable UI component library and demos.",
+    url: "https://go.1ink.us/ui/index.html",
+    image: "/ui.png",
+    icon: "🧩",
+    tags: ["UI", "Components", "Design"],
+    tech: ["React", "Tailwind CSS", "Framer Motion"]
+  },
+  {
+    id: 11,
+    title: "Fluid Experiment",
+    description: "Interactive fluid dynamics and GLSL experiments.",
+    url: "https://go.1ink.us/fluid-experiment",
+    image: "/fluid-1.png",
+    icon: "💧",
+    tags: ["Graphics", "Fluid", "Experiment"],
+    tech: ["WebGL", "GLSL", "Math"]
+  },
+  {
+    id: 12,
+    title: "Fluid Experiment 2",
+    description: "A second variation of the fluid experiment.",
+    url: "https://go.1ink.us/fluid-experiment-2",
+    image: "/fluid-2.png",
+    icon: "🌊",
+    tags: ["Graphics", "Fluid", "Experiment"],
+    tech: ["WebGL", "GLSL", "Math"]
+  },
+  {
+    id: 13,
+    title: "Project M",
+    description: "A linked project listed by the user.",
+    url: "https://projectm.1ink.us",
+    image: "/projectm.png",
+    icon: "🎯",
+    tags: ["External", "Project"],
+    tech: ["React", "Vite", "Tailwind"]
+  },
+  {
+    id: 14,
+    title: "Tetris",
+    description: "Classic Tetris playable in the browser.",
+    url: "https://go.1ink.us/tetris/index.html",
+    image: "/tetris.png",
+    icon: "🎮",
+    tags: ["Game", "Tetris"],
+    tech: ["Vanilla JS", "HTML5 Canvas"]
+  },
+  {
+    id: 15,
+    title: "noahcohn.com",
+    description: "Personal site of Noah Cohn.",
+    url: "https://www.noahcohn.com",
+    image: "/noahcohn.png",
+    icon: "🌐",
+    tags: ["External", "Portfolio"],
+    tech: ["Next.js", "React", "Tailwind CSS"]
+  },
+  {
+    id: 16,
+    title: "Chromashift",
+    description: "A crop circle viewing app with layered color separation and analysis tools.",
+    url: "https://test.1ink.us/chromashift/index.html",
+    image: "/chromashift.png",
+    icon: "🛸",
+    tags: ["Interactive", "Art", "Visualization"],
+    tech: ["WebGL", "TypeScript", "WASM"]
+  }
+];
+
+export default projectData;

@@ -10,10 +10,9 @@ experiments — a retro-futuristic "terminal OS" style project dashboard.
 - **Importance**: High — this is often the first thing people see.
 
 ## Technology Stack
-- JavaScript (JSX) + Vite — no TypeScript in this repo
-- React 19, Tailwind CSS 4
-- Web Audio API for procedural sound effects (no audio files)
-- `react-force-graph-2d` for the Neural Map view
+- JavaScript (React 19 + Vite 7), migrating to TypeScript file-by-file — see AGENTS.md's "TypeScript Migration" section before assuming a file has types
+- Tailwind CSS
+- No WebGL/WebGPU currently; `react-force-graph-2d` (canvas 2D) powers the Neural Map view
 
 ## Grok Guidelines
 - **Clarity & Polish**: The site should feel clean, fast, and welcoming while showcasing the work beautifully.

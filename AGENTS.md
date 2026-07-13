@@ -19,6 +19,8 @@ This is a single-page application (SPA) built with modern React patterns, served
 | Animation | Framer Motion | ^12.40.0 |
 | Map View | react-force-graph-2d | ^1.29.1 |
 | Linting | ESLint | ^9.39.1 |
+| Types | TypeScript (partial — see TypeScript Migration) | ^7.0.2 |
+| Deployment | Python + Paramiko (SFTP) | - |
 | Deployment | Python (HTTP upload to storage.noahcohn.com) | - |
 
 No TypeScript — `.jsx`/`.js` throughout. `@types/react`/`@types/react-dom`
@@ -31,37 +33,30 @@ are devDependencies purely for editor intellisense, not compilation.
 ```
 go.1ink.us/
 ├── index.html                 # Entry HTML file
-├── package.json                # NPM dependencies and scripts
-├── vite.config.js              # Vite configuration with custom plugin
-├── tailwind.config.js          # Tailwind CSS theme extensions
-├── postcss.config.js           # PostCSS plugins config
-├── eslint.config.js            # ESLint flat config
-├── scripts/                    # Dev tooling (not part of the app bundle)
-│   ├── deploy.py                # Production deploy (see Deployment Process)
-│   ├── bypass_boot.py            # Playwright script: skip the boot screen locally
-│   └── take_screenshot.py        # Playwright script: capture a view for review
-├── public/                     # Static assets served as-is
-│   ├── *.png                    # Project screenshots
-│   ├── title.png                 # Site header image
-│   ├── go1inkus.png               # Footer logo
-│   └── vite.svg                    # Favicon
-└── src/                        # Source code
-    ├── main.jsx                 # Vite/React entry point
-    ├── app/                      # Composition root
-    │   ├── App.jsx                 # Calls hooks, wires results, renders the layout shell
-    │   ├── App.css                  # 3D/animation CSS that doesn't fit Tailwind utilities
-    │   └── context/                 # Six domain-scoped React contexts (see below)
-    ├── components/                # UI: header, sidebar, terminal, overlays, cards, holo-terminal
-    │   ├── Card/                     # Project card: shell + grid/list/matrix/data-mode variants
-    │   └── HoloTerminal/              # Floating "holo-terminal" panel (see below)
-    ├── effects/                   # Ambient/decorative visuals (no business logic)
-    │   ├── Starfield.jsx, MatrixRain.jsx, ParticleNetwork.jsx
-    │   ├── RadarHUD.jsx, Screensaver.jsx, CustomCursor.jsx
-    │   └── ConstellationOverlay.jsx
-    ├── hooks/                     # Feature hooks (project browser, terminal, shortcuts, …)
-    ├── lib/                       # SoundSystem.js — procedural Web Audio SFX engine
-    ├── data/                      # projectData.js (project list) + constants.js (categories/tags)
-    └── styles/                    # index.css — Tailwind entry point + theme CSS variables
+├── package.json               # NPM dependencies and scripts
+├── vite.config.js             # Vite configuration with custom plugin
+├── tailwind.config.js         # Tailwind CSS theme extensions
+├── postcss.config.js          # PostCSS plugins config
+├── eslint.config.js           # ESLint flat config
+├── tsconfig.json               # TypeScript config (see TypeScript Migration below)
+├── deploy.py                  # SFTP deployment script
+├── public/                    # Static assets
+│   ├── *.png                  # Project screenshots
+│   ├── title.png              # Site header image
+│   ├── go1inkus.png           # Footer logo
+│   └── vite.svg               # Favicon
+├── src/                       # Source code
+│   ├── main.jsx               # React entry point
+│   ├── App.jsx                # Main app component (filtering, search, layout)
+│   ├── types.ts                # Shared domain types (Project, Category, DisplayMode, …)
+│   ├── components/Card/       # Project card: shell + layout variants (grid/list/matrix/data-mode)
+│   ├── Starfield.jsx          # Animated starfield background
+│   ├── projectData.ts         # Project data array (typed)
+│   ├── constants.ts           # Categories/tags/theme lookups (typed)
+│   ├── App.css                # Custom CSS animations and 3D effects
+│   └── index.css              # Tailwind CSS import
+└── (End of structure)              # E2E test scripts and screenshots
+    └── *.png                  # Test result screenshots
 ```
 
 ---
@@ -83,6 +78,9 @@ npm run preview
 
 # Run ESLint
 npm run lint
+
+# Type-check converted .ts/.tsx files (see TypeScript Migration below)
+npm run typecheck
 ```
 
 ---
@@ -303,21 +301,57 @@ via `hooks/useAudioWaveform.js` and only differ in canvas sizing/color.
 
 ### Data Model
 
-```javascript
-// src/data/projectData.js
-{
-  id: number,
-  title: string,
-  description: string,
-  url: string,
-  image: string,    // Path to screenshot in public/
-  icon: string,     // Emoji
-  tags: string[],   // Must map to a category in src/data/constants.js
-  tech: string[]    // Optional; tech-stack badges
+`src/projectData.ts` is typed against `src/types.ts`'s `Project` interface:
+
+```typescript
+// src/types.ts
+export interface Project {
+  id: number;
+  title: string;
+  description: string;
+  url: string;
+  image: string;    // Path to screenshot in public/
+  icon: string;      // Emoji
+  tags: string[];    // Must map to a category in src/constants.ts CATEGORIES
+  tech: string[];    // Tech-stack badges
 }
 ```
 
 ---
+
+## TypeScript Migration
+
+The stack is JS + React 19 + Vite 7; `@types/react`/`@types/react-dom` were
+already installed but no `.ts`/`.tsx` sources existed until this migration
+started. TS is being adopted gradually rather than in one pass — mixing
+`.ts`/`.tsx` and `.js`/`.jsx` is fully supported by Vite (esbuild
+transpiles both) and by `tsconfig.json`'s `allowJs: true`.
+
+**Current state**: `tsconfig.json` has `checkJs: false`, so `.js`/`.jsx`
+files are included for module resolution but not type-checked — only
+already-converted `.ts`/`.tsx` files are held to account by
+`npm run typecheck` (`tsc --noEmit`). Converted so far: `src/types.ts`
+(the shared domain types), `src/constants.ts`, `src/projectData.ts`.
+
+**Phased plan** (each phase should leave `npm run typecheck` and
+`npm run build` both clean):
+
+1. ~~Add `tsconfig.json` (`allowJs` + `checkJs: false`) and a `typecheck` script~~ — done
+2. ~~Type the data layer: `src/types.ts` (`Project`, `Category`, `DisplayMode`, `ThemeId`, `SortOption`, …), then convert `constants.js` → `constants.ts` and `projectData.js` → `projectData.ts`~~ — done
+3. Convert hooks (`src/hooks/*.js` → `.ts`) — start with the ones with the least cross-file coupling (`useAudioWaveform`, `useBackgroundEffects`) before the terminal/browser hooks that touch most of the app's state shape
+4. Convert components (`.jsx` → `.tsx`), leaf-first (`Tooltip`, `Clock`, `DecryptText`) before container components (`App.jsx`, `MainContent.jsx`)
+5. Turn `strict: true` on in `tsconfig.json` once most of the codebase is converted, then fix whatever strict-mode errors that surfaces
+
+**Conventions for new/converted files**:
+- New files should be written in TypeScript (`.ts`/`.tsx`) rather than JS
+- Reuse the shared types in `src/types.ts` (`Project`, `Category`,
+  `DisplayMode`, `ThemeId`, `SortOption`, `FilterTarget`) instead of
+  re-declaring equivalent unions locally
+- Prefer `interface` for object shapes that might be extended (e.g.
+  props), `type` for unions/aliases
+- Don't add `any` to unblock a conversion — leave the file as `.js` a
+  little longer instead, or use a narrower type plus a `// TODO` comment
+  explaining what's missing
 
 ## UX/UI Philosophy
 
