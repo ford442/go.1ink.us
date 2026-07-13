@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useAppContext } from '../../AppContext';
+import { useTerminalContext } from '../../context/TerminalContext';
 import SystemMonitor from './SystemMonitor';
 import AudioVisualizer from './AudioVisualizer';
 import CommandLog from './CommandLog';
 import soundSystem from '../../SoundSystem';
 
 const HoloTerminal = () => {
-  const { isHoloTerminalOpen, setIsHoloTerminalOpen, handleTerminalSubmit, terminalInput, setTerminalInput, terminalInputRef, handleTerminalKeyDown } = useAppContext();
+  const { isHoloTerminalOpen, setIsHoloTerminalOpen, handleTerminalSubmit, terminalInput, setTerminalInput, terminalInputRef, handleTerminalKeyDown } = useTerminalContext();
   const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {

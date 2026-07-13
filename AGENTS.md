@@ -136,6 +136,50 @@ python deploy.py
 - **URL Sync**: Filter and search state sync to URL params for deep linking
 - **View Transitions**: Uses `document.startViewTransition` for smooth UI updates
 
+### Context Architecture
+
+All state is still owned by `App.jsx` (no external store), but it is **not**
+exposed through one flat context. `src/context/` splits it into six
+domain-scoped contexts so a component only re-renders when the domain it
+actually reads changes:
+
+| Context | File | Holds | Typical consumers |
+|---|---|---|---|
+| `SettingsContext` | `context/SettingsContext.js` | theme, CRT, matrix rain, sound, display mode, god mode | `CommandHeader`, `BackgroundElements`, `MainContent` |
+| `BrowserContext` | `context/BrowserContext.js` | filters, search, sort, pagination, favorites | `Sidebar`, `MainContent`, `SystemMap` |
+| `TerminalContext` | `context/TerminalContext.js` | terminal/holo-terminal open state, history, input | `TerminalBar`, `HoloTerminal` |
+| `OverlayContext` | `context/OverlayContext.js` | toasts, omni palette, context menu, quick-view modal, lockdown, idle, warp | `ProjectQuickView`, `ContextMenu`, `SystemOverlays` |
+| `EffectsContext` | `context/EffectsContext.js` | background refs only (starfield/grids/cursor-trail canvas) — stable for the app's lifetime | `BackgroundElements` |
+| `ActivityContext` | `context/ActivityContext.js` | boot sequence + running activity log | `BootScreen`, `Sidebar`, `ActivityFeed` |
+
+`EffectsContext` is deliberately split off from boot/activity-log state
+(`ActivityContext`), even though the original proposal grouped them: typing
+in the search box calls `addActivityLog` once the query is 3+ characters,
+so bundling that with the starfield/grid refs would re-render the
+background on every few keystrokes.
+
+Each context's value is built with `useMemo` in `App.jsx`, and the
+callbacks that go into those values (`changeTheme`, `toggleFavorite`,
+`handleProjectSelect`, drag handlers, etc.) are wrapped in `useCallback` so
+the memoized objects don't change identity on unrelated renders. The 1Hz
+system-stats ticker (`CommandHeader`) is local `useState` inside
+`CommandHeader` itself — it never touches App-level state, so it can't
+force a re-render anywhere else.
+
+Consumers import the specific hook(s) they need, e.g.
+`useSettingsContext()`, `useBrowserContext()`; a component that spans
+domains (e.g. `MainContent`, which reads filters, display mode, and the
+quick-view modal state) calls more than one. `AppProviders`
+(`context/AppProviders.jsx`) nests the six providers around the tree.
+
+Known gap: `toggleFilter`/`handleTagClick`/`handlePageChange`
+(`hooks/useProjectBrowser.js`) and the terminal's key/submit handlers
+(`hooks/useTerminalController.js`) are not yet `useCallback`-stabilized
+internally, so `BrowserContext`/`TerminalContext` still recompute on every
+`App` render even when unrelated domains change. This doesn't break the
+domain isolation (those two contexts just don't get the full memoization
+benefit yet) — a good next step if further profiling shows it matters.
+
 ### Key Components
 
 #### App.jsx

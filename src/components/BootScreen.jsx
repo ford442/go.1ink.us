@@ -1,7 +1,7 @@
-import { useAppContext } from '../AppContext';
+import { useActivityContext } from '../context/ActivityContext';
 
 export default function BootScreen() {
-  const { showBootScreen, isBooting, bootLogs, bootStep, startScan, stopScan, scanProgress } = useAppContext();
+  const { showBootScreen, isBooting, bootLogs, bootStep, startScan, stopScan, scanProgress } = useActivityContext();
   if (!showBootScreen) return null;
 
   return (

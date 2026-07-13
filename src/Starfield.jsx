@@ -1,8 +1,8 @@
 import React, { useState, forwardRef, memo, useEffect, useContext } from 'react';
-import { AppContext } from './AppContext';
+import { OverlayContext } from './context/OverlayContext';
 
 const Starfield = memo(forwardRef(({ starCount = 75 }, ref) => {
-  const context = useContext(AppContext);
+  const context = useContext(OverlayContext);
   const isWarping = context?.isWarping || false;
 
   // INSTRUMENTATION FOR PERF TESTING

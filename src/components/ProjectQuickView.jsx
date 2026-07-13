@@ -1,8 +1,10 @@
 import { CATEGORY_ICONS, TAG_TO_CATEGORIES } from '../constants';
-import { useAppContext } from '../AppContext';
+import { useOverlayContext } from '../context/OverlayContext';
+import { useBrowserContext } from '../context/BrowserContext';
 
 export default function ProjectQuickView() {
-  const { selectedProject, closeProjectModal, modalRef, modalImageLoaded, setModalImageLoaded, handleCopyLink, toggleFavorite, favorites } = useAppContext();
+  const { selectedProject, closeProjectModal, modalRef, modalImageLoaded, setModalImageLoaded } = useOverlayContext();
+  const { handleCopyLink, toggleFavorite, favorites } = useBrowserContext();
   if (!selectedProject) return null;
 
   return (
