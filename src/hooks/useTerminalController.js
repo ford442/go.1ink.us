@@ -14,9 +14,9 @@ export default function useTerminalController({
   setIsCrtEnabled,
   setIsLockdown,
   setIsMatrixMode,
+  setIsSoundEnabled,
   setRandomSeed,
   setSortOption,
-  setSoundEnabled,
   toggleFavorite,
   toggleFilter
 }) {
@@ -169,13 +169,11 @@ export default function useTerminalController({
         } else {
           const stateParam = args[0].toLowerCase();
           if (stateParam === 'on') {
-            setSoundEnabled(true);
-            soundSystem.enable();
+            setIsSoundEnabled(true);
             responseText = `> AUDIO_FEEDBACK_SYSTEM: ONLINE`;
             responseType = 'success';
           } else if (stateParam === 'off') {
-            setSoundEnabled(false);
-            soundSystem.disable();
+            setIsSoundEnabled(false);
             responseText = `> AUDIO_FEEDBACK_SYSTEM: OFFLINE`;
             responseType = 'success';
           } else {
