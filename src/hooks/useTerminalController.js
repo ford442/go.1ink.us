@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import projectData from '../projectData';
 import soundSystem from '../SoundSystem';
 import { CATEGORIES, TAG_TO_CATEGORIES } from '../constants';
@@ -34,7 +34,7 @@ export default function useTerminalController({
   const terminalInputRef = useRef(null);
   const terminalEndRef = useRef(null);
 
-  const handleTerminalKeyDown = (e) => {
+  const handleTerminalKeyDown = useCallback((e) => {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (commandHistory.length > 0) {
@@ -97,10 +97,10 @@ export default function useTerminalController({
         }
       }
     }
-  };
+  }, [commandHistory, historyIndex, terminalInput]);
 
   // Terminal Command Processor
-  const handleTerminalSubmit = (e) => {
+  const handleTerminalSubmit = useCallback((e) => {
     e.preventDefault();
     if (!terminalInput.trim()) return;
 
@@ -433,7 +433,25 @@ export default function useTerminalController({
     if (responseType !== 'error' && command !== 'clear') {
       addActivityLog(`TERMINAL CMD: ${command} ${args.join(' ')}`);
     }
-  };
+  }, [
+    addActivityLog,
+    changeTheme,
+    favorites,
+    handleDisplayModeChange,
+    handleProjectSelect,
+    projectsMatchingQuery,
+    setCurrentPage,
+    setIsCrtEnabled,
+    setIsLockdown,
+    setIsMatrixMode,
+    setRandomSeed,
+    setSortOption,
+    setSoundEnabled,
+    terminalHistory,
+    terminalInput,
+    toggleFavorite,
+    toggleFilter
+  ]);
 
   // Auto-scroll terminal content (but only within the terminal, not the page)
   useEffect(() => {

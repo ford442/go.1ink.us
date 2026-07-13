@@ -172,14 +172,6 @@ domains (e.g. `MainContent`, which reads filters, display mode, and the
 quick-view modal state) calls more than one. `AppProviders`
 (`context/AppProviders.jsx`) nests the six providers around the tree.
 
-Known gap: `toggleFilter`/`handleTagClick`/`handlePageChange`
-(`hooks/useProjectBrowser.js`) and the terminal's key/submit handlers
-(`hooks/useTerminalController.js`) are not yet `useCallback`-stabilized
-internally, so `BrowserContext`/`TerminalContext` still recompute on every
-`App` render even when unrelated domains change. This doesn't break the
-domain isolation (those two contexts just don't get the full memoization
-benefit yet) — a good next step if further profiling shows it matters.
-
 ### Key Components
 
 #### App.jsx
