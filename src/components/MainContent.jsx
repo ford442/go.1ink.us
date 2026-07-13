@@ -1,7 +1,7 @@
 import { flushSync } from 'react-dom';
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Card from '../Card';
+import Card from './Card';
 import SystemMap from './SystemMap';
 import ConstellationOverlay from '../ConstellationOverlay';
 import { CATEGORY_ICONS } from '../constants';
