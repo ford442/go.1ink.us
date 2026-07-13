@@ -40,7 +40,7 @@ go.1ink.us/
 ├── src/                       # Source code
 │   ├── main.jsx               # React entry point
 │   ├── App.jsx                # Main app component (filtering, search, layout)
-│   ├── Card.jsx               # 3D tilt card component
+│   ├── components/Card/       # Project card: shell + layout variants (grid/list/matrix/data-mode)
 │   ├── Starfield.jsx          # Animated starfield background
 │   ├── projectData.js         # Project data array
 │   ├── App.css                # Custom CSS animations and 3D effects
@@ -136,6 +136,69 @@ python deploy.py
 - **URL Sync**: Filter and search state sync to URL params for deep linking
 - **View Transitions**: Uses `document.startViewTransition` for smooth UI updates
 
+### App.jsx as Composition Root
+
+`App.jsx` (~255 LOC, down from ~840) no longer owns most of its state and
+side effects directly — it calls a set of focused hooks under `src/hooks/`
+and wires their results together, then hands six memoized values to
+`AppProviders`:
+
+| Hook | Owns |
+|---|---|
+| `usePersistedState(key, default, opts)` | generic localStorage-backed `useState` (used for sound/CRT/matrix/theme) |
+| `useUrlSyncedFilters()` | filters/search/sort/view, synced both ways with the URL (`?filters=&q=&sort=&view=`) and `view` additionally to localStorage |
+| `useIdleProtocol({ timeoutMs, isBooting })` | activity tracking + the 60s idle flag that triggers the screensaver |
+| `useToasts()` | toast queue |
+| `useFavorites({ isLockdown, addToast, addActivityLog })` | favorites list (persisted) + drag-and-drop reordering |
+| `useQuickViewModal({ isLockdown, addToast, addActivityLog, setIsWarping })` | quick-view modal open/close, warp transition, focus trap, body scroll lock |
+| `useContextMenu()` | right-click context menu open/close + outside-click dismissal |
+| `useLayoutGlitchTransition(displayMode)` | the brief glitch animation played on layout switch |
+| `usePagination({ displayMode, activeFilters, searchQuery, sortOption })` | current page, items-per-page, and keyboard-focused card index |
+| `useAppFeatures(...)` | wires `useProjectBrowser`, `useTerminalController`, `useGlobalShortcuts`, and `useBackgroundEffects` together — the four hooks that derive behavior from persisted/URL state rather than owning their own |
+| `useAppProviderValues(...)` | builds the six memoized context values (see below) from everything else `App.jsx` assembled |
+
+`App.jsx` itself is left owning only what doesn't cleanly belong in one of
+the above: `hoveredTag`, `isMobileFiltersOpen`, `isGodMode`, `randomSeed`,
+`isOmniOpen`, `isLockdown`, `isWarping`, `changeTheme`, `handleCopyLink`,
+`handleDisplayModeChange`, and the scroll-velocity/sound/theme side-effect
+`useEffect`s — plus the JSX shell.
+
+### Context Architecture
+
+All state is still owned by `App.jsx` (no external store), but it is **not**
+exposed through one flat context. `src/context/` splits it into six
+domain-scoped contexts so a component only re-renders when the domain it
+actually reads changes:
+
+| Context | File | Holds | Typical consumers |
+|---|---|---|---|
+| `SettingsContext` | `context/SettingsContext.js` | theme, CRT, matrix rain, sound, display mode, god mode | `CommandHeader`, `BackgroundElements`, `MainContent` |
+| `BrowserContext` | `context/BrowserContext.js` | filters, search, sort, pagination, favorites | `Sidebar`, `MainContent`, `SystemMap` |
+| `TerminalContext` | `context/TerminalContext.js` | terminal/holo-terminal open state, history, input | `TerminalBar`, `HoloTerminal` |
+| `OverlayContext` | `context/OverlayContext.js` | toasts, omni palette, context menu, quick-view modal, lockdown, idle, warp | `ProjectQuickView`, `ContextMenu`, `SystemOverlays` |
+| `EffectsContext` | `context/EffectsContext.js` | background refs only (starfield/grids/cursor-trail canvas) — stable for the app's lifetime | `BackgroundElements` |
+| `ActivityContext` | `context/ActivityContext.js` | boot sequence + running activity log | `BootScreen`, `Sidebar`, `ActivityFeed` |
+
+`EffectsContext` is deliberately split off from boot/activity-log state
+(`ActivityContext`), even though the original proposal grouped them: typing
+in the search box calls `addActivityLog` once the query is 3+ characters,
+so bundling that with the starfield/grid refs would re-render the
+background on every few keystrokes.
+
+Each context's value is built with `useMemo` in `hooks/useAppProviderValues.js`
+(called from `App.jsx`), and the callbacks that go into those values
+(`changeTheme`, `toggleFavorite`, `handleProjectSelect`, drag handlers,
+etc.) are wrapped in `useCallback` so the memoized objects don't change
+identity on unrelated renders. The 1Hz system-stats ticker (`CommandHeader`)
+is local `useState` inside `CommandHeader` itself — it never touches
+App-level state, so it can't force a re-render anywhere else.
+
+Consumers import the specific hook(s) they need, e.g.
+`useSettingsContext()`, `useBrowserContext()`; a component that spans
+domains (e.g. `MainContent`, which reads filters, display mode, and the
+quick-view modal state) calls more than one. `AppProviders`
+(`context/AppProviders.jsx`) nests the six providers around the tree.
+
 ### Key Components
 
 #### App.jsx
@@ -144,11 +207,29 @@ python deploy.py
 - **Background**: Parallax blobs, starfield, interactive grid spotlight
 - **Empty State**: "System Alert" with glitch effects
 
-#### Card.jsx
-- **3D Tilt**: Mouse-tracking rotation (max 12.5deg)
-- **Parallax**: Inner elements have different `translateZ` values
-- **Effects**: Holographic sheen, specular glare, neon border spotlight
-- **Accessibility**: Respects `prefers-reduced-motion`, disables on touch devices
+#### components/Card/
+The project card was a single ~1200-line file; it's now split by concern,
+each file under ~200 LOC:
+
+- `Card.jsx` — shell. Owns the shared hooks/state (tilt, hover-delay,
+  image loading, favorite burst, search-highlight regex, complexity
+  score) and switches to the right layout component based on the
+  `layout`/`isDataMode` props.
+- `CardGrid.jsx` / `CardGridFront.jsx` / `CardGridBack.jsx` / `CardGridEffects.jsx` — default 3D-tilt layout, split into the flip shell, front face, diagnostics back face, and the purely-decorative CSS-var-driven hover overlays.
+- `CardMatrix.jsx`, `CardList.jsx`, `CardDataMode.jsx` — the other three layout variants.
+- `useCardTilt.js` — mouse-tracking rotation (max 15deg) gated behind `hover: hover` + `prefers-reduced-motion`.
+- `useCardHover.js` — hover state + 700ms-delayed "deep focus" state + simulated ping readout.
+- `useCardMedia.js` — image load/error state + the scroll-triggered decrypt IntersectionObserver.
+- `useFavoriteBurst.js` / `CardFavoriteBurst.jsx` — the favorite-toggle particle animation.
+- `CardMedia.jsx`, `CardTagList.jsx`, `CardTechBadges.jsx`, `ComplexityMeter.jsx`, `CardFavoriteButton.jsx`, `CardCopyLinkButton.jsx` — presentational pieces shared across layout variants (each takes a `variant` prop for per-layout styling differences).
+- `highlightMatch.jsx`, `cardStyles.js` — small shared helpers.
+
+Note: `isVisible` (from `useCardMedia`) is only ever driven to `true` while
+the grid layout is mounted, because only `CardGrid` attaches the shared
+`cardRef` to a DOM node for the `IntersectionObserver` to watch — this
+mirrors the pre-decomposition behavior exactly (not a bug introduced by
+the split, and not fixed by it, since fixing it would be a behavior
+change).
 
 #### Starfield.jsx
 - **Memoized**: Prevents unnecessary re-renders
@@ -246,9 +327,9 @@ python deploy.py
 
 ### Modifying Card Effects
 
-- **Tilt Sensitivity**: Edit the `12.5` multiplier in `Card.jsx` `handleMouseMove`
-- **Hover Delay**: Modify `duration-700` and `delay-700` classes on card image
-- **Parallax Depth**: Adjust `translateZ` values in Card.jsx (lines 126, 141)
+- **Tilt Sensitivity**: Edit the rotation multiplier in `components/Card/useCardTilt.js` `handleMouseMove`
+- **Hover Delay**: Modify `duration-700` and the 700ms timer in `components/Card/useCardHover.js`
+- **Parallax Depth**: Adjust `translateZ` values in `components/Card/CardGridFront.jsx`
 
 ---
 

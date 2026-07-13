@@ -3,10 +3,14 @@ import RadarHUD from '../RadarHUD';
 import projectData from '../projectData';
 import soundSystem from '../SoundSystem';
 import { CATEGORIES, CATEGORY_ICONS, CATEGORY_BUTTON_STYLES } from '../constants';
-import { useAppContext } from '../AppContext';
+import { useBrowserContext } from '../context/BrowserContext';
+import { useActivityContext } from '../context/ActivityContext';
+import { useSettingsContext } from '../context/SettingsContext';
 
 export default function Sidebar() {
-  const { searchInputRef, searchQuery, setSearchQuery, setCurrentPage, addActivityLog, filteredProjects, suggestedTags, toggleFilter, isMobileFiltersOpen, setIsMobileFiltersOpen, activeFilters, sortOption, setSortOption, activeFiltersSet, counts, setHoveredTag, favoriteCount, activeCategories, handleTagClick, userActivityLogs, favorites, displayMode, setRandomSeed } = useAppContext();
+  const { searchInputRef, searchQuery, setSearchQuery, setCurrentPage, filteredProjects, suggestedTags, toggleFilter, isMobileFiltersOpen, setIsMobileFiltersOpen, activeFilters, sortOption, setSortOption, activeFiltersSet, counts, setHoveredTag, favoriteCount, activeCategories, handleTagClick, favorites, setRandomSeed } = useBrowserContext();
+  const { addActivityLog, userActivityLogs } = useActivityContext();
+  const { displayMode } = useSettingsContext();
 
   return (
     <>

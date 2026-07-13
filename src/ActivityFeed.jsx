@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import projectData from './projectData';
-import { useAppContext } from './AppContext';
+import { useActivityContext } from './context/ActivityContext';
 
 const LOG_TEMPLATES = [
   "INCOMING TCP_CONN FROM [IP]",
@@ -27,7 +27,7 @@ const generateLog = () => {
 };
 
 const ActivityFeed = () => {
-  const { userActivityLogs = [] } = useAppContext() || {};
+  const { userActivityLogs = [] } = useActivityContext() || {};
 
   const [logs, setLogs] = useState(() => {
     return Array.from({ length: 8 }, () => ({

@@ -3,10 +3,16 @@ import OmniPalette from '../OmniPalette';
 import Screensaver from '../Screensaver';
 import projectData from '../projectData';
 import Toast from './Toast';
-import { useAppContext } from '../AppContext';
+import { useOverlayContext } from '../context/OverlayContext';
+import { useBrowserContext } from '../context/BrowserContext';
+import { useSettingsContext } from '../context/SettingsContext';
+import { useActivityContext } from '../context/ActivityContext';
 
 export default function SystemOverlays() {
   const { isOmniOpen, setIsOmniOpen, handleProjectSelect, activeFilters, toggleFilter, theme, changeTheme, isCrtEnabled, setIsCrtEnabled, isMatrixMode, setIsMatrixMode, isSoundEnabled, toggleSound, isLockdown, setIsLockdown, displayMode, setDisplayMode, isIdle, isBooting, clickEffects, toasts, removeToast, sortOption, setSortOption } = useAppContext();
+  const { activeFilters, toggleFilter, sortOption, setSortOption } = useBrowserContext();
+  const { theme, changeTheme, isCrtEnabled, setIsCrtEnabled, isMatrixMode, setIsMatrixMode, isSoundEnabled, setIsSoundEnabled, displayMode, setDisplayMode } = useSettingsContext();
+  const { isBooting } = useActivityContext();
 
   return (
     <>

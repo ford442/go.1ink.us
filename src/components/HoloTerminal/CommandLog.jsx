@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { useAppContext } from '../../AppContext';
+import { useTerminalContext } from '../../context/TerminalContext';
 
 const CommandLog = () => {
-  const { terminalHistory } = useAppContext();
+  const { terminalHistory } = useTerminalContext();
   const logEndRef = useRef(null);
 
   useEffect(() => {
