@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import soundSystem from '../SoundSystem';
+import soundSystem from '../lib/SoundSystem';
 
 // Favorites list (persisted to localStorage) plus its drag-and-drop
 // reordering state/handlers. `isLockdown`/`addToast`/`addActivityLog` are

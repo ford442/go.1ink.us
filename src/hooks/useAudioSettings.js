@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import soundSystem from '../SoundSystem';
+import soundSystem from '../lib/SoundSystem';
 
 const STORAGE_KEY = 'curator_sound';
 
@@ -31,7 +31,11 @@ export default function useAudioSettings() {
   const toggleSound = useCallback(() => {
     setIsSoundEnabled(prev => {
       const next = !prev;
-      if (next) soundSystem.enable();
+      if (next) {
+        soundSystem.enable();
+      } else {
+        soundSystem.disable();
+      }
       return next;
     });
   }, []);

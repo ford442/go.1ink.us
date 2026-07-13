@@ -22,8 +22,9 @@ export default function usePersistedState(key, defaultValue, { fromStorage, toSt
   useEffect(() => {
     if (typeof window === 'undefined') return;
     localStorage.setItem(key, stringify(state));
-    // stringify is intentionally omitted: callers typically pass an inline
-    // function, and its behavior only depends on `key`/`state` in practice.
+    // stringify is intentionally omitted: callers pass serializers whose
+    // output is stable for a given `key`/`state`, so including it would only
+    // retrigger writes when the inline function identity changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, state]);
 
