@@ -145,6 +145,33 @@ python scripts/deploy.py
 - **URL Sync**: Filter, search, sort, and view mode sync to URL params (`?filters=&q=&sort=&view=`) for deep linking
 - **View Transitions**: Uses `document.startViewTransition` for smooth UI updates
 
+### App.jsx as Composition Root
+
+`App.jsx` (~255 LOC, down from ~840) no longer owns most of its state and
+side effects directly — it calls a set of focused hooks under `src/hooks/`
+and wires their results together, then hands six memoized values to
+`AppProviders`:
+
+| Hook | Owns |
+|---|---|
+| `usePersistedState(key, default, opts)` | generic localStorage-backed `useState` (used for sound/CRT/matrix/theme) |
+| `useUrlSyncedFilters()` | filters/search/sort/view, synced both ways with the URL (`?filters=&q=&sort=&view=`) and `view` additionally to localStorage |
+| `useIdleProtocol({ timeoutMs, isBooting })` | activity tracking + the 60s idle flag that triggers the screensaver |
+| `useToasts()` | toast queue |
+| `useFavorites({ isLockdown, addToast, addActivityLog })` | favorites list (persisted) + drag-and-drop reordering |
+| `useQuickViewModal({ isLockdown, addToast, addActivityLog, setIsWarping })` | quick-view modal open/close, warp transition, focus trap, body scroll lock |
+| `useContextMenu()` | right-click context menu open/close + outside-click dismissal |
+| `useLayoutGlitchTransition(displayMode)` | the brief glitch animation played on layout switch |
+| `usePagination({ displayMode, activeFilters, searchQuery, sortOption })` | current page, items-per-page, and keyboard-focused card index |
+| `useAppFeatures(...)` | wires `useProjectBrowser`, `useTerminalController`, `useGlobalShortcuts`, and `useBackgroundEffects` together — the four hooks that derive behavior from persisted/URL state rather than owning their own |
+| `useAppProviderValues(...)` | builds the six memoized context values (see below) from everything else `App.jsx` assembled |
+
+`App.jsx` itself is left owning only what doesn't cleanly belong in one of
+the above: `hoveredTag`, `isMobileFiltersOpen`, `isGodMode`, `randomSeed`,
+`isOmniOpen`, `isLockdown`, `isWarping`, `changeTheme`, `handleCopyLink`,
+`handleDisplayModeChange`, and the scroll-velocity/sound/theme side-effect
+`useEffect`s — plus the JSX shell.
+
 ### Context Architecture
 
 All state is still owned by `app/App.jsx` (no external store), but it is
@@ -167,13 +194,13 @@ in the search box calls `addActivityLog` once the query is 3+ characters,
 so bundling that with the starfield/grid refs would re-render the
 background on every few keystrokes.
 
-Each context's value is built with `useMemo` in `App.jsx`, and the
-callbacks that go into those values (`changeTheme`, `toggleFavorite`,
-`handleProjectSelect`, drag handlers, etc.) are wrapped in `useCallback` so
-the memoized objects don't change identity on unrelated renders. The 1Hz
-system-stats ticker (`CommandHeader`) is local `useState` inside
-`CommandHeader` itself — it never touches App-level state, so it can't
-force a re-render anywhere else.
+Each context's value is built with `useMemo` in `hooks/useAppProviderValues.js`
+(called from `App.jsx`), and the callbacks that go into those values
+(`changeTheme`, `toggleFavorite`, `handleProjectSelect`, drag handlers,
+etc.) are wrapped in `useCallback` so the memoized objects don't change
+identity on unrelated renders. The 1Hz system-stats ticker (`CommandHeader`)
+is local `useState` inside `CommandHeader` itself — it never touches
+App-level state, so it can't force a re-render anywhere else.
 
 Consumers import the specific hook(s) they need, e.g.
 `useSettingsContext()`, `useBrowserContext()`; a component that spans

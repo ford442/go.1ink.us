@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import projectData from '../data/projectData';
 import { CATEGORIES, TAG_TO_CATEGORIES, CATEGORY_SETS } from '../data/constants';
@@ -99,7 +99,7 @@ export default function useProjectBrowser({
   }, []);
 
 
-  const toggleFilter = (filterParam) => {
+  const toggleFilter = useCallback((filterParam) => {
     const updateState = () => {
       if (filterParam === 'All') {
         setActiveFilters([]);
@@ -124,11 +124,11 @@ export default function useProjectBrowser({
     } else {
       updateState();
     }
-  };
+  }, [addActivityLog, setActiveFilters, setCurrentPage]);
 
-  const handleTagClick = (tag) => {
+  const handleTagClick = useCallback((tag) => {
     toggleFilter(tag);
-  };
+  }, [toggleFilter]);
 
   const filteredProjects = useMemo(() => {
     const hasFavoritesFilter = activeFiltersSet.has('Favorites');
@@ -207,7 +207,7 @@ export default function useProjectBrowser({
     return sortedProjects.slice(startIndex, startIndex + itemsPerPage);
   }, [sortedProjects, currentPage, itemsPerPage]);
 
-  const handlePageChange = (newPage) => {
+  const handlePageChange = useCallback((newPage) => {
     if (newPage < 1 || newPage > totalPages) return;
 
     if (document.startViewTransition) {
@@ -225,7 +225,7 @@ export default function useProjectBrowser({
     } else {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  };
+  }, [setCurrentPage, totalPages]);
 
 
   return {
