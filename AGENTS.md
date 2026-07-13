@@ -40,7 +40,7 @@ go.1ink.us/
 ├── src/                       # Source code
 │   ├── main.jsx               # React entry point
 │   ├── App.jsx                # Main app component (filtering, search, layout)
-│   ├── Card.jsx               # 3D tilt card component
+│   ├── components/Card/       # Project card: shell + layout variants (grid/list/matrix/data-mode)
 │   ├── Starfield.jsx          # Animated starfield background
 │   ├── projectData.js         # Project data array
 │   ├── App.css                # Custom CSS animations and 3D effects
@@ -188,11 +188,29 @@ benefit yet) — a good next step if further profiling shows it matters.
 - **Background**: Parallax blobs, starfield, interactive grid spotlight
 - **Empty State**: "System Alert" with glitch effects
 
-#### Card.jsx
-- **3D Tilt**: Mouse-tracking rotation (max 12.5deg)
-- **Parallax**: Inner elements have different `translateZ` values
-- **Effects**: Holographic sheen, specular glare, neon border spotlight
-- **Accessibility**: Respects `prefers-reduced-motion`, disables on touch devices
+#### components/Card/
+The project card was a single ~1200-line file; it's now split by concern,
+each file under ~200 LOC:
+
+- `Card.jsx` — shell. Owns the shared hooks/state (tilt, hover-delay,
+  image loading, favorite burst, search-highlight regex, complexity
+  score) and switches to the right layout component based on the
+  `layout`/`isDataMode` props.
+- `CardGrid.jsx` / `CardGridFront.jsx` / `CardGridBack.jsx` / `CardGridEffects.jsx` — default 3D-tilt layout, split into the flip shell, front face, diagnostics back face, and the purely-decorative CSS-var-driven hover overlays.
+- `CardMatrix.jsx`, `CardList.jsx`, `CardDataMode.jsx` — the other three layout variants.
+- `useCardTilt.js` — mouse-tracking rotation (max 15deg) gated behind `hover: hover` + `prefers-reduced-motion`.
+- `useCardHover.js` — hover state + 700ms-delayed "deep focus" state + simulated ping readout.
+- `useCardMedia.js` — image load/error state + the scroll-triggered decrypt IntersectionObserver.
+- `useFavoriteBurst.js` / `CardFavoriteBurst.jsx` — the favorite-toggle particle animation.
+- `CardMedia.jsx`, `CardTagList.jsx`, `CardTechBadges.jsx`, `ComplexityMeter.jsx`, `CardFavoriteButton.jsx`, `CardCopyLinkButton.jsx` — presentational pieces shared across layout variants (each takes a `variant` prop for per-layout styling differences).
+- `highlightMatch.jsx`, `cardStyles.js` — small shared helpers.
+
+Note: `isVisible` (from `useCardMedia`) is only ever driven to `true` while
+the grid layout is mounted, because only `CardGrid` attaches the shared
+`cardRef` to a DOM node for the `IntersectionObserver` to watch — this
+mirrors the pre-decomposition behavior exactly (not a bug introduced by
+the split, and not fixed by it, since fixing it would be a behavior
+change).
 
 #### Starfield.jsx
 - **Memoized**: Prevents unnecessary re-renders
@@ -290,9 +308,9 @@ benefit yet) — a good next step if further profiling shows it matters.
 
 ### Modifying Card Effects
 
-- **Tilt Sensitivity**: Edit the `12.5` multiplier in `Card.jsx` `handleMouseMove`
-- **Hover Delay**: Modify `duration-700` and `delay-700` classes on card image
-- **Parallax Depth**: Adjust `translateZ` values in Card.jsx (lines 126, 141)
+- **Tilt Sensitivity**: Edit the rotation multiplier in `components/Card/useCardTilt.js` `handleMouseMove`
+- **Hover Delay**: Modify `duration-700` and the 700ms timer in `components/Card/useCardHover.js`
+- **Parallax Depth**: Adjust `translateZ` values in `components/Card/CardGridFront.jsx`
 
 ---
 
