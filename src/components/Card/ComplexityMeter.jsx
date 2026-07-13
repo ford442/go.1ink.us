@@ -1,4 +1,4 @@
-import Tooltip from '../../Tooltip';
+import Tooltip from '../Tooltip';
 
 // Complexity dots (1-5), derived from tech+tag count. Grid shows a taller
 // variable-height bar meter with a tooltip next to the title; matrix shows

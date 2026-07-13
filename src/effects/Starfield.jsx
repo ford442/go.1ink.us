@@ -1,5 +1,5 @@
 import React, { useState, forwardRef, memo, useEffect, useContext } from 'react';
-import { OverlayContext } from './context/OverlayContext';
+import { OverlayContext } from '../app/context/OverlayContext';
 
 const Starfield = memo(forwardRef(({ starCount = 75 }, ref) => {
   const context = useContext(OverlayContext);

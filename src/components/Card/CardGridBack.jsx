@@ -1,4 +1,4 @@
-import soundSystem from '../../SoundSystem';
+import soundSystem from '../../lib/SoundSystem';
 
 // Back face of the grid card (flipped via CardGrid's isFlipped state):
 // raw JSON payload + simulated diagnostics readout.

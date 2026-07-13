@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { flushSync } from 'react-dom';
-import projectData from '../projectData';
-import { CATEGORIES, TAG_TO_CATEGORIES, CATEGORY_SETS } from '../constants';
+import projectData from '../data/projectData';
+import { CATEGORIES, TAG_TO_CATEGORIES, CATEGORY_SETS } from '../data/constants';
 
 export default function useProjectBrowser({
   activeFilters,

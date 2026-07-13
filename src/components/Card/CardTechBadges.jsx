@@ -1,4 +1,4 @@
-import Tooltip from '../../Tooltip';
+import Tooltip from '../Tooltip';
 import highlightMatch from './highlightMatch';
 
 // Tech-stack badge pills. Grid shows every tech entry (and renders nothing

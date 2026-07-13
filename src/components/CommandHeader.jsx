@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import AudioVisualizer from '../AudioVisualizer';
-import Clock from '../Clock';
-import SystemClock from '../SystemClock';
-import TelemetryGraph from '../TelemetryGraph';
-import soundSystem from '../SoundSystem';
-import { useSettingsContext } from '../context/SettingsContext';
-import { useBrowserContext } from '../context/BrowserContext';
+import AudioVisualizer from './AudioVisualizer';
+import Clock from './Clock';
+import TelemetryGraph from './TelemetryGraph';
+import soundSystem from '../lib/SoundSystem';
+import { useSettingsContext } from '../app/context/SettingsContext';
+import { useBrowserContext } from '../app/context/BrowserContext';
 import useVoiceCommand from '../hooks/useVoiceCommand';
 
 // Format uptime seconds to HH:MM:SS
@@ -96,7 +95,7 @@ export default function CommandHeader() {
       </div>
 
       <div className="hidden lg:flex items-center">
-        <SystemClock />
+        <Clock precision="seconds" label="SYS.TIME:" />
       </div>
     </div>
 
@@ -220,7 +219,7 @@ export default function CommandHeader() {
       <div className="hidden md:flex">
          <AudioVisualizer theme={theme} />
       </div>
-      <Clock />
+      <Clock precision="milliseconds" />
     </div>
   </div>
     </>

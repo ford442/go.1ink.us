@@ -1,5 +1,5 @@
-import DecryptText from '../../DecryptText';
-import soundSystem from '../../SoundSystem';
+import DecryptText from '../DecryptText';
+import soundSystem from '../../lib/SoundSystem';
 import { getCardWrapperClasses } from './cardStyles';
 import CardTagList from './CardTagList';
 import CardFavoriteButton from './CardFavoriteButton';

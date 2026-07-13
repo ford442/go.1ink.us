@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import soundSystem from './SoundSystem';
-import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES } from './constants';
+import soundSystem from '../lib/SoundSystem';
+import { CATEGORIES, CATEGORY_ICONS, CATEGORY_THEMES } from '../data/constants';
 
 const OmniPalette = ({
   isOpen,
