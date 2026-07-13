@@ -1,16 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useAppContext } from '../AppContext';
-import soundSystem from '../SoundSystem';
+import { useBrowserContext } from '../app/context/BrowserContext';
+import { useSettingsContext } from '../app/context/SettingsContext';
+import { useOverlayContext } from '../app/context/OverlayContext';
+import { useActivityContext } from '../app/context/ActivityContext';
+import soundSystem from '../lib/SoundSystem';
 
 export default function useVoiceCommand() {
-  const {
-    setSearchQuery,
-    changeTheme,
-    setDisplayMode,
-    setIsLockdown,
-    addToast,
-    addActivityLog
-  } = useAppContext();
+  const { setSearchQuery } = useBrowserContext();
+  const { changeTheme, setDisplayMode } = useSettingsContext();
+  const { setIsLockdown, addToast } = useOverlayContext();
+  const { addActivityLog } = useActivityContext();
 
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');

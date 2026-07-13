@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**go.1ink.us** is a React-based project portfolio dashboard that showcases web projects with a premium, immersive user experience. The application features a futuristic "portal" aesthetic with 3D card effects, dynamic backgrounds, and sophisticated filtering/search capabilities.
+**go.1ink.us** is a React-based project portfolio dashboard that showcases web projects with a premium, immersive "terminal OS" user experience: 3D holographic project cards, a command-line interface, an Omni Command Palette, an interactive force-graph map view, and dynamic backgrounds/theming.
 
 This is a single-page application (SPA) built with modern React patterns, served as a static site.
 
@@ -16,8 +16,13 @@ This is a single-page application (SPA) built with modern React patterns, served
 | Build Tool | Vite | ^7.2.4 |
 | Styling | Tailwind CSS | ^4.1.18 |
 | CSS Processing | PostCSS with @tailwindcss/postcss | ^8.5.6 |
+| Animation | Framer Motion | ^12.40.0 |
+| Map View | react-force-graph-2d | ^1.29.1 |
 | Linting | ESLint | ^9.39.1 |
-| Deployment | Python + Paramiko (SFTP) | - |
+| Deployment | Python (HTTP upload to storage.noahcohn.com) | - |
+
+No TypeScript — `.jsx`/`.js` throughout. `@types/react`/`@types/react-dom`
+are devDependencies purely for editor intellisense, not compilation.
 
 ---
 
@@ -26,27 +31,37 @@ This is a single-page application (SPA) built with modern React patterns, served
 ```
 go.1ink.us/
 ├── index.html                 # Entry HTML file
-├── package.json               # NPM dependencies and scripts
-├── vite.config.js             # Vite configuration with custom plugin
-├── tailwind.config.js         # Tailwind CSS theme extensions
-├── postcss.config.js          # PostCSS plugins config
-├── eslint.config.js           # ESLint flat config
-├── deploy.py                  # SFTP deployment script
-├── public/                    # Static assets
-│   ├── *.png                  # Project screenshots
-│   ├── title.png              # Site header image
-│   ├── go1inkus.png           # Footer logo
-│   └── vite.svg               # Favicon
-├── src/                       # Source code
-│   ├── main.jsx               # React entry point
-│   ├── App.jsx                # Main app component (filtering, search, layout)
-│   ├── Card.jsx               # 3D tilt card component
-│   ├── Starfield.jsx          # Animated starfield background
-│   ├── projectData.js         # Project data array
-│   ├── App.css                # Custom CSS animations and 3D effects
-│   └── index.css              # Tailwind CSS import
-└── (End of structure)              # E2E test scripts and screenshots
-    └── *.png                  # Test result screenshots
+├── package.json                # NPM dependencies and scripts
+├── vite.config.js              # Vite configuration with custom plugin
+├── tailwind.config.js          # Tailwind CSS theme extensions
+├── postcss.config.js           # PostCSS plugins config
+├── eslint.config.js            # ESLint flat config
+├── scripts/                    # Dev tooling (not part of the app bundle)
+│   ├── deploy.py                # Production deploy (see Deployment Process)
+│   ├── bypass_boot.py            # Playwright script: skip the boot screen locally
+│   └── take_screenshot.py        # Playwright script: capture a view for review
+├── public/                     # Static assets served as-is
+│   ├── *.png                    # Project screenshots
+│   ├── title.png                 # Site header image
+│   ├── go1inkus.png               # Footer logo
+│   └── vite.svg                    # Favicon
+└── src/                        # Source code
+    ├── main.jsx                 # Vite/React entry point
+    ├── app/                      # Composition root
+    │   ├── App.jsx                 # Calls hooks, wires results, renders the layout shell
+    │   ├── App.css                  # 3D/animation CSS that doesn't fit Tailwind utilities
+    │   └── context/                 # Six domain-scoped React contexts (see below)
+    ├── components/                # UI: header, sidebar, terminal, overlays, cards, holo-terminal
+    │   ├── Card/                     # Project card: shell + grid/list/matrix/data-mode variants
+    │   └── HoloTerminal/              # Floating "holo-terminal" panel (see below)
+    ├── effects/                   # Ambient/decorative visuals (no business logic)
+    │   ├── Starfield.jsx, MatrixRain.jsx, ParticleNetwork.jsx
+    │   ├── RadarHUD.jsx, Screensaver.jsx, CustomCursor.jsx
+    │   └── ConstellationOverlay.jsx
+    ├── hooks/                     # Feature hooks (project browser, terminal, shortcuts, …)
+    ├── lib/                       # SoundSystem.js — procedural Web Audio SFX engine
+    ├── data/                      # projectData.js (project list) + constants.js (categories/tags)
+    └── styles/                    # index.css — Tailwind entry point + theme CSS variables
 ```
 
 ---
@@ -85,22 +100,17 @@ npm run lint
 ### CSS Conventions
 
 1. **Tailwind First**: Use Tailwind utilities for layout and common styles
-2. **Custom CSS**: Place complex animations and 3D effects in `App.css`
+2. **Custom CSS**: Place complex animations and 3D effects in `app/App.css`
 3. **CSS Variables**: Use for dynamic values (e.g., `--mouse-x`, `--mouse-y`)
 4. **Class Naming**: Use kebab-case for custom CSS classes
 
 ### Performance Patterns
 
-1. **Memoization**: Use `useMemo` for expensive computations (e.g., `filteredProjects`)
+1. **Memoization**: Use `useMemo` for expensive computations (e.g., `filteredProjects`); `useCallback` for handlers threaded into memoized context values
 2. **Regex Caching**: Create regex outside render loops
 3. **Media Queries**: Check `hover: hover` and `prefers-reduced-motion` before enabling effects
 4. **will-change**: Apply to elements with frequent transforms
-
----
-
-- **Search**: Tests real-time filtering and empty states
-- **Visual**: Captures screenshots of hover effects and transitions
-- **Data**: Validates all project tags map to defined categories
+5. **Context Domain Isolation**: Read from the narrowest context hook you need (see Context Architecture) rather than a broader one, so unrelated state changes don't re-render your component
 
 ---
 
@@ -117,14 +127,13 @@ Output goes to `dist/` directory.
 ### Deploy to Server
 
 ```bash
-python deploy.py
+python scripts/deploy.py
 ```
 
 **Deployment Details:**
-- Uses Paramiko for SFTP connection to `1ink.us`
-- Parallel file uploads (10 workers)
-- Uploads `dist/` contents to remote `go.1ink.us/` directory
-- Skips `.git` directories
+- Zips `dist/` and uploads it via HTTPS to `storage.noahcohn.com`
+- The remote server extracts the archive and pushes the files to the production server (`go.1ink.us/`) over its own persistent connection
+- No SFTP passwords or other credentials are stored in this repo
 
 ---
 
@@ -133,24 +142,161 @@ python deploy.py
 ### State Management
 
 - **Local State Only**: No external state management library
-- **URL Sync**: Filter and search state sync to URL params for deep linking
+- **URL Sync**: Filter, search, sort, and view mode sync to URL params (`?filters=&q=&sort=&view=`) for deep linking
 - **View Transitions**: Uses `document.startViewTransition` for smooth UI updates
+
+### App.jsx as Composition Root
+
+`App.jsx` (~255 LOC, down from ~840) no longer owns most of its state and
+side effects directly — it calls a set of focused hooks under `src/hooks/`
+and wires their results together, then hands six memoized values to
+`AppProviders`:
+
+| Hook | Owns |
+|---|---|
+| `usePersistedState(key, default, opts)` | generic localStorage-backed `useState` (used for sound/CRT/matrix/theme) |
+| `useUrlSyncedFilters()` | filters/search/sort/view, synced both ways with the URL (`?filters=&q=&sort=&view=`) and `view` additionally to localStorage |
+| `useIdleProtocol({ timeoutMs, isBooting })` | activity tracking + the 60s idle flag that triggers the screensaver |
+| `useToasts()` | toast queue |
+| `useFavorites({ isLockdown, addToast, addActivityLog })` | favorites list (persisted) + drag-and-drop reordering |
+| `useQuickViewModal({ isLockdown, addToast, addActivityLog, setIsWarping })` | quick-view modal open/close, warp transition, focus trap, body scroll lock |
+| `useContextMenu()` | right-click context menu open/close + outside-click dismissal |
+| `useLayoutGlitchTransition(displayMode)` | the brief glitch animation played on layout switch |
+| `usePagination({ displayMode, activeFilters, searchQuery, sortOption })` | current page, items-per-page, and keyboard-focused card index |
+| `useAppFeatures(...)` | wires `useProjectBrowser`, `useTerminalController`, `useGlobalShortcuts`, and `useBackgroundEffects` together — the four hooks that derive behavior from persisted/URL state rather than owning their own |
+| `useAppProviderValues(...)` | builds the six memoized context values (see below) from everything else `App.jsx` assembled |
+
+`App.jsx` itself is left owning only what doesn't cleanly belong in one of
+the above: `hoveredTag`, `isMobileFiltersOpen`, `isGodMode`, `randomSeed`,
+`isOmniOpen`, `isLockdown`, `isWarping`, `changeTheme`, `handleCopyLink`,
+`handleDisplayModeChange`, and the scroll-velocity/sound/theme side-effect
+`useEffect`s — plus the JSX shell.
+
+### Context Architecture
+
+All state is still owned by `app/App.jsx` (no external store), but it is
+**not** exposed through one flat context. `app/context/` splits it into six
+domain-scoped contexts so a component only re-renders when the domain it
+actually reads changes:
+
+| Context | File | Holds | Typical consumers |
+|---|---|---|---|
+| `SettingsContext` | `context/SettingsContext.js` | theme, CRT, matrix rain, sound, display mode, god mode | `CommandHeader`, `BackgroundElements`, `MainContent` |
+| `BrowserContext` | `context/BrowserContext.js` | filters, search, sort, pagination, favorites | `Sidebar`, `MainContent`, `SystemMap` |
+| `TerminalContext` | `context/TerminalContext.js` | terminal/holo-terminal open state, history, input | `TerminalBar`, `HoloTerminal` |
+| `OverlayContext` | `context/OverlayContext.js` | toasts, omni palette, context menu, quick-view modal, lockdown, idle, warp | `ProjectQuickView`, `ContextMenu`, `SystemOverlays` |
+| `EffectsContext` | `context/EffectsContext.js` | background refs only (starfield/grids/cursor-trail canvas) — stable for the app's lifetime | `BackgroundElements` |
+| `ActivityContext` | `context/ActivityContext.js` | boot sequence + running activity log | `BootScreen`, `Sidebar`, `ActivityFeed` |
+
+`EffectsContext` is deliberately split off from boot/activity-log state
+(`ActivityContext`), even though an early proposal grouped them: typing
+in the search box calls `addActivityLog` once the query is 3+ characters,
+so bundling that with the starfield/grid refs would re-render the
+background on every few keystrokes.
+
+Each context's value is built with `useMemo` in `hooks/useAppProviderValues.js`
+(called from `App.jsx`), and the callbacks that go into those values
+(`changeTheme`, `toggleFavorite`, `handleProjectSelect`, drag handlers,
+etc.) are wrapped in `useCallback` so the memoized objects don't change
+identity on unrelated renders. The 1Hz system-stats ticker (`CommandHeader`)
+is local `useState` inside `CommandHeader` itself — it never touches
+App-level state, so it can't force a re-render anywhere else.
+
+Consumers import the specific hook(s) they need, e.g.
+`useSettingsContext()`, `useBrowserContext()`; a component that spans
+domains (e.g. `MainContent`, which reads filters, display mode, and the
+quick-view modal state) calls more than one. `AppProviders`
+(`app/context/AppProviders.jsx`) nests the six providers around the tree.
+
+Known gap: `toggleFilter`/`handleTagClick`/`handlePageChange`
+(`hooks/useProjectBrowser.js`) and the terminal's key/submit handlers
+(`hooks/useTerminalController.js`) are not yet `useCallback`-stabilized
+internally, so `BrowserContext`/`TerminalContext` still recompute on every
+`App` render even when unrelated domains change. This doesn't break the
+domain isolation (those two contexts just don't get the full memoization
+benefit yet) — a good next step if further profiling shows it matters.
+
+### Hooks (`src/hooks/`)
+
+| Hook | Purpose |
+|---|---|
+| `useProjectBrowser` | Filtering, sorting, search-matching, and pagination math over the project list |
+| `useTerminalController` | Parses and executes terminal commands (`filter`, `sort`, `view`, `theme`, `sound`, `crt`, `matrix`, `lockdown`, `open`, `fav`, `stats`, `clear`, `exit`, …), owns terminal history/input state |
+| `useGlobalShortcuts` | Keyboard shortcuts: `/` and `Cmd/Ctrl+K` for search/Omni Palette, Escape to close whatever's open, arrow-key card navigation, the Konami code for God Mode, hold-`Alt` for Data Mode |
+| `useBackgroundEffects` | Owns the refs + rAF loop for the parallax starfield, grid spotlight, and cursor-trail canvas |
+| `useBootSequence` | Boot log/scan-progress state machine, activity log, tactical click-ripple effects — the boot *screen* is bypassed by default (see below) but this hook still owns the activity log used elsewhere |
+| `useVoiceCommand` | Web Speech API wrapper for voice-driven theme/search/layout/lockdown commands |
+| `useAudioWaveform` | Shared canvas waveform-drawing loop used by both `AudioVisualizer` components (see below) |
+
+### Terminal, Omni Palette, and Map View
+
+- **Terminal** (`components/TerminalBar.jsx`, backtick to open): a command
+  bar over `useTerminalController`. Type `help` for the full command list.
+  `components/HoloTerminal/` is a second, floating "holo-terminal" panel
+  variant with the same command engine plus a live audio waveform and
+  system monitor — currently implemented but not mounted anywhere in the
+  render tree (no trigger wires it up yet).
+- **Omni Command Palette** (`components/OmniPalette.jsx`, `Cmd/Ctrl+K`): a
+  fuzzy-searchable command menu for themes, layout mode, effects toggles,
+  and filter/navigation actions — the fast path for anything the terminal
+  can also do.
+- **Neural Map view** (`components/SystemMap.jsx`, `view=map` / the map
+  icon in the layout toggle): renders projects as a `react-force-graph-2d`
+  graph, linking projects that share tags (Jaccard similarity), with
+  click-to-open on nodes.
+
+### Boot Sequence
+
+A full biometric-style boot screen (`components/BootScreen.jsx`) exists in
+the code — animated boot logs, a hold-to-scan biometric gate — but is
+**bypassed by default** so public visitors land directly in the project
+grid. To exercise it locally, clear `sessionStorage.curator_booted` (or see
+`scripts/bypass_boot.py` for the inverse: a Playwright script that sets it
+so automated screenshots skip the boot screen).
 
 ### Key Components
 
-#### App.jsx
-- **Categories**: Hierarchical organization (Games, Audio/Visual, Tools, Experiments)
-- **Search**: Real-time filtering with keyboard shortcuts (`/` or `Cmd/Ctrl+K`)
-- **Background**: Parallax blobs, starfield, interactive grid spotlight
-- **Empty State**: "System Alert" with glitch effects
+#### app/App.jsx
+Composition root only — see Context Architecture above. Owns URL/localStorage-backed settings, the idle/lockdown/warp/glitch state, favorites drag-and-drop, toasts, and the context menu, then wires ~9 feature hooks together and renders the layout shell.
 
-#### Card.jsx
-- **3D Tilt**: Mouse-tracking rotation (max 12.5deg)
-- **Parallax**: Inner elements have different `translateZ` values
-- **Effects**: Holographic sheen, specular glare, neon border spotlight
-- **Accessibility**: Respects `prefers-reduced-motion`, disables on touch devices
+#### components/Card/
+The project card was a single ~1200-line file; it's split by concern, each
+file under ~250 LOC:
 
-#### Starfield.jsx
+- `Card.jsx` — shell. Owns the shared hooks/state (tilt, hover-delay,
+  image loading, favorite burst, search-highlight regex, complexity
+  score) and switches to the right layout component based on the
+  `layout`/`isDataMode` props.
+- `CardGrid.jsx` / `CardGridFront.jsx` / `CardGridBack.jsx` / `CardGridEffects.jsx` — default 3D-tilt layout, split into the flip shell, front face, diagnostics back face, and the purely-decorative CSS-var-driven hover overlays.
+- `CardMatrix.jsx`, `CardList.jsx`, `CardDataMode.jsx` — the other three layout variants.
+- `useCardTilt.js` — mouse-tracking rotation (max 15deg) gated behind `hover: hover` + `prefers-reduced-motion`.
+- `useCardHover.js` — hover state + 700ms-delayed "deep focus" state + simulated ping readout.
+- `useCardMedia.js` — image load/error state + the scroll-triggered decrypt IntersectionObserver.
+- `useFavoriteBurst.js` / `CardFavoriteBurst.jsx` — the favorite-toggle particle animation.
+- `CardMedia.jsx`, `CardTagList.jsx`, `CardTechBadges.jsx`, `ComplexityMeter.jsx`, `CardFavoriteButton.jsx`, `CardCopyLinkButton.jsx` — presentational pieces shared across layout variants (each takes a `variant` prop for per-layout styling differences).
+- `highlightMatch.jsx`, `cardStyles.js` — small shared helpers.
+
+Note: `isVisible` (from `useCardMedia`) is only ever driven to `true` while
+the grid layout is mounted, because only `CardGrid` attaches the shared
+`cardRef` to a DOM node for the `IntersectionObserver` to watch — this is
+pre-existing behavior, not a bug.
+
+#### Clocks
+`components/Clock.jsx` is the single implementation behind both header
+clocks: `precision="seconds"` (1Hz, labeled "SYS.TIME:") and
+`precision="milliseconds"` (50ms, the unlabeled ticker at the far right).
+The 50ms tick is intentional — a fast-ticking readout fits the dashboard's
+"everything is always live" aesthetic — and only re-renders that one leaf
+component, not the rest of the app.
+
+#### Audio Visualizers
+Two components draw a live waveform from `lib/SoundSystem.js`'s analyser
+data: `components/AudioVisualizer.jsx` (CommandHeader's compact themed
+meter) and `components/HoloTerminal/AudioVisualizer.jsx` (the larger,
+always-cyan panel inside the holo-terminal). They share their drawing loop
+via `hooks/useAudioWaveform.js` and only differ in canvas sizing/color.
+
+#### effects/Starfield.jsx
 - **Memoized**: Prevents unnecessary re-renders
 - **Random Generation**: Stars generated once on mount
 - **Animations**: Twinkle and shooting star effects
@@ -158,7 +304,7 @@ python deploy.py
 ### Data Model
 
 ```javascript
-// src/projectData.js
+// src/data/projectData.js
 {
   id: number,
   title: string,
@@ -166,7 +312,8 @@ python deploy.py
   url: string,
   image: string,    // Path to screenshot in public/
   icon: string,     // Emoji
-  tags: string[]    // Must map to CATEGORIES in App.jsx
+  tags: string[],   // Must map to a category in src/data/constants.js
+  tech: string[]    // Optional; tech-stack badges
 }
 ```
 
@@ -177,14 +324,14 @@ python deploy.py
 ### Core Principles
 
 1. **Discovery**: Users need help finding things
-   - Search with keyboard shortcuts
+   - Search with keyboard shortcuts, Omni Palette, terminal commands
    - Hierarchical filtering (Categories → Tags)
    - Real-time result counts
 
 2. **Aliveness**: Dashboard should breathe
    - Pulsing glows on active filters
    - Mouse-reactive cards and background
-   - Animated starfield and blobs
+   - Animated starfield, blobs, and (optionally) Matrix rain
 
 3. **Depth**: Create sense of space
    - Layering: Background → Grid → Cards → Overlays
@@ -222,7 +369,7 @@ python deploy.py
 
 ### Adding a New Project
 
-1. Add project object to `src/projectData.js`:
+1. Add project object to `src/data/projectData.js`:
    ```javascript
    {
      id: 16,
@@ -237,25 +384,23 @@ python deploy.py
 
 2. Add screenshot to `public/new-project.png`
 
-
-
 ### Adding a New Category
 
-1. Update `CATEGORIES` object in `src/App.jsx`
-2. Add corresponding icon to `CATEGORY_ICONS`
+1. Update `CATEGORIES` object in `src/data/constants.js`
+2. Add corresponding icon to `CATEGORY_ICONS` in the same file
 
 ### Modifying Card Effects
 
-- **Tilt Sensitivity**: Edit the `12.5` multiplier in `Card.jsx` `handleMouseMove`
-- **Hover Delay**: Modify `duration-700` and `delay-700` classes on card image
-- **Parallax Depth**: Adjust `translateZ` values in Card.jsx (lines 126, 141)
+- **Tilt Sensitivity**: Edit the rotation multiplier in `components/Card/useCardTilt.js` `handleMouseMove`
+- **Hover Delay**: Modify `duration-700` and the 700ms timer in `components/Card/useCardHover.js`
+- **Parallax Depth**: Adjust `translateZ` values in `components/Card/CardGridFront.jsx`
 
 ---
 
 ## Troubleshooting
 
 ### Build Issues
-- **Missing dist/**: Run `npm run build` before `deploy.py`
+- **Missing dist/**: Run `npm run build` before `python scripts/deploy.py`
 - **CSS not loading**: Check `postcss.config.js` has correct plugins
 
 ### Development Issues
@@ -278,6 +423,8 @@ python deploy.py
 | `@vitejs/plugin-react` | React Fast Refresh |
 | `tailwindcss` | Utility-first CSS |
 | `@tailwindcss/postcss` | Tailwind PostCSS plugin |
+| `framer-motion` | Scroll velocity tracking, toast/modal animations |
+| `react-force-graph-2d` | Neural Map view's force-directed graph |
 | `eslint` | Linting |
 | `eslint-plugin-react-hooks` | React Hooks rules |
 | `eslint-plugin-react-refresh` | Fast Refresh rules |

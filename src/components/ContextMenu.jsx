@@ -1,8 +1,12 @@
-import soundSystem from '../SoundSystem';
-import { useAppContext } from '../AppContext';
+import soundSystem from '../lib/SoundSystem';
+import { useOverlayContext } from '../app/context/OverlayContext';
+import { useBrowserContext } from '../app/context/BrowserContext';
+import { useActivityContext } from '../app/context/ActivityContext';
 
 export default function ContextMenu() {
-  const { contextMenu, closeContextMenu, toggleFavorite, favorites, handleCopyLink, setIsDataMode, isDataMode, addActivityLog } = useAppContext();
+  const { contextMenu, closeContextMenu, setIsDataMode, isDataMode } = useOverlayContext();
+  const { toggleFavorite, favorites, handleCopyLink } = useBrowserContext();
+  const { addActivityLog } = useActivityContext();
   if (!contextMenu) return null;
 
   return (

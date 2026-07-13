@@ -1,8 +1,8 @@
-import soundSystem from '../SoundSystem';
-import { useAppContext } from '../AppContext';
+import soundSystem from '../lib/SoundSystem';
+import { useTerminalContext } from '../app/context/TerminalContext';
 
 export default function TerminalBar() {
-  const { isTerminalOpen, isTerminalClosing, setIsTerminalClosing, setIsTerminalOpen, terminalHistory, terminalEndRef, handleTerminalSubmit, terminalInputRef, terminalInput, setTerminalInput, handleTerminalKeyDown } = useAppContext();
+  const { isTerminalOpen, isTerminalClosing, setIsTerminalClosing, setIsTerminalOpen, terminalHistory, terminalEndRef, handleTerminalSubmit, terminalInputRef, terminalInput, setTerminalInput, handleTerminalKeyDown } = useTerminalContext();
   if (!isTerminalOpen && !isTerminalClosing) return null;
 
   return (

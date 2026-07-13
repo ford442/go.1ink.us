@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { flushSync } from 'react-dom';
-import projectData from '../projectData';
-import { CATEGORIES, TAG_TO_CATEGORIES, CATEGORY_SETS } from '../constants';
+import projectData from '../data/projectData';
+import { CATEGORIES, TAG_TO_CATEGORIES, CATEGORY_SETS } from '../data/constants';
 
 export default function useProjectBrowser({
   activeFilters,
@@ -99,20 +99,19 @@ export default function useProjectBrowser({
   }, []);
 
 
-  const toggleFilter = (filterParam) => {
+  const toggleFilter = useCallback((filterParam) => {
     const updateState = () => {
       if (filterParam === 'All') {
         setActiveFilters([]);
         addActivityLog(`FILTERS CLEARED`);
       } else {
-        setActiveFilters(prev => {
-          if (prev.includes(filterParam)) {
-            addActivityLog(`FILTER REMOVED: [${filterParam}]`);
-            return prev.filter(f => f !== filterParam);
-          }
+        if (activeFilters.includes(filterParam)) {
+          addActivityLog(`FILTER REMOVED: [${filterParam}]`);
+          setActiveFilters(activeFilters.filter(f => f !== filterParam));
+        } else {
           addActivityLog(`FILTER ADDED: [${filterParam}]`);
-          return [...prev, filterParam];
-        });
+          setActiveFilters([...activeFilters, filterParam]);
+        }
       }
       setCurrentPage(1);
     };
@@ -124,11 +123,11 @@ export default function useProjectBrowser({
     } else {
       updateState();
     }
-  };
+  }, [activeFilters, addActivityLog, setActiveFilters, setCurrentPage]);
 
-  const handleTagClick = (tag) => {
+  const handleTagClick = useCallback((tag) => {
     toggleFilter(tag);
-  };
+  }, [toggleFilter]);
 
   const filteredProjects = useMemo(() => {
     const hasFavoritesFilter = activeFiltersSet.has('Favorites');
@@ -207,7 +206,7 @@ export default function useProjectBrowser({
     return sortedProjects.slice(startIndex, startIndex + itemsPerPage);
   }, [sortedProjects, currentPage, itemsPerPage]);
 
-  const handlePageChange = (newPage) => {
+  const handlePageChange = useCallback((newPage) => {
     if (newPage < 1 || newPage > totalPages) return;
 
     if (document.startViewTransition) {
@@ -225,7 +224,7 @@ export default function useProjectBrowser({
     } else {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  };
+  }, [setCurrentPage, totalPages]);
 
 
   return {

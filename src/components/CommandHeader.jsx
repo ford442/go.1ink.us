@@ -1,14 +1,58 @@
-import AudioVisualizer from '../AudioVisualizer';
-import Clock from '../Clock';
-import SystemClock from '../SystemClock';
-import TelemetryGraph from '../TelemetryGraph';
-import soundSystem from '../SoundSystem';
-import { useAppContext } from '../AppContext';
+import { useEffect, useState } from 'react';
+import AudioVisualizer from './AudioVisualizer';
+import Clock from './Clock';
+import TelemetryGraph from './TelemetryGraph';
+import soundSystem from '../lib/SoundSystem';
+import { useSettingsContext } from '../app/context/SettingsContext';
+import { useBrowserContext } from '../app/context/BrowserContext';
 import useVoiceCommand from '../hooks/useVoiceCommand';
 
+// Format uptime seconds to HH:MM:SS
+function formatUptime(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
 export default function CommandHeader() {
-  const { formatUptime, systemStats, soundEnabled, setSoundEnabled, isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, totalProjects, isGodMode } = useAppContext();
+  const { isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, isGodMode } = useSettingsContext();
+  const { totalProjects } = useBrowserContext();
   const { isSupported, isListening, startListening, stopListening } = useVoiceCommand();
+
+  // Command Center Header stats — local to this component so the 1Hz tick
+  // doesn't ripple through the shared context and re-render the rest of the app.
+  const [systemStats, setSystemStats] = useState({
+    uptime: 999990, // Random high start
+    connections: 1337,
+    memory: 42
+  });
+
+  useEffect(() => {
+    const slowTimer = setInterval(() => {
+      setSystemStats(prev => {
+        // Fluctuate connections slightly
+        let newConnections = prev.connections + Math.floor(Math.random() * 5) - 2;
+        if (newConnections < 1000) newConnections = 1000 + Math.floor(Math.random() * 50);
+
+        // Fluctuate memory
+        let newMemory = prev.memory + (Math.random() > 0.5 ? 1 : -1);
+        if (newMemory < 20) newMemory = 20;
+        if (newMemory > 80) newMemory = 80;
+
+        return {
+          ...prev,
+          uptime: prev.uptime + 1,
+          connections: newConnections,
+          memory: newMemory
+        };
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(slowTimer);
+    };
+  }, []);
 
   return (
     <>
@@ -51,7 +95,7 @@ export default function CommandHeader() {
       </div>
 
       <div className="hidden lg:flex items-center">
-        <SystemClock />
+        <Clock precision="seconds" label="SYS.TIME:" />
       </div>
     </div>
 
@@ -77,31 +121,13 @@ export default function CommandHeader() {
       <div className="hidden sm:flex items-center gap-2 border-r border-accent-500/30 pr-4">
          <button
            onClick={() => {
-             setSoundEnabled(prev => !prev);
-             if (!soundEnabled) {
-               soundSystem.enable();
-               soundSystem.playClick();
-             }
-           }}
-           className={`text-xs font-mono transition-colors ${soundEnabled ? 'text-accent-400' : 'text-gray-500 hover:text-white'}`}
-           aria-label="Toggle Sound"
-         >
-           AUDIO: {soundEnabled ? 'ON' : 'OFF'}
-         </button>
-      </div>
-
-      <div className="hidden lg:flex items-center gap-2 border-r border-accent-500/30 pr-4">
-         <span className="opacity-50 text-accent-200/70 mr-1">AUDIO:</span>
-         <button
-           onClick={() => {
-             const newState = !isSoundEnabled;
-             setIsSoundEnabled(newState);
-             if (newState) {
-               soundSystem.enable(); // Synchronous enable for immediate playback
+             const nextEnabled = !isSoundEnabled;
+             setIsSoundEnabled(nextEnabled);
+             if (nextEnabled) {
                soundSystem.playAlert();
              }
            }}
-           className={`text-accent-400 hover:text-white transition-colors ${!isSoundEnabled ? 'opacity-50' : ''}`}
+           className={`flex items-center gap-1.5 text-xs font-mono transition-colors ${isSoundEnabled ? 'text-accent-400' : 'text-gray-500 hover:text-white'}`}
            aria-label="Toggle Audio"
          >
            {isSoundEnabled ? (
@@ -113,6 +139,7 @@ export default function CommandHeader() {
                <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
              </svg>
            )}
+           <span>AUDIO: {isSoundEnabled ? 'ON' : 'OFF'}</span>
          </button>
       </div>
 
@@ -175,7 +202,7 @@ export default function CommandHeader() {
       <div className="hidden md:flex">
          <AudioVisualizer theme={theme} />
       </div>
-      <Clock />
+      <Clock precision="milliseconds" />
     </div>
   </div>
     </>

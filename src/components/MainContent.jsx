@@ -1,14 +1,18 @@
 import { flushSync } from 'react-dom';
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Card from '../Card';
+import Card from './Card';
 import SystemMap from './SystemMap';
-import ConstellationOverlay from '../ConstellationOverlay';
-import { CATEGORY_ICONS } from '../constants';
-import { useAppContext } from '../AppContext';
+import ConstellationOverlay from '../effects/ConstellationOverlay';
+import { CATEGORY_ICONS } from '../data/constants';
+import { useBrowserContext } from '../app/context/BrowserContext';
+import { useSettingsContext } from '../app/context/SettingsContext';
+import { useOverlayContext } from '../app/context/OverlayContext';
 
 export default function MainContent() {
-  const { filteredProjects, activeFilters, searchQuery, setSearchQuery, setActiveFilters, setCurrentPage, toggleFilter, handleDisplayModeChange, displayMode, sortOption, isGlitching, hoveredTag, paginatedProjects, focusedCardIndex, setFocusedCardIndex, selectedProject, favorites, toggleFavorite, handleContextMenu, handleCopyLink, handleProjectSelect, handleTagClick, isDataMode, activeFiltersSet, draggedFavoriteId, dragOverFavoriteId, handleDragStart, handleDragOver, handleDragEnd, handleDrop, setHoveredTag, totalPages, currentPage, handlePageChange, suggestedTags, isWarping } = useAppContext();
+  const { filteredProjects, activeFilters, searchQuery, setSearchQuery, setActiveFilters, setCurrentPage, toggleFilter, sortOption, hoveredTag, paginatedProjects, focusedCardIndex, setFocusedCardIndex, favorites, toggleFavorite, handleCopyLink, handleTagClick, activeFiltersSet, draggedFavoriteId, dragOverFavoriteId, handleDragStart, handleDragOver, handleDragEnd, handleDrop, setHoveredTag, totalPages, currentPage, handlePageChange, suggestedTags } = useBrowserContext();
+  const { displayMode, isGlitching, handleDisplayModeChange } = useSettingsContext();
+  const { selectedProject, handleContextMenu, handleProjectSelect, isDataMode, isWarping } = useOverlayContext();
 
   // 🌌 CURATOR FEATURE: Global Holographic Command Table Perspective
   const gridRef = useRef(null);

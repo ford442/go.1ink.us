@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import projectData from '../projectData';
-import soundSystem from '../SoundSystem';
-import { CATEGORIES, TAG_TO_CATEGORIES } from '../constants';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import projectData from '../data/projectData';
+import soundSystem from '../lib/SoundSystem';
+import { CATEGORIES, TAG_TO_CATEGORIES } from '../data/constants';
 
 export default function useTerminalController({
   addActivityLog,
@@ -14,9 +14,9 @@ export default function useTerminalController({
   setIsCrtEnabled,
   setIsLockdown,
   setIsMatrixMode,
+  setIsSoundEnabled,
   setRandomSeed,
   setSortOption,
-  setSoundEnabled,
   toggleFavorite,
   toggleFilter
 }) {
@@ -35,7 +35,7 @@ export default function useTerminalController({
   const terminalInputRef = useRef(null);
   const terminalEndRef = useRef(null);
 
-  const handleTerminalKeyDown = (e) => {
+  const handleTerminalKeyDown = useCallback((e) => {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (commandHistory.length > 0) {
@@ -98,10 +98,10 @@ export default function useTerminalController({
         }
       }
     }
-  };
+  }, [commandHistory, historyIndex, terminalInput]);
 
   // Terminal Command Processor
-  const handleTerminalSubmit = (e, overrideCommand) => {
+  const handleTerminalSubmit = useCallback((e, overrideCommand) => {
     e.preventDefault();
     const commandStr = overrideCommand || terminalInput.trim();
     if (!commandStr) return;
@@ -176,13 +176,11 @@ export default function useTerminalController({
         } else {
           const stateParam = args[0].toLowerCase();
           if (stateParam === 'on') {
-            setSoundEnabled(true);
-            soundSystem.enable();
+            setIsSoundEnabled(true);
             responseText = `> AUDIO_FEEDBACK_SYSTEM: ONLINE`;
             responseType = 'success';
           } else if (stateParam === 'off') {
-            setSoundEnabled(false);
-            soundSystem.disable();
+            setIsSoundEnabled(false);
             responseText = `> AUDIO_FEEDBACK_SYSTEM: OFFLINE`;
             responseType = 'success';
           } else {
@@ -440,7 +438,28 @@ export default function useTerminalController({
     if (responseType !== 'error' && command !== 'clear') {
       addActivityLog(`TERMINAL CMD: ${command} ${args.join(' ')}`);
     }
-  };
+  }, [
+    addActivityLog,
+    changeTheme,
+    favorites,
+    handleDisplayModeChange,
+    handleProjectSelect,
+    projectsMatchingQuery,
+    setCurrentPage,
+    setIsCrtEnabled,
+    setIsLockdown,
+    setIsMatrixMode,
+    setHistoryIndex,
+    setRandomSeed,
+    setSortOption,
+    setIsSoundEnabled,
+    setTerminalInput,
+    terminalHistory,
+    terminalInput,
+    isHoloTerminalOpen,
+    toggleFavorite,
+    toggleFilter
+  ]);
 
   // Auto-scroll terminal content (but only within the terminal, not the page)
   useEffect(() => {

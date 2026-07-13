@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import soundSystem from '../SoundSystem';
+import soundSystem from '../lib/SoundSystem';
 
-export default function useBootSequence() {
+export default function useBootSequence({ isSoundEnabled }) {
   // Ensure page loads scrolled to top
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -57,7 +57,7 @@ export default function useBootSequence() {
   const [scanProgress, setScanProgress] = useState(0);
   const scanIntervalRef = useRef(null);
 
-  const startScan = (e) => {
+  const startScan = useCallback((e) => {
     if (e && e.preventDefault && e.type !== 'touchstart') e.preventDefault();
     if (bootStep !== 1) return;
 
@@ -75,39 +75,20 @@ export default function useBootSequence() {
         return prev + 2; // Fills in ~1.5s (30ms * 50 steps)
       });
     }, 30);
-  };
+  }, [bootStep]);
 
-  const stopScan = () => {
+  const stopScan = useCallback(() => {
     if (bootStep === 1) {
       clearInterval(scanIntervalRef.current);
       setScanProgress(0);
     }
-  };
+  }, [bootStep]);
 
   // Boot screen hidden — site loads directly into the project grid
   const [showBootScreen, setShowBootScreen] = useState(false);
 
-  // Audio State
-  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('curator_sound') === 'true';
-    }
-    return false;
-  });
-
   // Data Decryption (X-Ray) Mode
   const [isDataMode, setIsDataMode] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('curator_sound', isSoundEnabled);
-      if (isSoundEnabled) {
-        soundSystem.enable();
-      } else {
-        soundSystem.disable();
-      }
-    }
-  }, [isSoundEnabled]);
 
   useEffect(() => {
     if (isBooting && isSoundEnabled) {
@@ -186,10 +167,8 @@ export default function useBootSequence() {
     clickEffects,
     isBooting,
     isDataMode,
-    isSoundEnabled,
     scanProgress,
     setIsDataMode,
-    setIsSoundEnabled,
     showBootScreen,
     startScan,
     stopScan,

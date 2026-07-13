@@ -1,7 +1,9 @@
 import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
-import { useAppContext } from '../AppContext';
-import { CATEGORY_THEMES } from '../constants';
+import { useBrowserContext } from '../app/context/BrowserContext';
+import { useOverlayContext } from '../app/context/OverlayContext';
+import { useSettingsContext } from '../app/context/SettingsContext';
+import { CATEGORY_THEMES } from '../data/constants';
 
 // Compute link similarities based on shared tags and categories
 const computeGraphData = (projects) => {
@@ -51,7 +53,9 @@ const computeGraphData = (projects) => {
 };
 
 export default function SystemMap() {
-  const { paginatedProjects, handleProjectSelect, theme } = useAppContext();
+  const { paginatedProjects } = useBrowserContext();
+  const { handleProjectSelect } = useOverlayContext();
+  const { theme } = useSettingsContext();
   const graphRef = useRef(null);
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
