@@ -59,7 +59,7 @@ function App() {
   } = useBootSequence();
 
   // Sound System State
-  const [soundEnabled, setSoundEnabled] = useState(() => {
+  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('curator_sound');
       if (stored !== null) {
@@ -86,8 +86,8 @@ function App() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('curator_sound', soundEnabled);
-      if (soundEnabled) {
+      localStorage.setItem('curator_sound', isSoundEnabled);
+      if (isSoundEnabled) {
         soundSystem.enable();
         soundSystem.startAmbience();
       } else {
@@ -95,7 +95,7 @@ function App() {
         soundSystem.disable();
       }
     }
-  }, [soundEnabled]);
+  }, [isSoundEnabled]);
 
   // CRT Global Effect State
   const [isCrtEnabled, setIsCrtEnabled] = useState(() => {
@@ -614,7 +614,7 @@ function App() {
     setIsMatrixMode,
     setRandomSeed,
     setSortOption,
-    setSoundEnabled,
+    setIsSoundEnabled,
     toggleFavorite,
     toggleFilter
   });
@@ -674,13 +674,13 @@ function App() {
     isGlitching,
     isGodMode,
     isMatrixMode,
-    isSoundEnabled: soundEnabled,
+    isSoundEnabled,
     setDisplayMode,
     setIsCrtEnabled,
     setIsMatrixMode,
-    setIsSoundEnabled: setSoundEnabled,
+    setIsSoundEnabled,
     theme
-  }), [changeTheme, displayMode, handleDisplayModeChange, isCrtEnabled, isGlitching, isGodMode, isMatrixMode, setDisplayMode, setIsCrtEnabled, setIsMatrixMode, setSoundEnabled, soundEnabled, theme]);
+  }), [changeTheme, displayMode, handleDisplayModeChange, isCrtEnabled, isGlitching, isGodMode, isMatrixMode, setDisplayMode, setIsCrtEnabled, setIsMatrixMode, setIsSoundEnabled, isSoundEnabled, theme]);
 
   const browserValue = useMemo(() => ({
     activeCategories,

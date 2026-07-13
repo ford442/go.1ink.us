@@ -39,25 +39,11 @@ export default function useAppFeatures({
   setSearchQuery,
   setSelectedProject,
   setSortOption,
-  setSoundEnabled,
+  setIsSoundEnabled,
   closeProjectModal,
   sortOption,
   toggleFavorite
 }) {
-  const browser = useProjectBrowser({
-    activeFilters,
-    addActivityLog,
-    currentPage,
-    enhancedProjects,
-    favorites,
-    itemsPerPage,
-    randomSeed,
-    searchQuery,
-    setActiveFilters,
-    setCurrentPage,
-    sortOption
-  });
-
   const {
     activeCategories,
     activeFiltersSet,
@@ -71,7 +57,19 @@ export default function useAppFeatures({
     suggestedTags,
     toggleFilter,
     totalPages
-  } = browser;
+  } = useProjectBrowser({
+    activeFilters,
+    addActivityLog,
+    currentPage,
+    enhancedProjects,
+    favorites,
+    itemsPerPage,
+    randomSeed,
+    searchQuery,
+    setActiveFilters,
+    setCurrentPage,
+    sortOption
+  });
 
   const terminalController = useTerminalController({
     addActivityLog,
@@ -86,7 +84,7 @@ export default function useAppFeatures({
     setIsMatrixMode,
     setRandomSeed,
     setSortOption,
-    setSoundEnabled,
+    setIsSoundEnabled,
     toggleFavorite,
     toggleFilter
   });
