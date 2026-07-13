@@ -13,6 +13,7 @@ import ProjectQuickView from './components/ProjectQuickView';
 import TerminalBar from './components/TerminalBar';
 import ContextMenu from './components/ContextMenu';
 import SystemOverlays from './components/SystemOverlays';
+import useAudioSettings from './hooks/useAudioSettings';
 import useBootSequence from './hooks/useBootSequence';
 import useAppFeatures from './hooks/useAppFeatures';
 import usePersistedState from './hooks/usePersistedState';
@@ -46,6 +47,9 @@ const enhancedProjects = projectData.map(project => {
 });
 
 function App() {
+
+  const { isSoundEnabled, setIsSoundEnabled, toggleSound } = useAudioSettings();
+
   const {
     addActivityLog,
     bootLogs,
@@ -53,23 +57,13 @@ function App() {
     clickEffects,
     isBooting,
     isDataMode,
-    isSoundEnabled,
     scanProgress,
     setIsDataMode,
-    setIsSoundEnabled,
     showBootScreen,
     startScan,
     stopScan,
     userActivityLogs
-  } = useBootSequence();
-
-  const { toasts, addToast, removeToast } = useToasts();
-
-  // Persisted UI settings
-  const [soundEnabled, setSoundEnabled] = usePersistedState('curator_sound', false, { fromStorage: boolFromStorage });
-  const [isCrtEnabled, setIsCrtEnabled] = usePersistedState('curator_crt', false, { fromStorage: boolFromStorage });
-  const [isMatrixMode, setIsMatrixMode] = usePersistedState('curator_matrix', false, { fromStorage: boolFromStorage });
-  const [theme, setTheme] = usePersistedState('curator_theme', 'cyan');
+  } = useBootSequence({ isSoundEnabled });
 
   // Framer Motion Scroll Velocity
   const { scrollY } = useScroll();
@@ -82,6 +76,13 @@ function App() {
     });
   }, [smoothVelocity]);
 
+  // CRT Global Effect State
+  const [isCrtEnabled, setIsCrtEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('curator_crt') === 'true';
+    }
+    return false;
+  });
   useEffect(() => {
     if (soundEnabled) {
       soundSystem.enable();
@@ -180,7 +181,8 @@ function App() {
     handleDisplayModeChange, handleProjectSelect, isDataMode, isGodMode, isOmniOpen, itemsPerPage, randomSeed,
     searchQuery, selectedProjectRef, setActiveFilters, setContextMenu, setCurrentPage, setDisplayMode,
     setIsCrtEnabled, setIsDataMode, setIsGodMode, setIsLockdown, setIsMatrixMode, setIsOmniOpen, setRandomSeed,
-    setSearchQuery, setSelectedProject, setSortOption, setSoundEnabled, closeProjectModal, sortOption, toggleFavorite
+    setSearchQuery, setSelectedProject, setSortOption, setSoundEnabled, closeProjectModal, sortOption, toggleFavorite, toggleFilter
+
   });
 
   const { settingsValue, browserValue, terminalValue, overlayValue, effectsValue, activityValue } = useAppProviderValues({
@@ -202,6 +204,12 @@ function App() {
     baseGridRef, canvasRef, deepGridRef, gridSpotlightRef, starfieldRef,
     addActivityLog, bootLogs, bootStep, isBooting, scanProgress, showBootScreen, startScan, stopScan, userActivityLogs
   });
+
+  const { baseGridRef, canvasRef, deepGridRef, gridSpotlightRef, starfieldRef } = useBackgroundEffects();
+
+  const appContext = {
+    activeCategories, activeFilters, activeFiltersSet, addActivityLog, addToast, baseGridRef, bootLogs, bootStep, canvasRef, changeTheme, clickEffects, closeContextMenu, closeProjectModal, contextMenu, counts, currentPage, deepGridRef, displayMode, dragOverFavoriteId, draggedFavoriteId, favoriteCount, favorites, filteredProjects, focusedCardIndex, formatUptime, gridSpotlightRef, handleContextMenu, handleCopyLink, handleDisplayModeChange, handleDragEnd, handleDragOver, handleDragStart, handleDrop, handlePageChange, handleProjectSelect, handleTagClick, handleTerminalKeyDown, handleTerminalSubmit, hoveredTag, isBooting, isCrtEnabled, isDataMode, isGlitching, isGodMode, isIdle, isLockdown, isMatrixMode, isMobileFiltersOpen, isOmniOpen, isSoundEnabled, isHoloTerminalOpen, isTerminalClosing, isTerminalOpen, isWarping, modalImageLoaded, modalRef, paginatedProjects, removeToast, scanProgress, searchInputRef, searchQuery, selectedProject, setActiveFilters, setCurrentPage, setDisplayMode, setFocusedCardIndex, setIsCrtEnabled, setIsDataMode, setIsGodMode, setIsLockdown, setIsMatrixMode, setIsMobileFiltersOpen, setIsOmniOpen, setIsSoundEnabled, setIsHoloTerminalOpen, setIsTerminalClosing, setIsTerminalOpen, setModalImageLoaded, setRandomSeed, setSearchQuery, setSelectedProject, setSortOption, setTerminalInput, setHoveredTag, showBootScreen, sortOption, starfieldRef, startScan, stopScan, suggestedTags, systemStats, terminalEndRef, terminalHistory, terminalInput, terminalInputRef, theme, toasts, toggleSound, totalProjects: enhancedProjects.length, toggleFavorite, toggleFilter, totalPages, userActivityLogs
+  };
 
   return (
     <AppProviders

@@ -9,7 +9,7 @@ import { useSettingsContext } from '../context/SettingsContext';
 import { useActivityContext } from '../context/ActivityContext';
 
 export default function SystemOverlays() {
-  const { isOmniOpen, setIsOmniOpen, handleProjectSelect, isLockdown, setIsLockdown, isIdle, clickEffects, toasts, removeToast } = useOverlayContext();
+  const { isOmniOpen, setIsOmniOpen, handleProjectSelect, activeFilters, toggleFilter, theme, changeTheme, isCrtEnabled, setIsCrtEnabled, isMatrixMode, setIsMatrixMode, isSoundEnabled, toggleSound, isLockdown, setIsLockdown, displayMode, setDisplayMode, isIdle, isBooting, clickEffects, toasts, removeToast, sortOption, setSortOption } = useAppContext();
   const { activeFilters, toggleFilter, sortOption, setSortOption } = useBrowserContext();
   const { theme, changeTheme, isCrtEnabled, setIsCrtEnabled, isMatrixMode, setIsMatrixMode, isSoundEnabled, setIsSoundEnabled, displayMode, setDisplayMode } = useSettingsContext();
   const { isBooting } = useActivityContext();
@@ -30,7 +30,7 @@ export default function SystemOverlays() {
         isMatrixMode={isMatrixMode}
         onToggleMatrixMode={() => setIsMatrixMode(!isMatrixMode)}
         isSoundEnabled={isSoundEnabled}
-        onToggleSound={() => setIsSoundEnabled(!isSoundEnabled)}
+        onToggleSound={toggleSound}
         isLockdown={isLockdown}
         onToggleLockdown={() => setIsLockdown(!isLockdown)}
         displayMode={displayMode}
