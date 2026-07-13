@@ -16,7 +16,7 @@ function formatUptime(seconds) {
 }
 
 export default function CommandHeader() {
-  const { setSoundEnabled, isSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, isGodMode } = useSettingsContext();
+  const { isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, isGodMode } = useSettingsContext();
   const { totalProjects } = useBrowserContext();
   const { isSupported, isListening, startListening, stopListening } = useVoiceCommand();
 
@@ -121,7 +121,7 @@ export default function CommandHeader() {
       <div className="hidden sm:flex items-center gap-2 border-r border-accent-500/30 pr-4">
          <button
            onClick={() => {
-             setSoundEnabled(prev => !prev);
+             setIsSoundEnabled(prev => !prev);
              if (!isSoundEnabled) {
                soundSystem.playAlert();
              }

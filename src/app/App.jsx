@@ -50,10 +50,8 @@ function App() {
     clickEffects,
     isBooting,
     isDataMode,
-    isSoundEnabled,
     scanProgress,
     setIsDataMode,
-    setIsSoundEnabled,
     showBootScreen,
     startScan,
     stopScan,
@@ -676,15 +674,13 @@ function App() {
     isGlitching,
     isGodMode,
     isMatrixMode,
-    isSoundEnabled,
+    isSoundEnabled: soundEnabled,
     setDisplayMode,
     setIsCrtEnabled,
     setIsMatrixMode,
-    setIsSoundEnabled,
-    setSoundEnabled,
-    soundEnabled,
+    setIsSoundEnabled: setSoundEnabled,
     theme
-  }), [changeTheme, displayMode, handleDisplayModeChange, isCrtEnabled, isGlitching, isGodMode, isMatrixMode, isSoundEnabled, setIsSoundEnabled, soundEnabled, theme]);
+  }), [changeTheme, displayMode, handleDisplayModeChange, isCrtEnabled, isGlitching, isGodMode, isMatrixMode, setDisplayMode, setIsCrtEnabled, setIsMatrixMode, setSoundEnabled, soundEnabled, theme]);
 
   const browserValue = useMemo(() => ({
     activeCategories,

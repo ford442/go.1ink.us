@@ -14,11 +14,9 @@ export default function useAppProviderValues({
   isGlitching,
   isGodMode,
   isMatrixMode,
-  isSoundEnabled,
   setDisplayMode,
   setIsCrtEnabled,
   setIsMatrixMode,
-  setIsSoundEnabled,
   setSoundEnabled,
   soundEnabled,
   theme,
@@ -124,15 +122,13 @@ export default function useAppProviderValues({
     isGlitching,
     isGodMode,
     isMatrixMode,
-    isSoundEnabled,
+    isSoundEnabled: soundEnabled,
     setDisplayMode,
     setIsCrtEnabled,
     setIsMatrixMode,
-    setIsSoundEnabled,
-    setSoundEnabled,
-    soundEnabled,
+    setIsSoundEnabled: setSoundEnabled,
     theme
-  }), [changeTheme, displayMode, handleDisplayModeChange, isCrtEnabled, isGlitching, isGodMode, isMatrixMode, isSoundEnabled, setDisplayMode, setIsCrtEnabled, setIsMatrixMode, setIsSoundEnabled, setSoundEnabled, soundEnabled, theme]);
+  }), [changeTheme, displayMode, handleDisplayModeChange, isCrtEnabled, isGlitching, isGodMode, isMatrixMode, setDisplayMode, setIsCrtEnabled, setIsMatrixMode, setSoundEnabled, soundEnabled, theme]);
 
   const browserValue = useMemo(() => ({
     activeCategories,
