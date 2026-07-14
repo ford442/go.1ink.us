@@ -633,7 +633,8 @@ function App() {
     terminalEndRef,
     terminalHistory,
     terminalInput,
-    terminalInputRef
+    terminalInputRef,
+    terminalSuggestion
   } = terminalController;
 
   const { searchInputRef } = useGlobalShortcuts({
@@ -741,8 +742,9 @@ function App() {
     terminalEndRef,
     terminalHistory,
     terminalInput,
-    terminalInputRef
-  }), [handleTerminalKeyDown, handleTerminalSubmit, isHoloTerminalOpen, isTerminalClosing, isTerminalOpen, setIsHoloTerminalOpen, setIsTerminalClosing, setIsTerminalOpen, setTerminalInput, terminalEndRef, terminalHistory, terminalInput, terminalInputRef]);
+    terminalInputRef,
+    terminalSuggestion
+  }), [handleTerminalKeyDown, handleTerminalSubmit, isHoloTerminalOpen, isTerminalClosing, isTerminalOpen, setIsHoloTerminalOpen, setIsTerminalClosing, setIsTerminalOpen, setTerminalInput, terminalEndRef, terminalHistory, terminalInput, terminalInputRef, terminalSuggestion]);
 
   const overlayValue = useMemo(() => ({
     addToast,
