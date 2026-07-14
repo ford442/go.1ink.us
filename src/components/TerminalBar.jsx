@@ -2,7 +2,7 @@ import soundSystem from '../lib/SoundSystem';
 import { useTerminalContext } from '../app/context/TerminalContext';
 
 export default function TerminalBar() {
-  const { isTerminalOpen, isTerminalClosing, setIsTerminalClosing, setIsTerminalOpen, terminalHistory, terminalEndRef, handleTerminalSubmit, terminalInputRef, terminalInput, setTerminalInput, handleTerminalKeyDown } = useTerminalContext();
+  const { isTerminalOpen, isTerminalClosing, setIsTerminalClosing, setIsTerminalOpen, terminalHistory, terminalEndRef, handleTerminalSubmit, terminalInputRef, terminalInput, setTerminalInput, handleTerminalKeyDown, terminalSuggestion } = useTerminalContext();
   if (!isTerminalOpen && !isTerminalClosing) return null;
 
   return (
@@ -50,19 +50,25 @@ export default function TerminalBar() {
        {/* Terminal Input */}
        <form onSubmit={handleTerminalSubmit} className="relative flex items-center group">
           <span className="text-accent-500 mr-2 font-bold whitespace-nowrap drop-shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.8)]">root@curator:~#</span>
-          <input
-             ref={terminalInputRef}
-             type="text"
-             value={terminalInput}
-             onChange={(e) => setTerminalInput(e.target.value)}
-             onInput={() => soundSystem.playKeystroke()}
-             onKeyDown={handleTerminalKeyDown}
-             className="flex-1 bg-transparent border-none outline-none text-white focus:ring-0 p-0 placeholder-gray-600"
-             placeholder="Type 'help' for available protocols..."
-             autoComplete="off"
-             spellCheck="false"
-             autoFocus
-          />
+          <div className="relative flex-1">
+             <div className="absolute inset-0 flex items-center pointer-events-none overflow-hidden whitespace-pre font-mono">
+               <span className="text-transparent">{terminalInput}</span>
+               <span className="text-gray-500 opacity-50">{terminalSuggestion}</span>
+             </div>
+             <input
+               ref={terminalInputRef}
+               type="text"
+               value={terminalInput}
+               onChange={(e) => setTerminalInput(e.target.value)}
+               onInput={() => soundSystem.playKeystroke()}
+               onKeyDown={handleTerminalKeyDown}
+               className="w-full bg-transparent border-none outline-none text-white focus:ring-0 p-0 placeholder-gray-600 relative z-10 font-mono"
+               placeholder="Type 'help' for available protocols..."
+               autoComplete="off"
+               spellCheck="false"
+               autoFocus
+             />
+          </div>
           <div className="absolute right-0 w-2 h-4 bg-accent-400 animate-pulse opacity-50 pointer-events-none"></div>
        </form>
 

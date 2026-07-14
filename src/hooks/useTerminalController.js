@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import projectData from '../data/projectData';
 import soundSystem from '../lib/SoundSystem';
 import { CATEGORIES, TAG_TO_CATEGORIES } from '../data/constants';
@@ -35,6 +35,50 @@ export default function useTerminalController({
   const terminalInputRef = useRef(null);
   const terminalEndRef = useRef(null);
 
+
+  const terminalSuggestion = useMemo(() => {
+    const input = terminalInput.trimStart();
+    if (!input) return '';
+
+    const words = input.split(' ');
+    const cmd = words[0].toLowerCase();
+    const commands = ['help', 'filter', 'view', 'map', 'graph', 'sort', 'ls', 'open', 'fav', 'theme', 'sound', 'crt', 'matrix', 'holo', 'stats', 'clear', 'exit', 'close', 'lockdown', 'unlock', 'override', 'alert'];
+
+    if (words.length === 1) {
+      const matches = commands.filter(c => c.startsWith(cmd));
+      if (matches.length === 1 && matches[0] !== cmd) {
+        return matches[0].slice(cmd.length);
+      }
+      return '';
+    } else if (words.length === 2 && !input.endsWith(' ')) {
+      const arg = words[1].toLowerCase();
+      let matches = [];
+      if (cmd === 'theme') {
+        const themes = ['cyan', 'purple', 'emerald', 'gold'];
+        matches = themes.filter(t => t.startsWith(arg));
+      } else if (cmd === 'sound' || cmd === 'crt' || cmd === 'matrix') {
+        const states = ['on', 'off'];
+        matches = states.filter(s => s.startsWith(arg));
+      } else if (cmd === 'view') {
+        const views = ['grid', 'matrix', 'list', 'map'];
+        matches = views.filter(v => v.startsWith(arg));
+      } else if (cmd === 'sort') {
+        const sorts = ['featured', 'newest', 'a-z', 'random', 'complex'];
+        matches = sorts.filter(s => s.replace('-', '').startsWith(arg.replace('-', '')));
+      } else if (cmd === 'filter') {
+        const filters = ['all', 'favorites', ...Object.keys(CATEGORIES).map(c => c.toLowerCase())];
+        matches = filters.filter(f => f.startsWith(arg));
+      }
+
+      if (matches.length === 1 && matches[0] !== arg) {
+         return matches[0].slice(arg.length);
+      }
+      return '';
+    }
+    return '';
+  }, [terminalInput]);
+
+
   const handleTerminalKeyDown = useCallback((e) => {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
@@ -55,6 +99,9 @@ export default function useTerminalController({
           setTerminalInput(commandHistory[newIndex]);
         }
       }
+    } else if (e.key === 'ArrowRight' && terminalSuggestion) {
+      e.preventDefault();
+      setTerminalInput(terminalInput + terminalSuggestion + ' ');
     } else if (e.key === 'Tab') {
       e.preventDefault();
       const input = terminalInput.trimStart();
@@ -98,7 +145,7 @@ export default function useTerminalController({
         }
       }
     }
-  }, [commandHistory, historyIndex, terminalInput]);
+  }, [commandHistory, historyIndex, terminalInput, terminalSuggestion]);
 
   // Terminal Command Processor
   const handleTerminalSubmit = useCallback((e, overrideCommand) => {
@@ -495,6 +542,7 @@ export default function useTerminalController({
     terminalEndRef,
     terminalHistory,
     terminalInput,
-    terminalInputRef
+    terminalInputRef,
+    terminalSuggestion
   };
 }
