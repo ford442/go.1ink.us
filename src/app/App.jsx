@@ -44,6 +44,17 @@ const enhancedProjects = projectData.map(project => {
 
 function App() {
 
+  // Sound System State
+  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('curator_sound');
+      if (stored !== null) {
+        return stored === 'true';
+      }
+    }
+    return false;
+  });
+
   const {
     addActivityLog,
     bootLogs,
@@ -58,17 +69,6 @@ function App() {
     stopScan,
     userActivityLogs
   } = useBootSequence({ isSoundEnabled });
-
-  // Sound System State
-  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('curator_sound');
-      if (stored !== null) {
-        return stored === 'true';
-      }
-    }
-    return false;
-  });
 
   // Framer Motion Scroll Velocity
   const { scrollY } = useScroll();
