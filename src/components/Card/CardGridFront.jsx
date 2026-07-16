@@ -86,6 +86,19 @@ export default function CardGridFront({
           )}
         </div>
 
+        {/* 🌌 CURATOR FEATURE: Active Data Transmission EQ */}
+        <div
+          className={`absolute bottom-4 right-4 z-20 flex items-end gap-[2px] h-6 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+          style={{ transform: 'translateZ(45px)' }}
+        >
+          <div className="w-1 bg-accent-500/70 h-[30%] origin-bottom animate-[pulse_0.4s_ease-in-out_infinite_alternate] shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.5)]"></div>
+          <div className="w-1 bg-accent-500/80 h-[80%] origin-bottom animate-[pulse_0.7s_ease-in-out_infinite_alternate-reverse] shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.5)]"></div>
+          <div className="w-1 bg-accent-400/90 h-[50%] origin-bottom animate-[pulse_0.5s_ease-in-out_infinite_alternate] shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.5)]"></div>
+          <div className="w-1 bg-accent-300/80 h-[100%] origin-bottom animate-[pulse_0.6s_ease-in-out_infinite_alternate-reverse] shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.5)]"></div>
+          <div className="w-1 bg-accent-500/70 h-[40%] origin-bottom animate-[pulse_0.8s_ease-in-out_infinite_alternate] shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.5)]"></div>
+          <div className="w-1 bg-accent-400/60 h-[70%] origin-bottom animate-[pulse_0.55s_ease-in-out_infinite_alternate-reverse] shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.5)]"></div>
+        </div>
+
         {/* Target Lock Hover Brackets */}
         <div className="target-bracket target-bracket-tl target-bracket-gold"></div>
         <div className="target-bracket target-bracket-tr target-bracket-gold"></div>
@@ -93,12 +106,17 @@ export default function CardGridFront({
         <div className="target-bracket target-bracket-br target-bracket-gold"></div>
 
         <div
-          className="p-6 flex-1 flex flex-col relative z-10 transition-transform duration-100 ease-out"
+          className="p-6 flex-1 flex flex-col relative z-10 transition-transform duration-100 ease-out overflow-hidden"
           style={{
             transform: 'translateZ(50px) translateX(var(--parallax-x, 0px)) translateY(var(--parallax-y, 0px))'
           }}
         >
-          <div className="flex items-center mb-3">
+          {/* 🌌 CURATOR FEATURE: Description Area Scanline */}
+          <div
+            className={`absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-accent-500/10 to-transparent h-[10px] w-full transition-opacity duration-300 z-0 ${isHovered ? 'opacity-100 animate-[skeleton-sweep_2s_linear_infinite]' : 'opacity-0'}`}
+            style={{ transform: 'translateY(-100%)' }}
+          ></div>
+          <div className="flex items-center mb-3 relative z-10">
             {project.image && <div className="text-2xl mr-3 transform transition-transform duration-300 group-hover:rotate-12 filter drop-shadow">{project.icon}</div>}
             <div className="flex-1">
               <h3 className="text-xl font-bold text-white tracking-wide group-hover:text-blue-300 transition-colors duration-300 flex items-center justify-between">
@@ -109,7 +127,7 @@ export default function CardGridFront({
             </div>
           </div>
 
-          <p className="text-gray-300 mb-5 line-clamp-3 leading-relaxed flex-1">
+          <p className="text-gray-300 mb-5 line-clamp-3 leading-relaxed flex-1 relative z-10">
             {highlightMatch(project.description, searchQuery, regex)}
           </p>
 
