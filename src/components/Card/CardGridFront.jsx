@@ -40,6 +40,21 @@ export default function CardGridFront({
 
       <CardGridEffectsTop />
 
+      {/* 🌌 CURATOR FEATURE: Holographic Projection Cone */}
+      <div
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[150%] h-[120%] pointer-events-none z-10"
+        style={{ transform: 'translateZ(20px)' }}
+      >
+        <div
+          className="w-full h-full origin-bottom transition-all duration-700 ease-out opacity-0 scale-y-50 group-hover:opacity-100 group-hover:scale-y-100"
+          style={{
+            background: 'linear-gradient(to top, rgba(var(--rgb-accent-400), 0.2) 0%, rgba(var(--rgb-accent-400), 0.02) 60%, transparent 100%)',
+            clipPath: 'polygon(0 0, 100% 0, 65% 100%, 35% 100%)',
+            mixBlendMode: 'screen'
+          }}
+        ></div>
+      </div>
+
       {/* Drag Handle Indicator */}
       {draggable && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-40 w-12 h-1.5 bg-white/20 rounded-full group-hover:bg-white/40 transition-colors pointer-events-none shadow-[0_0_10px_rgba(255,255,255,0.1)]"></div>
