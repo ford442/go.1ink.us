@@ -5,6 +5,7 @@ import TelemetryGraph from './TelemetryGraph';
 import soundSystem from '../lib/SoundSystem';
 import { useSettingsContext } from '../app/context/SettingsContext';
 import { useBrowserContext } from '../app/context/BrowserContext';
+import { useOverlayContext } from '../app/context/OverlayContext';
 import useVoiceCommand from '../hooks/useVoiceCommand';
 
 // Format uptime seconds to HH:MM:SS
@@ -18,6 +19,7 @@ function formatUptime(seconds) {
 export default function CommandHeader() {
   const { isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, isGodMode } = useSettingsContext();
   const { totalProjects } = useBrowserContext();
+  const { isCheatsheetOpen, setIsCheatsheetOpen } = useOverlayContext();
   const { isSupported, isListening, startListening, stopListening } = useVoiceCommand();
 
   // Command Center Header stats — local to this component so the 1Hz tick
@@ -199,6 +201,24 @@ export default function CommandHeader() {
          <span className="opacity-50">PRJ:</span>
          <span className="text-accent-100 min-w-[28px] tabular-nums">{totalProjects}</span>
       </div>
+
+      <div className="flex items-center border-r border-accent-500/30 pr-4">
+        <button
+          onClick={() => {
+            soundSystem.playClick();
+            setIsCheatsheetOpen(prev => !prev);
+          }}
+          className={`flex items-center justify-center w-6 h-6 rounded border transition-colors ${
+            isCheatsheetOpen
+              ? 'bg-accent-500/20 text-accent-300 border-accent-500/50 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.3)]'
+              : 'bg-black/40 text-gray-400 border-white/10 hover:text-white hover:border-white/30'
+          }`}
+          title="Keyboard Shortcuts Cheatsheet [?]"
+        >
+          <span className="font-mono text-xs font-bold">?</span>
+        </button>
+      </div>
+
       <div className="hidden md:flex">
          <AudioVisualizer theme={theme} />
       </div>

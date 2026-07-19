@@ -12,6 +12,8 @@ export default function useGlobalShortcuts({
   isTerminalOpen,
   isGodMode,
   setIsGodMode,
+  isCheatsheetOpen,
+  setIsCheatsheetOpen,
   selectedProjectRef,
   setActiveFilters,
   setContextMenu,
@@ -91,6 +93,16 @@ export default function useGlobalShortcuts({
         return;
       }
 
+      // Toggle Shortcut Cheatsheet
+      if (e.key === '?' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        setIsCheatsheetOpen(prev => {
+          if (!prev) soundSystem.playSuccess();
+          return !prev;
+        });
+        return;
+      }
+
       // Global Terminal Toggle
       if (e.key === '`' || e.key === '~') {
         e.preventDefault();
@@ -117,6 +129,11 @@ export default function useGlobalShortcuts({
 
         if (isOmniOpen) {
           setIsOmniOpen(false);
+          return;
+        }
+
+        if (isCheatsheetOpen) {
+          setIsCheatsheetOpen(false);
           return;
         }
 
@@ -233,8 +250,10 @@ export default function useGlobalShortcuts({
     isDataMode,
     isOmniOpen,
     isTerminalOpen,
-  isGodMode,
-  setIsGodMode,
+    isGodMode,
+    setIsGodMode,
+    isCheatsheetOpen,
+    setIsCheatsheetOpen,
     selectedProjectRef,
     setActiveFilters,
     setContextMenu,

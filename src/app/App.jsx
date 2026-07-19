@@ -245,6 +245,9 @@ function App() {
   // Omni Command Palette State
   const [isOmniOpen, setIsOmniOpen] = useState(false);
 
+  // Keyboard Shortcut Cheatsheet State
+  const [isCheatsheetOpen, setIsCheatsheetOpen] = useState(false);
+
   // Quick View Modal State
   const [selectedProject, setSelectedProject] = useState(null);
   const selectedProjectRef = useRef(null);
@@ -648,6 +651,8 @@ function App() {
     isTerminalOpen,
     isGodMode,
     setIsGodMode,
+    isCheatsheetOpen,
+    setIsCheatsheetOpen,
     selectedProjectRef,
     setActiveFilters,
     setContextMenu,
@@ -758,6 +763,7 @@ function App() {
     isIdle,
     isLockdown,
     isOmniOpen,
+    isCheatsheetOpen,
     isWarping,
     modalImageLoaded,
     modalRef,
@@ -766,10 +772,11 @@ function App() {
     setIsDataMode,
     setIsLockdown,
     setIsOmniOpen,
+    setIsCheatsheetOpen,
     setModalImageLoaded,
     setSelectedProject,
     toasts
-  }), [addToast, clickEffects, closeContextMenu, closeProjectModal, contextMenu, handleContextMenu, handleProjectSelect, isDataMode, isIdle, isLockdown, isOmniOpen, isWarping, modalImageLoaded, removeToast, selectedProject, setIsDataMode, toasts]);
+  }), [addToast, clickEffects, closeContextMenu, closeProjectModal, contextMenu, handleContextMenu, handleProjectSelect, isDataMode, isIdle, isLockdown, isOmniOpen, isCheatsheetOpen, isWarping, modalImageLoaded, removeToast, selectedProject, setIsDataMode, toasts]);
 
   const effectsValue = useMemo(() => ({
     baseGridRef,
