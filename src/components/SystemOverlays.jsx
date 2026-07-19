@@ -3,13 +3,14 @@ import OmniPalette from './OmniPalette';
 import Screensaver from '../effects/Screensaver';
 import projectData from '../data/projectData';
 import Toast from './Toast';
+import ShortcutCheatsheet from './ShortcutCheatsheet';
 import { useOverlayContext } from '../app/context/OverlayContext';
 import { useBrowserContext } from '../app/context/BrowserContext';
 import { useSettingsContext } from '../app/context/SettingsContext';
 import { useActivityContext } from '../app/context/ActivityContext';
 
 export default function SystemOverlays() {
-  const { isOmniOpen, setIsOmniOpen, handleProjectSelect, isLockdown, setIsLockdown, isIdle, clickEffects, toasts, removeToast } = useOverlayContext();
+  const { isOmniOpen, setIsOmniOpen, handleProjectSelect, isLockdown, setIsLockdown, isIdle, clickEffects, toasts, removeToast, isCheatsheetOpen, setIsCheatsheetOpen } = useOverlayContext();
   const { activeFilters, toggleFilter, sortOption, setSortOption } = useBrowserContext();
   const { theme, changeTheme, isCrtEnabled, setIsCrtEnabled, isMatrixMode, setIsMatrixMode, isSoundEnabled, setIsSoundEnabled, displayMode, setDisplayMode } = useSettingsContext();
   const { isBooting } = useActivityContext();
@@ -37,6 +38,11 @@ export default function SystemOverlays() {
         onChangeDisplayMode={setDisplayMode}
         sortOption={sortOption}
         onChangeSortOption={setSortOption}
+      />
+
+      <ShortcutCheatsheet
+        isOpen={isCheatsheetOpen}
+        onClose={() => setIsCheatsheetOpen(false)}
       />
 
       {isIdle && !isBooting && <Screensaver />}
