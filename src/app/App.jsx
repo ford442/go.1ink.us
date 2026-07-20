@@ -466,9 +466,6 @@ function App() {
     exportLoadoutFile,
     importLoadoutJson,
     copyShareLink,
-    applyLoadoutByName,
-    exportLoadout,
-    listLoadoutsSummary,
   } = loadoutsApi;
 
   const browser = useProjectBrowser({

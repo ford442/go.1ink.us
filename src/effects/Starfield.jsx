@@ -1,16 +1,10 @@
-import React, { useState, forwardRef, memo, useEffect, useContext } from 'react';
+import React, { useState, forwardRef, memo, useContext } from 'react';
 import { OverlayContext } from '../app/context/OverlayContext';
 
 const Starfield = memo(forwardRef(({ starCount = 75 }, ref) => {
   const context = useContext(OverlayContext);
   const isWarping = context?.isWarping || false;
 
-  // INSTRUMENTATION FOR PERF TESTING
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.__STARFIELD_RENDER_COUNT__ = (window.__STARFIELD_RENDER_COUNT__ || 0) + 1;
-    }
-  });
   const [stars] = useState(() => {
     return Array.from({ length: starCount }).map((_, i) => ({
       id: i,

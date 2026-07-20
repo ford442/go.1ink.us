@@ -251,19 +251,19 @@ export default function SystemConstellation() {
   const { theme, handleDisplayModeChange } = useSettingsContext();
   const { flags } = useEffectsContext();
   const containerRef = useRef(null);
-  const [use3d, setUse3d] = useState(null);
-  const [fallbackReason, setFallbackReason] = useState('');
 
-  useEffect(() => {
+  // Derive the capability decision instead of syncing it into state from an
+  // effect (which triggers an extra render / cascading update). The WebGL
+  // probe is synchronous, so there is no async phase to wait on.
+  const { use3d, fallbackReason } = useMemo(() => {
     const ok = canUseConstellation3d(flags.constellation3d);
+    let reason = '';
     if (!ok) {
-      if (!flags.constellation3d) {
-        setFallbackReason('Performance mode is set to Lite');
-      } else {
-        setFallbackReason('WebGL unavailable or software renderer detected');
-      }
+      reason = flags.constellation3d
+        ? 'WebGL unavailable or software renderer detected'
+        : 'Performance mode is set to Lite';
     }
-    setUse3d(ok);
+    return { use3d: ok, fallbackReason: reason };
   }, [flags.constellation3d]);
 
   const handleSelect = useCallback((project) => {
@@ -273,16 +273,6 @@ export default function SystemConstellation() {
   const openMap = useCallback(() => {
     handleDisplayModeChange('map');
   }, [handleDisplayModeChange]);
-
-  if (use3d === null) {
-    return (
-      <div className="flex items-center justify-center min-h-[480px] rounded-xl border border-accent-500/20 tinted-glass">
-        <span className="font-mono text-accent-400 text-sm tracking-widest uppercase animate-pulse">
-          Calibrating stellar array...
-        </span>
-      </div>
-    );
-  }
 
   if (!use3d) {
     return (

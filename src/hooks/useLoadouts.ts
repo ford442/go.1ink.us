@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import usePersistedState from './usePersistedState';
 import { sanitizeIds } from '../lib/loadoutIds';
 import type { Loadout, LoadoutPack, LoadoutStore } from '../types';
@@ -250,23 +250,49 @@ export default function useLoadouts({
     (l) => l.ids.length === favorites.length && l.ids.every((id, i) => favorites[i] === id),
   )?.id ?? null;
 
-  return {
-    loadouts,
-    activeLoadoutId,
-    createLoadout,
-    renameLoadout,
-    deleteLoadout,
-    updateLoadoutFromFavorites,
-    applyLoadout,
-    applyLoadoutByName,
-    exportLoadout,
-    exportAllLoadouts,
-    exportLoadoutFile,
-    importLoadoutJson,
-    shareUrlForLoadout,
-    shareUrlForIds,
-    copyShareLink,
-    listLoadoutsSummary,
-    applyIds,
-  };
+  // Memoize the returned API so its identity is stable across renders.
+  // Consumers (e.g. LoadoutsBootstrap) depend on this object in effects and
+  // lift it into App state via onReady(); an unmemoized object changed every
+  // render, which drove an onReady -> setState -> re-render infinite loop
+  // ("Maximum update depth exceeded") that continuously re-rendered the app.
+  return useMemo(
+    () => ({
+      loadouts,
+      activeLoadoutId,
+      createLoadout,
+      renameLoadout,
+      deleteLoadout,
+      updateLoadoutFromFavorites,
+      applyLoadout,
+      applyLoadoutByName,
+      exportLoadout,
+      exportAllLoadouts,
+      exportLoadoutFile,
+      importLoadoutJson,
+      shareUrlForLoadout,
+      shareUrlForIds,
+      copyShareLink,
+      listLoadoutsSummary,
+      applyIds,
+    }),
+    [
+      loadouts,
+      activeLoadoutId,
+      createLoadout,
+      renameLoadout,
+      deleteLoadout,
+      updateLoadoutFromFavorites,
+      applyLoadout,
+      applyLoadoutByName,
+      exportLoadout,
+      exportAllLoadouts,
+      exportLoadoutFile,
+      importLoadoutJson,
+      shareUrlForLoadout,
+      shareUrlForIds,
+      copyShareLink,
+      listLoadoutsSummary,
+      applyIds,
+    ],
+  );
 }

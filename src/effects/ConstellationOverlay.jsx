@@ -5,17 +5,18 @@ const ConstellationOverlay = ({ hoveredTag, visibleProjects, displayMode }) => {
   const containerRef = useRef(null);
 
   useEffect(() => {
-    // We defer setting an empty state inside the effect body to avoid synchronous setState warnings.
-    // Instead we clear it when the effect cleans up or bypass the update entirely.
-
     let rafId;
 
-    const updateLines = () => {
-      if (!hoveredTag || !visibleProjects || visibleProjects.length < 2) {
-        setLines([]);
-        return;
-      }
+    // When no tag is hovered (the default, idle state) there is nothing to
+    // draw. Clear any stale lines with a single deferred update instead of
+    // spinning a requestAnimationFrame loop that calls setState every frame
+    // forever — that kept this always-mounted overlay re-rendering at ~60Hz.
+    if (!hoveredTag || !visibleProjects || visibleProjects.length < 2) {
+      rafId = requestAnimationFrame(() => setLines([]));
+      return () => cancelAnimationFrame(rafId);
+    }
 
+    const updateLines = () => {
       // Find all projects that share this tag or category
       const relatedProjects = visibleProjects.filter(p =>
         p.tagSet?.has(hoveredTag) || p.categorySet?.has(hoveredTag) || (p.tags && p.tags.includes(hoveredTag))

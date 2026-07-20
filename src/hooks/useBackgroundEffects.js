@@ -38,21 +38,57 @@ export default function useBackgroundEffects(flags = DEFAULT_FLAGS) {
     let animationFrameId;
     const trailParticles = [];
 
+    // Cache the accent color instead of calling the (layout-forcing)
+    // getComputedStyle() once per trail particle per frame. Refresh it only
+    // when the active theme changes, mirroring effects/ParticleNetwork.
+    let trailRgb = '34, 211, 238';
+    let themeObserver = null;
+    if (flags.cursorTrail) {
+      const readAccent = () => {
+        const rgb = getComputedStyle(document.documentElement)
+          .getPropertyValue('--rgb-accent-400')
+          .trim();
+        trailRgb = rgb || '34, 211, 238';
+      };
+      readAccent();
+      themeObserver = new MutationObserver(readAccent);
+      themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme'],
+      });
+    }
+
+    // Track what was last committed to the DOM so idle frames (no pointer
+    // movement, parallax settled) don't repaint full-viewport mask layers or
+    // clear/redraw the trail canvas for no reason.
+    let lastStarfieldTransform = '';
+    let lastMaskX = NaN;
+    let lastMaskY = NaN;
+    let lastSpawnX = NaN;
+    let lastSpawnY = NaN;
+
     const updateTransforms = () => {
       currentMouseX += (targetMouseX - currentMouseX) * 0.03;
       currentMouseY += (targetMouseY - currentMouseY) * 0.03;
 
       if (flags.starfield && starfieldRef.current) {
-        starfieldRef.current.style.transform = `translate3d(${currentMouseX * -0.01}px, ${scrollY * 0.04 + currentMouseY * -0.01}px, 0)`;
+        const transform = `translate3d(${currentMouseX * -0.01}px, ${scrollY * 0.04 + currentMouseY * -0.01}px, 0)`;
+        if (transform !== lastStarfieldTransform) {
+          starfieldRef.current.style.transform = transform;
+          lastStarfieldTransform = transform;
+        }
       }
 
-      if (flags.parallaxGrids && gridSpotlightRef.current) {
-        const mask = `radial-gradient(300px circle at ${pageMouseX}px ${pageMouseY}px, black, transparent)`;
-        gridSpotlightRef.current.style.maskImage = mask;
-        gridSpotlightRef.current.style.webkitMaskImage = mask;
-      }
+      if (flags.parallaxGrids && (pageMouseX !== lastMaskX || pageMouseY !== lastMaskY)) {
+        lastMaskX = pageMouseX;
+        lastMaskY = pageMouseY;
 
-      if (flags.parallaxGrids) {
+        if (gridSpotlightRef.current) {
+          const mask = `radial-gradient(300px circle at ${pageMouseX}px ${pageMouseY}px, black, transparent)`;
+          gridSpotlightRef.current.style.maskImage = mask;
+          gridSpotlightRef.current.style.webkitMaskImage = mask;
+        }
+
         const deepMask = `radial-gradient(800px circle at ${pageMouseX}px ${pageMouseY}px, black 10%, transparent 80%)`;
         if (deepGridRef.current) {
           deepGridRef.current.style.maskImage = deepMask;
@@ -67,36 +103,49 @@ export default function useBackgroundEffects(flags = DEFAULT_FLAGS) {
       if (flags.cursorTrail) {
         const canvas = canvasRef.current;
         if (canvas) {
-          const ctx = canvas.getContext('2d');
-          if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+          // Only spawn a new particle when the pointer actually moved, so an
+          // idle cursor lets the trail fade out and stop instead of endlessly
+          // stamping particles at the last position.
+          if (pageMouseX !== lastSpawnX || pageMouseY !== lastSpawnY) {
+            lastSpawnX = pageMouseX;
+            lastSpawnY = pageMouseY;
+            trailParticles.push({
+              x: pageMouseX,
+              y: pageMouseY,
+              life: 1.0,
+              size: Math.random() * 4 + 2,
+            });
           }
 
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-          trailParticles.push({
-            x: pageMouseX,
-            y: pageMouseY,
-            life: 1.0,
-            size: Math.random() * 4 + 2,
-          });
-
-          for (let i = trailParticles.length - 1; i >= 0; i--) {
-            const p = trailParticles[i];
-            p.life -= 0.02;
-            p.y -= 0.5;
-
-            if (p.life <= 0) {
-              trailParticles.splice(i, 1);
-              continue;
+          if (trailParticles.length > 0) {
+            const ctx = canvas.getContext('2d');
+            if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+              canvas.width = window.innerWidth;
+              canvas.height = window.innerHeight;
             }
 
-            ctx.beginPath();
-            const trailRgb = getComputedStyle(document.documentElement).getPropertyValue('--rgb-accent-400').trim() || '34, 211, 238';
-            ctx.fillStyle = `rgba(${trailRgb}, ${p.life * 0.5})`;
-            ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = trailParticles.length - 1; i >= 0; i--) {
+              const p = trailParticles[i];
+              p.life -= 0.02;
+              p.y -= 0.5;
+
+              if (p.life <= 0) {
+                trailParticles.splice(i, 1);
+                // Clear once more when the last particle dies so no stale
+                // pixels linger on the canvas.
+                if (trailParticles.length === 0) {
+                  ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+                continue;
+              }
+
+              ctx.beginPath();
+              ctx.fillStyle = `rgba(${trailRgb}, ${p.life * 0.5})`;
+              ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+              ctx.fill();
+            }
           }
         }
       }
@@ -130,6 +179,7 @@ export default function useBackgroundEffects(flags = DEFAULT_FLAGS) {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('mousemove', handleMouseMove);
       cancelAnimationFrame(animationFrameId);
+      if (themeObserver) themeObserver.disconnect();
       if (!flags.parallaxGrids) {
         document.documentElement.style.removeProperty('--parallax-x');
         document.documentElement.style.removeProperty('--parallax-y');
