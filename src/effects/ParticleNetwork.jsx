@@ -93,12 +93,14 @@ const ParticleNetwork = memo(({ isGodMode }) => {
         particles[i].update();
         particles[i].draw(ctx, accent);
 
-        for (let j = i; j < particles.length; j++) {
+        for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < 118) {
+          // Compare squared distance first so the sqrt only runs for the few
+          // pairs actually close enough to draw a link.
+          const dsq = dx * dx + dy * dy;
+          if (dsq < 118 * 118) {
+            const dist = Math.sqrt(dsq);
             ctx.beginPath();
             ctx.strokeStyle = `rgba(${accent}, ${0.28 * (1 - dist / 118)})`;
             ctx.lineWidth = 0.6;
@@ -111,8 +113,9 @@ const ParticleNetwork = memo(({ isGodMode }) => {
         if (mouse.x != null && mouse.y != null) {
           const dx = particles[i].x - mouse.x;
           const dy = particles[i].y - mouse.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 155) {
+          const dsq = dx * dx + dy * dy;
+          if (dsq < 155 * 155) {
+            const dist = Math.sqrt(dsq);
             ctx.beginPath();
             ctx.strokeStyle = `rgba(${accent}, ${0.55 * (1 - dist / 155)})`;
             ctx.lineWidth = 1.1;
