@@ -41,7 +41,7 @@ export default function CardGridFront({
   onCardKeyDown,
 }) {
   return (
-    <div className={`relative h-full flex flex-col rounded-xl overflow-hidden ${isFlipped ? 'pointer-events-none' : 'pointer-events-auto'}`} style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
+    <div className={`relative h-full flex flex-col rounded-xl overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] ${isFlipped ? 'pointer-events-none' : 'pointer-events-auto'} ${isHoverDelayed ? '-translate-y-3 shadow-[0_20px_40px_-10px_rgba(var(--rgb-accent-400),0.5)]' : ''}`} style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
 
       {!isFlipped && (
         <button
