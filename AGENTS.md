@@ -561,3 +561,11 @@ already-converted `.ts`/`.tsx` files are held to account by
 | `eslint` | Linting |
 | `eslint-plugin-react-hooks` | React Hooks rules |
 | `eslint-plugin-react-refresh` | Fast Refresh rules |
+
+---
+
+## Cursor Cloud specific instructions
+
+- Pure static Vite/React SPA — no backend, database, or external services. The dev server (`npm run dev`, http://localhost:5173) is the only process to run for local development. Dependencies are refreshed automatically on startup via `npm ci`.
+- `npm run lint` currently fails on ~11 **pre-existing** errors in the committed code (e.g. `no-undef` for `process`, several `no-unused-vars`, one `react-hooks/set-state-in-effect`). These are not caused by environment setup — expect a non-zero exit until they're fixed in the source. `npm run typecheck`, `npm run test:unit`, and `npm run build` all pass clean.
+- `npm run build` runs a `prebuild` (`optimize-images` + `generate-pwa-icons`, both use `sharp`) and a `postbuild` bundle-budget check, so a full build takes ~40s. Playwright browsers are not installed by the update script; run `npm run test:e2e:install` first if you need `npm run test:e2e` / `test:a11y`.
