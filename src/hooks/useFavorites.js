@@ -52,12 +52,6 @@ export default function useFavorites({ isLockdown, addToast, addActivityLog }) {
     addActivityLog(`FAVORITES REPLACED ${tag}`);
   }, [isLockdown, addToast, addActivityLog]);
 
-  const exportFavorites = useCallback((name) => ({
-    version: 1,
-    ...(name ? { name } : {}),
-    ids: [...favorites],
-  }), [favorites]);
-
   const toggleFavorite = useCallback((project) => {
     if (isLockdown) {
       soundSystem.playDenied();

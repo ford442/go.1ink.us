@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import soundSystem from '../../lib/SoundSystem';
 import { getCardWrapperClasses } from './cardStyles';
 import CardGridFront from './CardGridFront';
 import CardGridBack from './CardGridBack';
