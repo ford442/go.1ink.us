@@ -38,6 +38,7 @@ export default function useVoiceCommand() {
       else if (cmd.includes('list')) setDisplayMode('list');
       else if (cmd.includes('matrix')) setDisplayMode('matrix');
       else if (cmd.includes('map')) setDisplayMode('map');
+      else if (cmd.includes('constellation') || cmd.includes('stars')) setDisplayMode('constellation');
       soundSystem.playSuccess();
       addToast('Display mode updated via voice command.', 'success');
     } else if (cmd.includes('lockdown')) {

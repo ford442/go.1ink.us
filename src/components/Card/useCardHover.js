@@ -1,31 +1,19 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import soundSystem from '../../lib/SoundSystem';
 
 // Hover-delay micro-interactions: immediate hover state plus a 700ms-delayed
-// "deep focus" state (used for the image zoom/lift), and a simulated
-// network ping readout while hovered.
-export default function useCardHover(onCardHover) {
+// "deep focus" state (used for the image zoom/lift), and a probe latency
+// readout while hovered when build-time health data is available.
+export default function useCardHover(onCardHover, { baselineLatencyMs, connectivityHealth } = {}) {
   const [isHovered, setIsHovered] = useState(false);
   const [isHoverDelayed, setIsHoverDelayed] = useState(false);
-  const [ping, setPing] = useState(0);
   const hoverTimerRef = useRef(null);
 
-  useEffect(() => {
-    let timeout;
-    let interval;
-    if (isHovered) {
-      timeout = setTimeout(() => {
-        setPing(Math.floor(Math.random() * 30) + 5);
-      }, 0);
-      interval = setInterval(() => {
-        setPing(prev => Math.max(2, Math.min(150, prev + (Math.floor(Math.random() * 9) - 4))));
-      }, 800);
-    }
-    return () => {
-      clearTimeout(timeout);
-      clearInterval(interval);
-    };
-  }, [isHovered]);
+  const ping = !isHovered || connectivityHealth === 'unknown'
+    ? 0
+    : connectivityHealth === 'degraded'
+      ? 999
+      : baselineLatencyMs ?? 0;
 
   const handleHoverEnter = (projectId) => {
     setIsHovered(true);
@@ -47,7 +35,6 @@ export default function useCardHover(onCardHover) {
       clearTimeout(hoverTimerRef.current);
       hoverTimerRef.current = null;
     }
-    setPing(0);
   };
 
   return { isHovered, isHoverDelayed, ping, handleHoverEnter, handleHoverLeave };

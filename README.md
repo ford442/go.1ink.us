@@ -83,3 +83,77 @@ python scripts/deploy.py
 `scripts/deploy.py` uploads `dist/` to `storage.noahcohn.com`, which
 extracts it and pushes the files to the production server. No SFTP
 credentials are stored in this repo.
+
+## Privacy & analytics
+
+This dashboard ships **no third-party analytics scripts** (no Google Analytics,
+no ad pixels, no social trackers). Usage insight is optional and
+privacy-first:
+
+| What | Where | Notes |
+|------|-------|-------|
+| Project launches | Browser `localStorage` | Counted when you click **Open External** / **Open App** — not on quick-view opens |
+| Filter usage | Browser `localStorage` | Aggregate counts per filter tag/category |
+| Display mode | Browser `localStorage` | Grid / list / matrix / map switches |
+| Operator Profile | Sidebar | Shows your personal launch history from local stats only |
+| Optional beacon | Self-hosted endpoint | Only when `VITE_ANALYTICS_BEACON_URL` is set at build time |
+
+**Disable completely**
+
+- **Runtime:** in DevTools console:
+  `localStorage.setItem('curator_analytics_disabled', 'true')` then reload.
+  Re-enable with `localStorage.removeItem('curator_analytics_disabled')`.
+- **Build-time:** set `VITE_ANALYTICS_DISABLED=true` before `npm run build`.
+
+**Optional aggregate beacon**
+
+To POST anonymous event aggregates to a self-hosted endpoint (e.g.
+`storage.noahcohn.com`):
+
+```bash
+VITE_ANALYTICS_BEACON_URL=https://storage.noahcohn.com/analytics npm run build
+```
+
+Payloads contain only `{ event, payload, ts }` — project id, filter name, or
+display mode. No cookies, no fingerprinting, no IP stored by the client. Beacon
+requests are fire-and-forget (`sendBeacon` / `fetch` with `keepalive`).
+
+Clear local stats: `localStorage.removeItem('curator_operator_stats')`.
+
+## Accessibility
+
+The dashboard targets **keyboard-only** use and screen-reader compatibility:
+
+| Area | Behavior |
+|------|----------|
+| Search | `/` focuses the sidebar search; results count is announced via a live region |
+| Filters | Category/tag buttons are real `<button>` elements with visible labels |
+| Projects | Arrow keys move focus between cards; Enter/Space opens quick view |
+| Omni palette | `Ctrl/Cmd+K` — dialog with focus trap; ↑↓ navigate, Enter selects |
+| Terminal | `` ` `` toggles the command bar; output uses `role="log"` |
+| Toasts | `aria-live` region + screen-reader announcements |
+| Activity feed | `role="log"` with polite live updates |
+| Custom cursor | Disabled when `prefers-reduced-motion` or `forced-colors` is active |
+| Motion | Warp/glitch/idle screensaver respect reduced-motion; Lite perf mode disables heavy FX |
+
+Press **`?`** in-app for the full keyboard map (also documented below).
+
+### Keyboard map
+
+| Key | Action |
+|-----|--------|
+| `/` | Focus project search |
+| `Ctrl/Cmd+K` | Omni command palette |
+| `` ` `` | Toggle terminal |
+| `L` | Cycle layout (grid → matrix → list → map → constellation) |
+| `Alt` (hold) | Data mode (raw JSON on cards) |
+| `↓` from search | Focus first matching project card |
+| Arrow keys | Move between project cards |
+| `Enter` / `Space` | Open quick view for focused card |
+| `Esc` | Close modal, palette, terminal, or cheatsheet |
+| `?` | Toggle keyboard shortcuts cheatsheet |
+| Konami code | God Mode |
+
+### CI
+
+`npm run test:a11y` runs Playwright + **axe-core** against the home page and quick-view modal (fails on critical/serious violations) and verifies the keyboard-only browse path.

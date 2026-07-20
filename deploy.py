@@ -16,6 +16,7 @@ Requirements:
 
 import io
 import os
+import subprocess
 import sys
 import time
 import zipfile
@@ -44,6 +45,17 @@ DEPLOY_TARGET: str = os.getenv("DEPLOY_TARGET", "go")
 DEPLOY_MAX_RETRIES: int = int(os.getenv("DEPLOY_MAX_RETRIES", "3"))
 DEPLOY_TIMEOUT: int = int(os.getenv("DEPLOY_TIMEOUT", "600"))
 # ============================================================
+
+
+def check_dist_fresh() -> None:
+    """Ensure dist/ exists and is not older than source (see scripts/check-dist-fresh.mjs)."""
+    script = Path(__file__).resolve().parent / "scripts" / "check-dist-fresh.mjs"
+    if not script.is_file():
+        print(f"WARNING: Missing {script}; skipping freshness check.")
+        return
+    result = subprocess.run(["node", str(script)], check=False)
+    if result.returncode != 0:
+        sys.exit(result.returncode)
 
 
 def build_zip(build_path: Path) -> bytes:
@@ -148,6 +160,8 @@ def main():
         print(f"ERROR: Build directory '{BUILD_DIR}/' does not exist.")
         print("Please run your build command first (e.g. `npm run build`).")
         sys.exit(1)
+
+    check_dist_fresh()
 
     try:
         health = requests.get(f"{CONTABO_BASE_URL}/api/deploy/health", timeout=10)

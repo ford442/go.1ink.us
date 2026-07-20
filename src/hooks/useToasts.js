@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import soundSystem from '../lib/SoundSystem';
+import { announce } from '../lib/a11yAnnouncer';
 
 export default function useToasts() {
   const [toasts, setToasts] = useState([]);
@@ -11,6 +12,7 @@ export default function useToasts() {
   const addToast = useCallback((message, type = 'info', duration = 3000) => {
     const id = Date.now() + Math.random().toString(36).substring(2, 11);
     setToasts(prev => [...prev, { id, message, type, duration }]);
+    announce(message.replace(/^>\s*/, ''), type === 'error' ? 'assertive' : 'polite');
 
     if (type === 'error') {
       soundSystem.playError();

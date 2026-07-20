@@ -1,18 +1,23 @@
 import { flushSync } from 'react-dom';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Card from './Card';
-import SystemMap from './SystemMap';
+const SystemMap = lazy(() => import('./SystemMap'));
+const SystemConstellation = lazy(() => import('./SystemConstellation'));
 import ConstellationOverlay from '../effects/ConstellationOverlay';
 import { CATEGORY_ICONS } from '../data/constants';
 import { useBrowserContext } from '../app/context/BrowserContext';
 import { useSettingsContext } from '../app/context/SettingsContext';
 import { useOverlayContext } from '../app/context/OverlayContext';
+import { useEffectsContext } from '../app/context/EffectsContext';
+import { BrandImage } from './ProjectImage';
 
 export default function MainContent() {
   const { filteredProjects, activeFilters, searchQuery, setSearchQuery, setActiveFilters, setCurrentPage, toggleFilter, sortOption, hoveredTag, paginatedProjects, focusedCardIndex, setFocusedCardIndex, favorites, toggleFavorite, handleCopyLink, handleTagClick, activeFiltersSet, draggedFavoriteId, dragOverFavoriteId, handleDragStart, handleDragOver, handleDragEnd, handleDrop, setHoveredTag, totalPages, currentPage, handlePageChange, suggestedTags } = useBrowserContext();
   const { displayMode, isGlitching, handleDisplayModeChange } = useSettingsContext();
   const { selectedProject, handleContextMenu, handleProjectSelect, isDataMode, isWarping } = useOverlayContext();
+  const { flags } = useEffectsContext();
+  const showWarpFx = flags.warpTransition && isWarping;
 
   // 🌌 CURATOR FEATURE: Global Holographic Command Table Perspective
   const gridRef = useRef(null);
@@ -25,7 +30,7 @@ export default function MainContent() {
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     const updateInteractive = () => {
-      setIsInteractive(hoverQuery.matches && !motionQuery.matches);
+      setIsInteractive(hoverQuery.matches && !motionQuery.matches && flags.card3d);
     };
 
     updateInteractive();
@@ -36,7 +41,7 @@ export default function MainContent() {
       hoverQuery.removeEventListener('change', updateInteractive);
       motionQuery.removeEventListener('change', updateInteractive);
     };
-  }, []);
+  }, [flags.card3d]);
 
   useEffect(() => {
     let rafId = null;
@@ -177,6 +182,17 @@ export default function MainContent() {
                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                   </svg>
                 </button>
+                <button
+                  onClick={() => handleDisplayModeChange('constellation')}
+                  className={`p-1.5 rounded transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 ${displayMode === 'constellation' ? 'bg-accent-500/20 text-accent-300 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]' : 'text-gray-500 hover:text-white'}`}
+                  aria-label="Constellation View"
+                  aria-pressed={displayMode === 'constellation'}
+                  title="Constellation Protocol"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                </button>
              </div>
           </div>
         </div>
@@ -185,13 +201,29 @@ export default function MainContent() {
           <>
             <div className="relative">
               {/* Tactical Tag Constellation Overlay */}
+              {displayMode !== 'map' && displayMode !== 'constellation' && (
               <ConstellationOverlay
                  hoveredTag={hoveredTag}
                  visibleProjects={paginatedProjects}
                  displayMode={displayMode}
               />
+              )}
               {displayMode === 'map' ? (
-                <SystemMap />
+                <Suspense fallback={
+                  <div className="flex items-center justify-center min-h-[400px] rounded-xl border border-accent-500/20 tinted-glass">
+                    <span className="font-mono text-accent-400 text-sm tracking-widest uppercase animate-pulse">Loading neural map...</span>
+                  </div>
+                }>
+                  <SystemMap />
+                </Suspense>
+              ) : displayMode === 'constellation' ? (
+                <Suspense fallback={
+                  <div className="flex items-center justify-center min-h-[480px] rounded-xl border border-accent-500/20 tinted-glass">
+                    <span className="font-mono text-accent-400 text-sm tracking-widest uppercase animate-pulse">Loading constellation...</span>
+                  </div>
+                }>
+                  <SystemConstellation />
+                </Suspense>
               ) : (
               <div
                 id="project-grid"
@@ -202,7 +234,7 @@ export default function MainContent() {
                     : displayMode === 'list'
                     ? 'flex flex-col gap-3 opacity-100'
                     : 'grid grid-cols-1 gap-6 md:gap-8 opacity-100'
-                } ${isWarping ? 'opacity-20 scale-[1.05] blur-[8px] grayscale' : 'opacity-100'}`}
+                } ${showWarpFx ? 'opacity-20 scale-[1.05] blur-[8px] grayscale' : 'opacity-100'}`}
                 style={{
                   transform: 'perspective(2000px) rotateX(0deg) rotateY(0deg)',
                   transformStyle: 'preserve-3d'
@@ -291,7 +323,7 @@ export default function MainContent() {
             </div>
 
             {/* Pagination Controls */}
-            {totalPages > 1 && (
+            {totalPages > 1 && displayMode !== 'map' && displayMode !== 'constellation' && (
               <div className="mt-16 flex justify-center items-center gap-4 border-t border-white/10 pt-8 animate-fade-in">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
@@ -546,10 +578,12 @@ export default function MainContent() {
       </main>
     
     <footer className="mt-24 mb-8 flex flex-col justify-center items-center gap-4">
-      <img
-        src="./go1inkus.png"
+      <BrandImage
+        brand="go1inkus"
         alt="go1ink.us"
+        loading="lazy"
         className="h-16 md:h-20 lg:h-24 w-auto opacity-60 hover:opacity-100 transition-all duration-300 hover:scale-105"
+        pictureClassName="block"
       />
     </footer>
     </>

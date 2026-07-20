@@ -1,0 +1,124 @@
+{
+  "generatedAt": "2026-07-19T19:55:29.050Z",
+  "source": "local",
+  "projects": {
+    "1": {
+      "health": "live",
+      "httpStatus": 200,
+      "latencyMs": 338,
+      "checkedAt": "2026-07-19T19:55:28.337Z",
+      "error": null
+    },
+    "2": {
+      "health": "live",
+      "httpStatus": 200,
+      "latencyMs": 380,
+      "checkedAt": "2026-07-19T19:55:28.467Z",
+      "error": null
+    },
+    "3": {
+      "health": "live",
+      "httpStatus": 200,
+      "latencyMs": 208,
+      "checkedAt": "2026-07-19T19:55:28.473Z",
+      "error": null
+    },
+    "4": {
+      "health": "live",
+      "httpStatus": 200,
+      "latencyMs": 207,
+      "checkedAt": "2026-07-19T19:55:28.479Z",
+      "error": null
+    },
+    "5": {
+      "health": "live",
+      "httpStatus": 200,
+      "latencyMs": 422,
+      "checkedAt": "2026-07-19T19:55:28.481Z",
+      "error": null
+    },
+    "6": {
+      "health": "live",
+      "httpStatus": 200,
+      "latencyMs": 220,
+      "checkedAt": "2026-07-19T19:55:28.677Z",
+      "error": null
+    },
+    "7": {
+      "health": "live",
+      "httpStatus": 200,
+      "latencyMs": 224,
+      "checkedAt": "2026-07-19T19:55:28.682Z",
+      "error": null
+    },
+    "8": {
+      "health": "live",
+      "httpStatus": 200,
+      "latencyMs": 214,
+      "checkedAt": "2026-07-19T19:55:28.686Z",
+      "error": null
+    },
+    "9": {
+      "health": "live",
+      "httpStatus": 200,
+      "latencyMs": 68,
+      "checkedAt": "2026-07-19T19:55:28.847Z",
+      "error": null
+    },
+    "10": {
+      "health": "live",
+      "httpStatus": 200,
+      "latencyMs": 50,
+      "checkedAt": "2026-07-19T19:55:28.897Z",
+      "error": null
+    },
+    "11": {
+      "health": "live",
+      "httpStatus": 200,
+      "latencyMs": 133,
+      "checkedAt": "2026-07-19T19:55:28.901Z",
+      "error": null
+    },
+    "12": {
+      "health": "live",
+      "httpStatus": 200,
+      "latencyMs": 131,
+      "checkedAt": "2026-07-19T19:55:28.903Z",
+      "error": null
+    },
+    "13": {
+      "health": "live",
+      "httpStatus": 200,
+      "latencyMs": 77,
+      "checkedAt": "2026-07-19T19:55:28.908Z",
+      "error": null
+    },
+    "14": {
+      "health": "live",
+      "httpStatus": 200,
+      "latencyMs": 58,
+      "checkedAt": "2026-07-19T19:55:28.915Z",
+      "error": null
+    },
+    "15": {
+      "health": "live",
+      "httpStatus": 200,
+      "latencyMs": 103,
+      "checkedAt": "2026-07-19T19:55:28.947Z",
+      "error": null
+    },
+    "16": {
+      "health": "live",
+      "httpStatus": 200,
+      "latencyMs": 59,
+      "checkedAt": "2026-07-19T19:55:28.974Z",
+      "error": null
+    }
+  },
+  "summary": {
+    "live": 16,
+    "degraded": 0,
+    "unknown": 0,
+    "total": 16
+  }
+}

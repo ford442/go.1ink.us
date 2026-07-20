@@ -1,22 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
+import { useEffectsContext } from '../../app/context/EffectsContext';
 
 // Mouse-tilt "magnet" interaction (grid layout) plus the shared
-// hover:hover / prefers-reduced-motion gate that governs whether tilt is
-// applied at all. Kept centralized here so every layout that wants tilt
-// respects the same accessibility rules.
+// hover:hover / prefers-reduced-motion / performance-mode gate.
 export default function useCardTilt() {
+  const { flags } = useEffectsContext();
   const cardRef = useRef(null);
   const rafRef = useRef(null);
   const [isInteractive, setIsInteractive] = useState(false);
 
   useEffect(() => {
-    // Check if device supports hover and user doesn't prefer reduced motion
-    // This optimization prevents sticky tilt states on touch devices and respects accessibility settings
     const hoverQuery = window.matchMedia('(hover: hover)');
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     const updateInteractive = () => {
-      setIsInteractive(hoverQuery.matches && !motionQuery.matches);
+      setIsInteractive(hoverQuery.matches && !motionQuery.matches && flags.card3d);
     };
 
     updateInteractive();
@@ -31,7 +29,7 @@ export default function useCardTilt() {
         cancelAnimationFrame(rafRef.current);
       }
     };
-  }, []);
+  }, [flags.card3d]);
 
   const applyEnterTransition = () => {
     if (!cardRef.current) return;

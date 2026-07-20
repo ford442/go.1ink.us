@@ -1,5 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
+import projectData from '../data/projectData';
 import soundSystem from '../lib/SoundSystem';
+
+const VALID_FAV_IDS = new Set(projectData.map((p) => p.id));
+
+function sanitizeIds(raw) {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set();
+  const result = [];
+  for (const item of raw) {
+    const id = typeof item === 'number' ? item : parseInt(String(item), 10);
+    if (!Number.isFinite(id) || !VALID_FAV_IDS.has(id) || seen.has(id)) continue;
+    seen.add(id);
+    result.push(id);
+  }
+  return result;
+}
 
 // Favorites list (persisted to localStorage) plus its drag-and-drop
 // reordering state/handlers. `isLockdown`/`addToast`/`addActivityLog` are
@@ -20,6 +36,27 @@ export default function useFavorites({ isLockdown, addToast, addActivityLog }) {
       localStorage.setItem('curator_favorites', JSON.stringify(favorites));
     }
   }, [favorites]);
+
+  const replaceFavorites = useCallback((ids, label, { silent = false } = {}) => {
+    if (isLockdown) {
+      soundSystem.playDenied();
+      addToast('> SYS_ERR: ACCESS DENIED - SYSTEM IN LOCKDOWN', 'error');
+      return;
+    }
+    const sanitized = sanitizeIds(ids);
+    setFavorites(sanitized);
+    const tag = label ? `[${label.toUpperCase()}]` : `[${sanitized.length} NODES]`;
+    if (!silent) {
+      addToast(`> SYS_UPDATE: FAVORITES_REPLACED ${tag}`, 'success');
+    }
+    addActivityLog(`FAVORITES REPLACED ${tag}`);
+  }, [isLockdown, addToast, addActivityLog]);
+
+  const exportFavorites = useCallback((name) => ({
+    version: 1,
+    ...(name ? { name } : {}),
+    ids: [...favorites],
+  }), [favorites]);
 
   const toggleFavorite = useCallback((project) => {
     if (isLockdown) {
@@ -94,6 +131,7 @@ export default function useFavorites({ isLockdown, addToast, addActivityLog }) {
 
   return {
     favorites,
+    replaceFavorites,
     toggleFavorite,
     draggedFavoriteId,
     dragOverFavoriteId,

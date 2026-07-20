@@ -112,6 +112,7 @@ export default function Toast({ toast, removeToast }) {
       onClick={() => removeToast(toast.id)}
       className={`relative bg-black/80 backdrop-blur-md border ${borderClass} rounded-lg overflow-hidden flex flex-col pointer-events-auto cursor-pointer hover:bg-black/90 transition-colors w-[300px] shadow-lg`}
       role="alert"
+      aria-label={`${toast.type} notification: ${toast.message}`}
     >
       <div className="flex items-center gap-3 px-4 py-3">
         <div className={`shrink-0 ${textClass}`}>{icon}</div>

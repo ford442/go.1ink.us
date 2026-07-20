@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const VALID_VIEWS = ['grid', 'matrix', 'list', 'map'];
+const VALID_VIEWS = ['grid', 'matrix', 'list', 'map', 'constellation'];
 
 function readParams() {
   if (typeof window === 'undefined') return new URLSearchParams();
@@ -36,7 +36,8 @@ export default function useUrlSyncedFilters() {
     }
   }, [displayMode]);
 
-  // Sync state to URL (Deep Linking)
+  // Sync state to URL (Deep Linking). Share params (?pack=, ?ids=) are
+  // consumed once on landing and never written back to the address bar.
   useEffect(() => {
     const params = new URLSearchParams();
     if (activeFilters.length > 0) params.set('filters', activeFilters.join(','));

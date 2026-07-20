@@ -2,6 +2,7 @@ import { useMemo, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import projectData from '../data/projectData';
 import { CATEGORIES, TAG_TO_CATEGORIES, CATEGORY_SETS } from '../data/constants';
+import { trackFilterUse } from '../lib/trackEvent';
 
 export default function useProjectBrowser({
   activeFilters,
@@ -104,12 +105,15 @@ export default function useProjectBrowser({
       if (filterParam === 'All') {
         setActiveFilters([]);
         addActivityLog(`FILTERS CLEARED`);
+        trackFilterUse('All', 'clear');
       } else {
         if (activeFilters.includes(filterParam)) {
           addActivityLog(`FILTER REMOVED: [${filterParam}]`);
+          trackFilterUse(filterParam, 'remove');
           setActiveFilters(activeFilters.filter(f => f !== filterParam));
         } else {
           addActivityLog(`FILTER ADDED: [${filterParam}]`);
+          trackFilterUse(filterParam, 'add');
           setActiveFilters([...activeFilters, filterParam]);
         }
       }
@@ -164,8 +168,7 @@ export default function useProjectBrowser({
 
     switch (sortOption) {
       case 'Newest':
-        // Assuming higher ID means newer, otherwise you'd need a date field
-        return projects.sort((a, b) => b.id - a.id);
+        return projects.sort((a, b) => b.year - a.year || b.id - a.id);
       case 'A-Z':
         return projects.sort((a, b) => a.title.localeCompare(b.title));
       case 'Random':
@@ -187,7 +190,6 @@ export default function useProjectBrowser({
         });
       case 'Featured':
       default:
-        // Returns original array order from projectData (assumed to be featured order)
         if (activeFiltersSet.has('Favorites') && activeFilters.length === 1) {
           return projects.sort((a, b) => {
             const indexA = favorites.indexOf(a.id);
@@ -195,7 +197,10 @@ export default function useProjectBrowser({
             return indexA - indexB;
           });
         }
-        return projects;
+        return projects.sort((a, b) => {
+          if (a.featured !== b.featured) return a.featured ? -1 : 1;
+          return a.id - b.id;
+        });
     }
   }, [filteredProjects, sortOption, randomSeed, activeFiltersSet, activeFilters, favorites]);
 

@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
+import { useEffectsContext } from '../app/context/EffectsContext';
+import useA11yPreferences from '../hooks/useA11yPreferences';
 
 export default function CustomCursor() {
+  const { flags } = useEffectsContext();
+  const { allowCustomCursor } = useA11yPreferences();
   const cursorDotRef = useRef(null);
   const cursorRingRef = useRef(null);
   const requestRef = useRef(null);
@@ -21,7 +25,7 @@ export default function CustomCursor() {
   const isHoveringRef = useRef(false);
 
   useEffect(() => {
-    if (!isPointerDevice) return;
+    if (!isPointerDevice || !flags.customCursor || !allowCustomCursor) return;
 
     const onMouseMove = (e) => {
       mouse.current.x = e.clientX;
@@ -89,19 +93,21 @@ export default function CustomCursor() {
       document.removeEventListener('mouseout', onMouseOut);
       cancelAnimationFrame(requestRef.current);
     };
-  }, [isPointerDevice]);
+  }, [isPointerDevice, flags.customCursor, allowCustomCursor]);
 
-  if (!isPointerDevice) return null;
+  if (!isPointerDevice || !flags.customCursor || !allowCustomCursor) return null;
 
   return (
     <>
       <div
         ref={cursorDotRef}
+        aria-hidden="true"
         className="fixed top-0 left-0 w-1.5 h-1.5 bg-cyan-400 rounded-full pointer-events-none z-[9999] shadow-[0_0_8px_rgba(34,211,238,0.8)]"
         style={{ willChange: 'transform' }}
       />
       <div
         ref={cursorRingRef}
+        aria-hidden="true"
         className={`fixed top-0 left-0 w-8 h-8 rounded-full border border-cyan-500/50 pointer-events-none z-[9998] transition-colors duration-200 flex items-center justify-center ${isHovering ? 'bg-cyan-500/10 border-cyan-400' : ''}`}
         style={{ willChange: 'transform' }}
       >
@@ -119,6 +125,7 @@ export default function CustomCursor() {
       </div>
       <div
         ref={telemetryRef}
+        aria-hidden="true"
         className="fixed top-0 left-0 pointer-events-none z-[9999] font-mono text-[10px] tracking-widest text-cyan-500/70 drop-shadow-[0_0_2px_rgba(34,211,238,0.5)] transition-colors duration-200"
         style={{ willChange: 'transform' }}
       >

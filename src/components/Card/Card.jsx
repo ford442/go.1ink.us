@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import soundSystem from '../../lib/SoundSystem';
+import { resolveProjectConnectivity } from '../../lib/projectConnectivity';
 import useCardTilt from './useCardTilt';
 import useCardHover from './useCardHover';
 import useCardMedia from './useCardMedia';
@@ -40,8 +41,12 @@ const Card = ({
   onHoverTag,
   onCardHover
 }) => {
+  const connectivity = useMemo(() => resolveProjectConnectivity(project), [project]);
   const tilt = useCardTilt();
-  const hover = useCardHover(onCardHover);
+  const hover = useCardHover(onCardHover, {
+    baselineLatencyMs: connectivity.latencyMs,
+    connectivityHealth: connectivity.health,
+  });
   const media = useCardMedia(tilt.cardRef, index);
   const { favoriteParticles, triggerFavoriteBurst } = useFavoriteBurst(isFavorite);
 

@@ -1,11 +1,13 @@
 import React, { useEffect, useRef } from 'react';
+import useA11yPreferences from '../hooks/useA11yPreferences';
 
 const Screensaver = () => {
   const canvasRef = useRef(null);
+  const { allowMotionEffects } = useA11yPreferences();
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !allowMotionEffects) return;
 
     const ctx = canvas.getContext('2d');
 
@@ -71,22 +73,28 @@ const Screensaver = () => {
       clearInterval(intervalId);
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [allowMotionEffects]);
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black cursor-none">
-      <canvas ref={canvasRef} className="absolute inset-0 block w-full h-full" />
+    <div
+      className="fixed inset-0 z-[9999] bg-black"
+      role="status"
+      aria-live="polite"
+      aria-label="Idle screensaver. Move the mouse or press a key to resume."
+    >
+      <canvas ref={canvasRef} className="absolute inset-0 block w-full h-full" aria-hidden="true" />
 
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 bg-black/40">
         <h1 className="text-4xl md:text-6xl font-bold text-accent-400 tracking-[0.5em] uppercase glitch-text mb-4" data-text="SYSTEM STANDBY">
           SYSTEM STANDBY
         </h1>
-        <div className="text-accent-500/70 font-mono tracking-[0.2em] animate-pulse">
+        <div className="text-accent-300/90 font-mono tracking-[0.2em] animate-pulse">
           AWAITING_INPUT_PROTOCOL
         </div>
+        <p className="sr-only">Screensaver active due to inactivity. Interact with the page to dismiss.</p>
       </div>
 
-      <div className="scanline opacity-30 pointer-events-none absolute inset-0 z-20"></div>
+      <div className="scanline opacity-30 pointer-events-none absolute inset-0 z-20" aria-hidden="true" />
     </div>
   );
 };

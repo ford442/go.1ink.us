@@ -8,7 +8,7 @@ export default function BootScreen() {
     <>
   {/* SYS_BOOT Sequence Screen */}
   {showBootScreen && (
-    <div className={`fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center font-mono pointer-events-auto transition-all duration-1000 ${!isBooting ? 'animate-boot-fade pointer-events-none' : ''}`}>
+    <div className={`fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center font-mono pointer-events-auto transition-all duration-1000 ${!isBooting ? 'animate-boot-fade pointer-events-none' : ''}`} role="status" aria-live="polite" aria-busy={isBooting} aria-label="System boot sequence">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--rgb-accent-400),0.1),transparent_50%)]"></div>
       <div className="scanline"></div>
 

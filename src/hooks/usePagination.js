@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const ITEMS_PER_PAGE = { map: 100, matrix: 10, list: 8 };
+const ITEMS_PER_PAGE = { map: 100, constellation: 100, matrix: 10, list: 8 };
 
 // Current page + per-page count (view-dependent) + keyboard-focused card
 // index, with focus reset whenever the visible set changes.

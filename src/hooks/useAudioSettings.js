@@ -3,33 +3,36 @@ import soundSystem from '../lib/SoundSystem';
 
 const STORAGE_KEY = 'curator_sound';
 
-// Single source of truth for the sound-enabled flag: one state slice,
-// one localStorage key, and one place that drives soundSystem side effects.
+function readSoundEnabled() {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(STORAGE_KEY) === 'true';
+}
+
+// Single source of truth for audio UI state (#214).
 export default function useAudioSettings() {
-  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem(STORAGE_KEY) === 'true';
-    }
-    return false;
-  });
+  const [isSoundEnabled, setIsSoundEnabled] = useState(readSoundEnabled);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    localStorage.setItem(STORAGE_KEY, isSoundEnabled);
-    if (isSoundEnabled) {
-      soundSystem.enable();
-      soundSystem.startAmbience();
-    } else {
-      soundSystem.stopAmbience();
-      soundSystem.disable();
-    }
-  }, [isSoundEnabled]);
-
-  // Flips the flag. The effect below handles persistence, AudioContext
-  // lifecycle, and ambience; keep the updater focused on state only.
-  const toggleSound = useCallback(() => {
-    setIsSoundEnabled(prev => !prev);
+    const unlock = () => soundSystem.unlockFromGesture();
+    window.addEventListener('pointerdown', unlock, { once: true, passive: true });
+    window.addEventListener('keydown', unlock, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
   }, []);
 
-  return { isSoundEnabled, setIsSoundEnabled, toggleSound };
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(STORAGE_KEY, String(isSoundEnabled));
+    soundSystem.setEnabled(isSoundEnabled);
+  }, [isSoundEnabled]);
+
+  const setIsSoundEnabledWithUnlock = useCallback((value) => {
+    soundSystem.unlockFromGesture();
+    setIsSoundEnabled(value);
+  }, []);
+
+  return { isSoundEnabled, setIsSoundEnabled: setIsSoundEnabledWithUnlock };
 }

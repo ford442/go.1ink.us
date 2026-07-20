@@ -23,6 +23,9 @@ export const CATEGORY_THEMES: Record<Category | 'default', string[]> = {
   'default': ['bg-blue-600/30', 'bg-purple-600/30', 'bg-pink-600/20', 'bg-accent-600/20']
 };
 
+/** Flat set of every tag declared in CATEGORIES — used for project-data validation. */
+export const ALL_TAGS = new Set(Object.values(CATEGORIES).flat());
+
 // Pre-calculate tag-to-category mapping for O(1) lookup
 export const TAG_TO_CATEGORIES: Record<string, Category[]> = {};
 (Object.entries(CATEGORIES) as [Category, string[]][]).forEach(([category, tags]) => {

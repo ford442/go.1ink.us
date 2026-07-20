@@ -2,6 +2,7 @@ import soundSystem from '../lib/SoundSystem';
 import { useOverlayContext } from '../app/context/OverlayContext';
 import { useBrowserContext } from '../app/context/BrowserContext';
 import { useActivityContext } from '../app/context/ActivityContext';
+import { trackProjectLaunch } from '../lib/trackEvent';
 
 export default function ContextMenu() {
   const { contextMenu, closeContextMenu, setIsDataMode, isDataMode } = useOverlayContext();
@@ -38,6 +39,7 @@ export default function ContextMenu() {
             rel="noopener noreferrer"
             className="w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-accent-500/20 transition-colors flex items-center gap-3 group"
             onClick={() => {
+               trackProjectLaunch(contextMenu.project.id, 'context_menu');
                soundSystem.playClick();
                closeContextMenu();
             }}

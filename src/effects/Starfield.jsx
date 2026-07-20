@@ -26,6 +26,7 @@ const Starfield = memo(forwardRef(({ starCount = 75 }, ref) => {
   return (
     <div
       ref={ref}
+      aria-hidden="true"
       className={`absolute -top-[10%] -left-[10%] w-[120%] h-[120%] pointer-events-none z-0 ${
         isWarping ? 'animate-warp-speed' : ''
       }`}

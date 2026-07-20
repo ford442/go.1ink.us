@@ -68,7 +68,7 @@ export default function useGlobalShortcuts({
         if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
           e.preventDefault();
           setDisplayMode((prev) => {
-            const nextMode = prev === 'grid' ? 'matrix' : prev === 'matrix' ? 'list' : prev === 'list' ? 'map' : 'grid';
+            const nextMode = prev === 'grid' ? 'matrix' : prev === 'matrix' ? 'list' : prev === 'list' ? 'map' : prev === 'map' ? 'constellation' : 'grid';
             addActivityLog(`SYS.UI: LAYOUT_UPDATED_${nextMode.toUpperCase()}`);
             return nextMode;
           });

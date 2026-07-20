@@ -851,6 +851,12 @@
   opacity: 0.055;
 }
 
+/* Performance lite: suppress decorative motion layers left in DOM */
+[data-perf="lite"] .animate-blob,
+[data-perf="lite"] .animate-float-idle {
+  animation: none !important;
+}
+
 @keyframes radar-sweep {
   0% { transform: translate(-50%, -50%) rotate(0deg); }
   100% { transform: translate(-50%, -50%) rotate(360deg); }
@@ -956,4 +962,24 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid CanvasText !important;
+    outline-offset: 2px;
+  }
+}
+
+/* Utility: screen-reader-only text (mirrors Tailwind sr-only) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

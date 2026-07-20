@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
 import { flushSync } from 'react-dom';
+import { trackDisplayMode } from '../lib/trackEvent';
 import CustomCursor from '../effects/CustomCursor';
 import projectData from '../data/projectData';
+import useAudioSettings from '../hooks/useAudioSettings';
 import soundSystem from '../lib/SoundSystem';
 import { TAG_TO_CATEGORIES } from '../data/constants';
 import AppProviders from './context/AppProviders';
@@ -12,7 +14,8 @@ import Sidebar from '../components/Sidebar';
 import MainContent from '../components/MainContent';
 import ProjectQuickView from '../components/ProjectQuickView';
 import TerminalBar from '../components/TerminalBar';
-import HoloTerminal from '../components/HoloTerminal/HoloTerminal';
+const HoloTerminal = lazy(() => import('../components/HoloTerminal/HoloTerminal'));
+import { BrandImage } from '../components/ProjectImage';
 import ContextMenu from '../components/ContextMenu';
 import SystemOverlays from '../components/SystemOverlays';
 import useBootSequence from '../hooks/useBootSequence';
@@ -20,8 +23,15 @@ import useTerminalController from '../hooks/useTerminalController';
 import useGlobalShortcuts from '../hooks/useGlobalShortcuts';
 import useBackgroundEffects from '../hooks/useBackgroundEffects';
 import useProjectBrowser from '../hooks/useProjectBrowser';
-import { useScroll, useVelocity, useSpring } from 'framer-motion';
+import useScrollVelocity from '../hooks/useScrollVelocity';
+import usePerformanceMode from '../hooks/usePerformanceMode';
+import useFavorites from '../hooks/useFavorites';
+import useUrlSyncedFilters from '../hooks/useUrlSyncedFilters';
+import useLoadoutShare from '../hooks/useLoadoutShare';
+import { loadoutsStub } from '../lib/loadoutsStub.js';
 import './App.css';
+
+const LoadoutsBootstrap = lazy(() => import('../components/LoadoutsBootstrap.jsx'));
 
 // Pre-process project data to add Sets for O(1) lookups during filtering
 // This is done at the module level as projectData is static, avoiding redundant
@@ -44,16 +54,7 @@ const enhancedProjects = projectData.map(project => {
 
 function App() {
 
-  // Sound System State
-  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('curator_sound');
-      if (stored !== null) {
-        return stored === 'true';
-      }
-    }
-    return false;
-  });
+  const { isSoundEnabled, setIsSoundEnabled } = useAudioSettings();
 
   const {
     addActivityLog,
@@ -70,33 +71,15 @@ function App() {
     userActivityLogs
   } = useBootSequence({ isSoundEnabled });
 
-  // Framer Motion Scroll Velocity
-  const { scrollY } = useScroll();
-  const rawVelocity = useVelocity(scrollY);
-  const smoothVelocity = useSpring(rawVelocity, {
-    damping: 50,
-    stiffness: 400
-  });
+  const {
+    performanceMode,
+    setPerformanceMode,
+    effectiveMode,
+    flags,
+    prefersReducedMotion,
+  } = usePerformanceMode();
 
-  // Sync scroll velocity to a CSS custom property for global distortion effects
-  useEffect(() => {
-    return smoothVelocity.on('change', (latest) => {
-      document.documentElement.style.setProperty('--scroll-velocity', latest);
-    });
-  }, [smoothVelocity]);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('curator_sound', isSoundEnabled);
-      if (isSoundEnabled) {
-        soundSystem.enable();
-        soundSystem.startAmbience();
-      } else {
-        soundSystem.stopAmbience();
-        soundSystem.disable();
-      }
-    }
-  }, [isSoundEnabled]);
+  useScrollVelocity(flags.scrollVelocity);
 
   // CRT Global Effect State
   const [isCrtEnabled, setIsCrtEnabled] = useState(() => {
@@ -152,44 +135,16 @@ function App() {
   // Mobile Filter Drawer State
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
-  // activeFilters is an array of Category Keys (e.g., 'Games'), specific Tags (e.g., 'Fluid'), or 'Favorites'
-  const [activeFilters, setActiveFilters] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const filtersParam = params.get('filters');
-      if (filtersParam) {
-        return filtersParam.split(',').map(f => f.trim()).filter(Boolean);
-      }
-      return [];
-    }
-    return [];
-  });
-
-  const [searchQuery, setSearchQuery] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('q') || '';
-    }
-    return '';
-  });
-
-  const [sortOption, setSortOption] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('sort') || 'Featured';
-    }
-    return 'Featured';
-  });
-
-  const [displayMode, setDisplayMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const urlMode = params.get('view');
-      if (urlMode === 'grid' || urlMode === 'matrix' || urlMode === 'list' || urlMode === 'map') return urlMode;
-      return localStorage.getItem('curator_display_mode') || 'grid';
-    }
-    return 'grid';
-  });
+  const {
+    activeFilters,
+    setActiveFilters,
+    searchQuery,
+    setSearchQuery,
+    sortOption,
+    setSortOption,
+    displayMode,
+    setDisplayMode,
+  } = useUrlSyncedFilters();
 
   // Glitch transition state
   const [isGlitching, setIsGlitching] = useState(false);
@@ -226,16 +181,10 @@ function App() {
     setDisplayMode(prevMode => {
       if (newMode === prevMode) return prevMode;
       addActivityLog(`SYS.UI: LAYOUT_UPDATED_${newMode.toUpperCase()}`);
+      trackDisplayMode(newMode);
       return newMode;
     });
-  }, [addActivityLog]);
-
-  // Sync display mode to localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('curator_display_mode', displayMode);
-    }
-  }, [displayMode]);
+  }, [addActivityLog, setDisplayMode]);
 
   const [randomSeed, setRandomSeed] = useState(() => Math.random());
 
@@ -326,28 +275,43 @@ function App() {
     soundSystem.playClick();
     addActivityLog(`VIEWING PROTOCOL: [${project.title.toUpperCase()}]`);
 
-    // Trigger Hyperspace Transition
-    setIsWarping(true);
-    soundSystem.playWarp(); // Play warp entrance sound
-
-    setTimeout(() => {
+    const openModal = () => {
       if (document.startViewTransition) {
         document.startViewTransition(() => {
-          flushSync(() => {
-            setSelectedProject(project);
-            setIsWarping(false); // Reset warp after view transition completes
-          });
+          flushSync(() => setSelectedProject(project));
         });
       } else {
         setSelectedProject(project);
-        setIsWarping(false);
       }
-    }, 600); // Duration to let the warp effect play before opening modal
-  }, [isLockdown, addToast, addActivityLog]);
+    };
+
+    if (flags.warpTransition) {
+      setIsWarping(true);
+      soundSystem.playWarp();
+
+      setTimeout(() => {
+        if (document.startViewTransition) {
+          document.startViewTransition(() => {
+            flushSync(() => {
+              setSelectedProject(project);
+              setIsWarping(false);
+            });
+          });
+        } else {
+          setSelectedProject(project);
+          setIsWarping(false);
+        }
+      }, 600);
+    } else {
+      openModal();
+    }
+  }, [isLockdown, addToast, addActivityLog, flags.warpTransition]);
 
   // Close the Project Quick View modal
   const closeProjectModal = useCallback(() => {
-    soundSystem.playExitWarp(); // Play exit sound when closing
+    if (flags.warpTransition) {
+      soundSystem.playExitWarp();
+    }
     if (document.startViewTransition) {
       document.startViewTransition(() => {
         flushSync(() => setSelectedProject(null));
@@ -355,7 +319,7 @@ function App() {
     } else {
       setSelectedProject(null);
     }
-  }, []);
+  }, [flags.warpTransition]);
 
   useEffect(() => {
     selectedProjectRef.current = selectedProject;
@@ -412,77 +376,17 @@ function App() {
     };
   }, [selectedProject]);
 
-  // Favorites state
-  const [favorites, setFavorites] = useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem('curator_favorites');
-        return stored ? JSON.parse(stored) : [];
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  });
-
-  // Sync favorites to localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('curator_favorites', JSON.stringify(favorites));
-    }
-  }, [favorites]);
-
-  // Drag and Drop State for Favorites
-  const [draggedFavoriteId, setDraggedFavoriteId] = useState(null);
-  const [dragOverFavoriteId, setDragOverFavoriteId] = useState(null);
-
-  const handleDragStart = useCallback((e, projectId) => {
-    setDraggedFavoriteId(projectId);
-    if (e.dataTransfer) {
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', projectId);
-    }
-  }, []);
-
-  const handleDragOver = useCallback((e, projectId) => {
-    e.preventDefault(); // Necessary to allow dropping
-    if (e.dataTransfer) {
-      e.dataTransfer.dropEffect = 'move';
-    }
-    setDragOverFavoriteId(prev => (prev !== projectId ? projectId : prev));
-  }, []);
-
-  const handleDragEnd = useCallback(() => {
-    setDraggedFavoriteId(null);
-    setDragOverFavoriteId(null);
-  }, []);
-
-  const handleDrop = useCallback((e, targetProjectId) => {
-    e.preventDefault();
-    setDraggedFavoriteId(currentDraggedId => {
-      if (!currentDraggedId || currentDraggedId === targetProjectId) {
-        setDragOverFavoriteId(null);
-        return null;
-      }
-
-      setFavorites(prevFavorites => {
-        const draggedIndex = prevFavorites.indexOf(currentDraggedId);
-        const targetIndex = prevFavorites.indexOf(targetProjectId);
-
-        if (draggedIndex === -1 || targetIndex === -1) return prevFavorites;
-
-        const newFavorites = [...prevFavorites];
-        newFavorites.splice(draggedIndex, 1);
-        newFavorites.splice(targetIndex, 0, currentDraggedId);
-
-        return newFavorites;
-      });
-
-      addToast(`> SYS_CMD: FAVORITES_REORDERED`, 'success');
-      setDragOverFavoriteId(null);
-      return null;
-    });
-  }, [addToast]);
+  const {
+    favorites,
+    replaceFavorites,
+    toggleFavorite,
+    draggedFavoriteId,
+    dragOverFavoriteId,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+    handleDrop,
+  } = useFavorites({ isLockdown, addToast, addActivityLog });
 
   const changeTheme = useCallback((newTheme) => {
     setTheme(prevTheme => {
@@ -491,25 +395,6 @@ function App() {
       return newTheme;
     });
   }, [addToast]);
-
-  const toggleFavorite = useCallback((project) => {
-    if (isLockdown) {
-      soundSystem.playDenied();
-      addToast('> SYS_ERR: ACCESS DENIED - SYSTEM IN LOCKDOWN', 'error');
-      return;
-    }
-    setFavorites(prev => {
-      const isFavorited = prev.includes(project.id);
-      if (isFavorited) {
-        addToast(`> SYS_UPDATE: [${project.title.toUpperCase()}] REMOVED`, 'warning');
-        addActivityLog(`FAVORITE REMOVED: [${project.title.toUpperCase()}]`);
-        return prev.filter(id => id !== project.id);
-      }
-      addToast(`> SYS_UPDATE: [${project.title.toUpperCase()}] FAVORITED`, 'favorite');
-      addActivityLog(`FAVORITE ADDED: [${project.title.toUpperCase()}]`);
-      return [...prev, project.id];
-    });
-  }, [isLockdown, addToast, addActivityLog]);
 
   const handleCopyLink = useCallback((project) => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -551,7 +436,7 @@ function App() {
 
   // Pagination Logic
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = displayMode === 'map' ? 100 : displayMode === 'matrix' ? 10 : displayMode === 'list' ? 8 : 6;
+  const itemsPerPage = displayMode === 'map' || displayMode === 'constellation' ? 100 : displayMode === 'matrix' ? 10 : displayMode === 'list' ? 8 : 6;
 
   // Keyboard Navigation state for cards
   const [focusedCardIndex, setFocusedCardIndex] = useState(0);
@@ -561,20 +446,30 @@ function App() {
     setTimeout(() => setFocusedCardIndex(0), 0);
   }, [currentPage, activeFilters, searchQuery, sortOption]);
 
-  // Sync state to URL (Deep Linking)
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (activeFilters.length > 0) params.set('filters', activeFilters.join(','));
-    if (searchQuery) params.set('q', searchQuery);
-    if (sortOption !== 'Featured') params.set('sort', sortOption);
-    if (displayMode !== 'grid') params.set('view', displayMode);
+  const [loadoutsApi, setLoadoutsApi] = useState(loadoutsStub);
 
-    const queryString = params.toString();
-    const newUrl = queryString ? `?${queryString}` : window.location.pathname;
+  useLoadoutShare({
+    replaceFavorites,
+    setActiveFilters,
+    setCurrentPage,
+    addToast,
+    addActivityLog,
+  });
 
-    // Use replaceState to update URL without cluttering history stack
-    window.history.replaceState(null, '', newUrl);
-  }, [activeFilters, searchQuery, sortOption, displayMode]);
+  const {
+    loadouts,
+    activeLoadoutId,
+    createLoadout,
+    deleteLoadout,
+    updateLoadoutFromFavorites,
+    applyLoadout,
+    exportLoadoutFile,
+    importLoadoutJson,
+    copyShareLink,
+    applyLoadoutByName,
+    exportLoadout,
+    listLoadoutsSummary,
+  } = loadoutsApi;
 
   const browser = useProjectBrowser({
     activeFilters,
@@ -607,6 +502,7 @@ function App() {
 
   const terminalController = useTerminalController({
     addActivityLog,
+    activeFilters,
     changeTheme,
     favorites,
     handleDisplayModeChange,
@@ -620,7 +516,16 @@ function App() {
     setSortOption,
     setIsSoundEnabled,
     toggleFavorite,
-    toggleFilter
+    toggleFilter,
+    replaceFavorites,
+    setActiveFilters,
+    setPerformanceMode,
+    effectiveMode,
+    performanceMode,
+    isCrtEnabled,
+    isLockdown,
+    isMatrixMode,
+    isSoundEnabled,
   });
 
   const {
@@ -637,7 +542,8 @@ function App() {
     terminalHistory,
     terminalInput,
     terminalInputRef,
-    terminalSuggestion
+    terminalSuggestion,
+    omniProtocolItems,
   } = terminalController;
 
   const { searchInputRef } = useGlobalShortcuts({
@@ -668,7 +574,7 @@ function App() {
     setSortOption
   });
 
-  const { baseGridRef, canvasRef, deepGridRef, gridSpotlightRef, starfieldRef } = useBackgroundEffects();
+  const { baseGridRef, canvasRef, deepGridRef, gridSpotlightRef, starfieldRef } = useBackgroundEffects(flags);
 
   const totalProjects = enhancedProjects.length;
 
@@ -731,8 +637,17 @@ function App() {
     toggleFavorite,
     toggleFilter,
     totalPages,
-    totalProjects
-  }), [activeCategories, activeFilters, activeFiltersSet, counts, currentPage, draggedFavoriteId, dragOverFavoriteId, favoriteCount, favorites, filteredProjects, focusedCardIndex, handleCopyLink, handleDragEnd, handleDragOver, handleDragStart, handleDrop, handlePageChange, handleTagClick, hoveredTag, isMobileFiltersOpen, paginatedProjects, projectsMatchingQuery, randomSeed, searchInputRef, searchQuery, suggestedTags, toggleFavorite, toggleFilter, totalPages, totalProjects, sortOption]);
+    totalProjects,
+    loadouts,
+    activeLoadoutId,
+    createLoadout,
+    deleteLoadout,
+    updateLoadoutFromFavorites,
+    applyLoadout,
+    exportLoadoutFile,
+    importLoadoutJson,
+    copyShareLink,
+  }), [activeCategories, activeFilters, activeFiltersSet, counts, currentPage, draggedFavoriteId, dragOverFavoriteId, favoriteCount, favorites, filteredProjects, focusedCardIndex, handleCopyLink, handleDragEnd, handleDragOver, handleDragStart, handleDrop, handlePageChange, handleTagClick, hoveredTag, isMobileFiltersOpen, paginatedProjects, projectsMatchingQuery, randomSeed, searchInputRef, searchQuery, setActiveFilters, setSearchQuery, setSortOption, suggestedTags, toggleFavorite, toggleFilter, totalPages, totalProjects, sortOption, loadouts, activeLoadoutId, createLoadout, deleteLoadout, updateLoadoutFromFavorites, applyLoadout, exportLoadoutFile, importLoadoutJson, copyShareLink]);
 
   const terminalValue = useMemo(() => ({
     handleTerminalKeyDown,
@@ -748,8 +663,9 @@ function App() {
     terminalHistory,
     terminalInput,
     terminalInputRef,
-    terminalSuggestion
-  }), [handleTerminalKeyDown, handleTerminalSubmit, isHoloTerminalOpen, isTerminalClosing, isTerminalOpen, setIsHoloTerminalOpen, setIsTerminalClosing, setIsTerminalOpen, setTerminalInput, terminalEndRef, terminalHistory, terminalInput, terminalInputRef, terminalSuggestion]);
+    terminalSuggestion,
+    omniProtocolItems,
+  }), [handleTerminalKeyDown, handleTerminalSubmit, isHoloTerminalOpen, isTerminalClosing, isTerminalOpen, omniProtocolItems, setIsHoloTerminalOpen, setIsTerminalClosing, setIsTerminalOpen, setTerminalInput, terminalEndRef, terminalHistory, terminalInput, terminalInputRef, terminalSuggestion]);
 
   const overlayValue = useMemo(() => ({
     addToast,
@@ -783,8 +699,13 @@ function App() {
     canvasRef,
     deepGridRef,
     gridSpotlightRef,
-    starfieldRef
-  }), [baseGridRef, canvasRef, deepGridRef, gridSpotlightRef, starfieldRef]);
+    starfieldRef,
+    performanceMode,
+    setPerformanceMode,
+    effectiveMode,
+    flags,
+    prefersReducedMotion,
+  }), [baseGridRef, canvasRef, deepGridRef, gridSpotlightRef, starfieldRef, performanceMode, setPerformanceMode, effectiveMode, flags, prefersReducedMotion]);
 
   const activityValue = useMemo(() => ({
     addActivityLog,
@@ -807,6 +728,18 @@ function App() {
       effects={effectsValue}
       activity={activityValue}
     >
+      <Suspense fallback={null}>
+        <LoadoutsBootstrap
+          favorites={favorites}
+          isLockdown={isLockdown}
+          replaceFavorites={replaceFavorites}
+          setActiveFilters={setActiveFilters}
+          setCurrentPage={setCurrentPage}
+          addToast={addToast}
+          addActivityLog={addActivityLog}
+          onReady={setLoadoutsApi}
+        />
+      </Suspense>
       <div className={`min-h-screen bg-gradient-to-br from-gray-950 via-indigo-950 to-slate-950 relative overflow-hidden font-sans ${isCrtEnabled ? 'crt-flicker' : ''}`}>
         {isCrtEnabled && (
           <>
@@ -818,16 +751,19 @@ function App() {
         <BootScreen />
         <CommandHeader />
         <BackgroundElements />
-        <div className="film-grain" aria-hidden="true"></div>
+        {flags.filmGrain && <div className="film-grain" aria-hidden="true"></div>}
 
         <div className="container mx-auto px-4 pt-20 pb-12 relative z-10">
           <header className="text-center mb-12 flex justify-center">
             <div className="relative">
               <div className="absolute inset-0 bg-indigo-500/30 blur-3xl rounded-full transform scale-75"></div>
-              <img
-                src="./title.png"
+              <BrandImage
+                brand="title"
                 alt="Web apps from 1ink.us"
+                loading="eager"
+                fetchPriority="high"
                 className="relative max-w-lg md:max-w-2xl h-auto max-h-48 md:max-h-64 object-contain animate-fade-in animate-float drop-shadow-2xl filter"
+                pictureClassName="relative block"
               />
             </div>
           </header>
@@ -840,7 +776,9 @@ function App() {
 
         <ProjectQuickView />
         <TerminalBar />
-        <HoloTerminal />
+        <Suspense fallback={null}>
+          <HoloTerminal />
+        </Suspense>
         <ContextMenu />
         <SystemOverlays />
       </div>

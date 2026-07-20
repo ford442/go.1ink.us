@@ -1,4 +1,4 @@
-import ActivityFeed from './ActivityFeed';
+import React, { lazy, Suspense } from 'react';
 import RadarHUD from '../effects/RadarHUD';
 import projectData from '../data/projectData';
 import soundSystem from '../lib/SoundSystem';
@@ -6,52 +6,28 @@ import { CATEGORIES, CATEGORY_ICONS, CATEGORY_BUTTON_STYLES } from '../data/cons
 import { useBrowserContext } from '../app/context/BrowserContext';
 import { useActivityContext } from '../app/context/ActivityContext';
 import { useSettingsContext } from '../app/context/SettingsContext';
+import { useEffectsContext } from '../app/context/EffectsContext';
+import ActivityFeed from './ActivityFeed';
+
+const LoadoutPanel = lazy(() => import('./LoadoutPanel'));
+const OperatorProfileCard = lazy(() => import('./OperatorProfileCard'));
 
 export default function Sidebar() {
   const { searchInputRef, searchQuery, setSearchQuery, setCurrentPage, filteredProjects, suggestedTags, toggleFilter, isMobileFiltersOpen, setIsMobileFiltersOpen, activeFilters, sortOption, setSortOption, activeFiltersSet, counts, setHoveredTag, favoriteCount, activeCategories, handleTagClick, favorites, setRandomSeed } = useBrowserContext();
   const { addActivityLog, userActivityLogs } = useActivityContext();
   const { displayMode, theme, changeTheme } = useSettingsContext();
+  const { flags } = useEffectsContext();
 
   return (
     <>
       {/* SIDEBAR: Command Center (Filters & Search) */}
-      <aside className="w-full lg:w-72 shrink-0 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto scrollbar-hide flex flex-col gap-8 pb-4">
+      <aside className="w-full lg:w-72 shrink-0 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto scrollbar-hide flex flex-col gap-8 pb-4" aria-label="Filters and search" tabIndex={0}>
 
-      {/* 🌌 CURATOR FEATURE: Operator Profile Card */}
-      <div className="relative group p-4 bg-black/40 border border-accent-500/30 rounded-xl overflow-hidden backdrop-blur-md">
-        {/* Holographic background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-accent-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-        <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.4)_50%)] bg-[length:100%_4px] pointer-events-none mix-blend-multiply opacity-50"></div>
-
-        <div className="relative z-10 flex items-center gap-4">
-          {/* Faux Avatar */}
-          <div className="relative w-12 h-12 shrink-0 flex items-center justify-center bg-black border border-accent-400/50 rounded shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.3)]">
-            <div className="absolute inset-0 bg-accent-400/10 group-hover:bg-accent-400/20 transition-colors"></div>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-accent-400 group-hover:scale-110 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div>
-          </div>
-
-          {/* Operator Details */}
-          <div className="flex flex-col overflow-hidden">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-accent-300 text-sm font-bold tracking-widest font-mono truncate">OPR-7X9</span>
-              <span className="px-1.5 py-0.5 text-[8px] bg-accent-500/20 text-accent-200 border border-accent-500/30 rounded font-mono uppercase tracking-wider">Online</span>
-            </div>
-            <div className="text-[10px] text-accent-500/70 font-mono tracking-widest uppercase truncate mb-1">
-              CLEARANCE: OMEGA-7
-            </div>
-            <div className="w-full bg-black/60 h-1.5 rounded-full overflow-hidden border border-accent-500/20">
-              <div className="h-full bg-accent-400 shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.8)] w-[100%] origin-left animate-[pulse_3s_ease-in-out_infinite]"></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tactical Brackets */}
-        <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-accent-500/50"></div>
-        <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-accent-500/50"></div>
-      </div>
+      <Suspense fallback={
+        <div className="p-4 bg-black/40 border border-accent-500/30 rounded-xl h-[88px] animate-pulse" aria-hidden="true" />
+      }>
+        <OperatorProfileCard />
+      </Suspense>
 
 
       {/* Search Input Section */}
@@ -147,6 +123,8 @@ export default function Sidebar() {
         <button
           onClick={() => setIsMobileFiltersOpen(true)}
           className={`w-14 h-14 relative group overflow-hidden bg-black/80 backdrop-blur-xl border border-accent-500/50 rounded-full flex items-center justify-center transition-all duration-300 hover:bg-accent-900/40 hover:scale-110 shadow-[0_0_20px_rgba(var(--rgb-accent-400),0.3)] ${isMobileFiltersOpen ? 'scale-0' : 'scale-100'}`}
+          aria-label="Open filters menu"
+          aria-expanded={isMobileFiltersOpen}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-accent-500/0 via-accent-500/5 to-accent-500/0 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"></div>
 
@@ -178,6 +156,7 @@ export default function Sidebar() {
         </div>
         <select
           value={sortOption}
+          aria-label="Sort projects"
           onChange={(e) => {
             if (e.target.value === 'Random') {
               setRandomSeed(Math.random());
@@ -220,7 +199,8 @@ export default function Sidebar() {
             </span>
             <button
               onClick={() => setIsMobileFiltersOpen(false)}
-              className="text-gray-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-full"
+              className="text-gray-300 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-full"
+              aria-label="Close filters menu"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -307,6 +287,10 @@ export default function Sidebar() {
         </button>
       </div>
 
+      <Suspense fallback={null}>
+        <LoadoutPanel />
+      </Suspense>
+
       {/* Dynamic Sub-Tags Section based on Active Categories */}
       {activeCategories.length > 0 && (
         <div className="animate-fade-in lg:mt-2 hidden lg:block">
@@ -382,7 +366,9 @@ export default function Sidebar() {
         <ActivityFeed logs={userActivityLogs} />
       </div>
       <div className="hidden lg:block mt-6">
-        <RadarHUD projects={filteredProjects} favorites={favorites} displayMode={displayMode} />
+        {flags.radarHud && (
+          <RadarHUD projects={filteredProjects} favorites={favorites} displayMode={displayMode} />
+        )}
       </div>
       </div>
       </aside>

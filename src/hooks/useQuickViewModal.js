@@ -21,6 +21,8 @@ export default function useQuickViewModal({ isLockdown, addToast, addActivityLog
     soundSystem.playClick();
     addActivityLog(`VIEWING PROTOCOL: [${project.title.toUpperCase()}]`);
 
+    setModalImageLoaded(false);
+
     // Trigger Hyperspace Transition
     setIsWarping(true);
     soundSystem.playWarp(); // Play warp entrance sound

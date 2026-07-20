@@ -51,7 +51,10 @@ go.1ink.us/
 │   ├── types.ts                # Shared domain types (Project, Category, DisplayMode, …)
 │   ├── components/Card/       # Project card: shell + layout variants (grid/list/matrix/data-mode)
 │   ├── Starfield.jsx          # Animated starfield background
-│   ├── projectData.ts         # Project data array (typed)
+│   ├── data/
+│   │   ├── projects.json      # Project catalog (edit here)
+│   │   ├── projectData.ts     # Validates + re-exports projects.json
+│   │   └── constants.js       # Runtime CATEGORIES (mirrors src/constants.ts)
 │   ├── constants.ts           # Categories/tags/theme lookups (typed)
 │   ├── App.css                # Custom CSS animations and 3D effects
 │   └── index.css              # Tailwind CSS import
@@ -63,6 +66,8 @@ go.1ink.us/
 
 ## Build and Development Commands
 
+**Compile pipeline:** This project has **no** `compile_commands.json`, CMake, or native toolchain. The sole compile step is **Vite 7** (Rollup for production). Future WASM work would add its own build step separately.
+
 ```bash
 # Install dependencies
 npm install
@@ -71,17 +76,51 @@ npm install
 npm run dev
 
 # Build for production (outputs to dist/)
+# prebuild: optimize-images | postbuild: check-bundle-budget
 npm run build
 
-# Preview production build locally
+# Preview production build locally (strict port, host exposed)
 npm run preview
+
+# Regenerate WebP/AVIF assets from assets-source/
+npm run optimize-images
+
+# Refresh stale browserslist data (run periodically / in CI)
+npm run browserslist:update
 
 # Run ESLint
 npm run lint
 
 # Type-check converted .ts/.tsx files (see TypeScript Migration below)
 npm run typecheck
+
+# Playwright smoke tests (requires build + preview server)
+npm run test:e2e
 ```
+
+### CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every PR and push to `main`:
+
+1. `npm ci` → `lint` → `typecheck` → `build`
+2. Playwright smoke tests against the production preview server
+
+Branch protection should require the **CI** checks to pass before merge.
+
+---
+
+### Bundle budget
+
+Production build enforces an **initial JS gzip budget of ~150 KB** (entry + modulepreloaded vendor chunks) via `scripts/check-bundle-budget.mjs`. Heavy views are code-split with `React.lazy`:
+
+| Chunk | Loads when |
+|-------|------------|
+| `SystemMap` + `vendor-force-graph` | Map view opened |
+| `HoloTerminal` | Holo terminal opened |
+| `MatrixRain` | Matrix mode enabled |
+| `OmniPalette` / `Screensaver` / `ShortcutCheatsheet` | First open / idle / cheatsheet |
+
+`vite.config.js` sets `manualChunks` for `vendor-react` and `vendor-motion`, `sourcemap: false` in prod, and `reportCompressedSize: true`. `react-force-graph-2d` ships inside the lazy `SystemMap` chunk (not preloaded).
 
 ---
 
@@ -268,7 +307,7 @@ file under ~250 LOC:
 - `CardGrid.jsx` / `CardGridFront.jsx` / `CardGridBack.jsx` / `CardGridEffects.jsx` — default 3D-tilt layout, split into the flip shell, front face, diagnostics back face, and the purely-decorative CSS-var-driven hover overlays.
 - `CardMatrix.jsx`, `CardList.jsx`, `CardDataMode.jsx` — the other three layout variants.
 - `useCardTilt.js` — mouse-tracking rotation (max 15deg) gated behind `hover: hover` + `prefers-reduced-motion`.
-- `useCardHover.js` — hover state + 700ms-delayed "deep focus" state + simulated ping readout.
+- `useCardHover.js` — hover state + 700ms-delayed "deep focus" state + probe latency readout when build-time health data exists.
 - `useCardMedia.js` — image load/error state + the scroll-triggered decrypt IntersectionObserver.
 - `useFavoriteBurst.js` / `CardFavoriteBurst.jsx` — the favorite-toggle particle animation.
 - `CardMedia.jsx`, `CardTagList.jsx`, `CardTechBadges.jsx`, `ComplexityMeter.jsx`, `CardFavoriteButton.jsx`, `CardCopyLinkButton.jsx` — presentational pieces shared across layout variants (each takes a `variant` prop for per-layout styling differences).
@@ -301,20 +340,63 @@ via `hooks/useAudioWaveform.js` and only differ in canvas sizing/color.
 
 ### Data Model
 
-`src/projectData.ts` is typed against `src/types.ts`'s `Project` interface:
+Project records live in `src/data/projects.json` (editable without touching
+TypeScript) and are validated at load time by `src/data/projectData.ts` via
+`src/lib/validateProjects.ts`. Every tag must exist in `CATEGORIES`
+(`src/constants.ts` / `src/data/constants.js`); invalid tags fail
+`npm run validate:projects` and CI.
 
 ```typescript
 // src/types.ts
+export type ProjectStatus = 'live' | 'beta' | 'archived' | 'wip';
+
 export interface Project {
   id: number;
   title: string;
   description: string;
   url: string;
-  image: string;    // Path to screenshot in public/
-  icon: string;      // Emoji
-  tags: string[];    // Must map to a category in src/constants.ts CATEGORIES
-  tech: string[];    // Tech-stack badges
+  image: string;       // Path to screenshot slug in public/ (see projectImages.ts)
+  icon: string;        // Emoji
+  tags: string[];      // Must ⊆ CATEGORIES tags
+  tech: string[];      // Tech-stack badges
+  featured: boolean;
+  year: number;
+  status: ProjectStatus;
+  repo: string | null;
+  embedUrl: string | null;
+  accent: string | null;   // Per-project neon (#RRGGBB) for future theming
+  relatedIds: number[];    // Other project ids in this hub
+  changelog: string | null;
+  healthOverride?: 'live' | 'degraded' | 'unknown' | null; // optional manual reachability override
 }
+```
+
+### Catalog reachability (build-time health)
+
+Reachability is **not** measured in the browser (zero impact on TTI). CI /
+local `npm run check:health` probes each `project.url` and writes
+`src/data/projectHealth.json`, which is bundled at build time.
+
+| Health | Meaning |
+|--------|---------|
+| `LIVE` | Probe returned HTTP 2xx/3xx |
+| `DEGRADED` | HTTP 4xx/5xx |
+| `UNKNOWN` | Probe failed or no snapshot yet |
+
+Optional per-project `healthOverride` in `projects.json` wins over probe
+data (useful for staging URLs or manual incident flags).
+
+**Privacy:** probes run server-side in CI or on a developer machine only.
+The static site displays precomputed results — no user tracking, no runtime
+fetch from visitor browsers, no third-party analytics.
+
+Command header **NET** shows `live/total` reachable nodes; cards show a
+connectivity badge (`ProjectConnectivityBadge`) separate from catalog
+lifecycle status (`ProjectStatusBadge`: beta/wip/archived).
+
+```bash
+npm run check:health          # refresh projectHealth.json
+npm run check:health -- --strict  # exit 1 if any node degraded/unknown
 ```
 
 ---
@@ -331,7 +413,8 @@ transpiles both) and by `tsconfig.json`'s `allowJs: true`.
 files are included for module resolution but not type-checked — only
 already-converted `.ts`/`.tsx` files are held to account by
 `npm run typecheck` (`tsc --noEmit`). Converted so far: `src/types.ts`
-(the shared domain types), `src/constants.ts`, `src/projectData.ts`.
+(the shared domain types), `src/constants.ts`, `src/data/projectData.ts`,
+`src/lib/validateProjects.ts`.
 
 **Phased plan** (each phase should leave `npm run typecheck` and
 `npm run build` both clean):
@@ -403,20 +486,36 @@ already-converted `.ts`/`.tsx` files are held to account by
 
 ### Adding a New Project
 
-1. Add project object to `src/data/projectData.js`:
-   ```javascript
+1. Add an entry to `src/data/projects.json` (copy an existing object as a template):
+   ```json
    {
-     id: 16,
-     title: "New Project",
-     description: "Description here",
-     url: "https://go.1ink.us/new-project",
-     image: "/new-project.png",
-     icon: "🚀",
-     tags: ["Game", "Fun"]  // Must exist in CATEGORIES
+     "id": 17,
+     "title": "New Project",
+     "description": "Description here",
+     "url": "https://go.1ink.us/new-project",
+     "image": "/new-project.png",
+     "icon": "🚀",
+     "tags": ["Game", "Fun"],
+     "tech": ["React"],
+     "featured": false,
+     "year": 2025,
+     "status": "live",
+     "repo": null,
+     "embedUrl": null,
+     "accent": null,
+     "relatedIds": [],
+     "changelog": null
    }
    ```
+   Run `npm run validate:projects` locally — tags must already exist in
+   `CATEGORIES`; add new tags there first (see below).
 
-2. Add screenshot to `public/new-project.png`
+2. Add a screenshot source under `assets-source/` and run `npm run optimize-images`
+   (or add optimized variants under `public/images/projects/`).
+
+3. Optional fields: set `featured: true` for homepage prominence,
+   `status: "beta"` / `"wip"` while not production-ready, `repo` for GitHub links,
+   `relatedIds` for cross-links, `accent` for per-card neon theming.
 
 ### Adding a New Category
 

@@ -1,3 +1,5 @@
+import { ProjectImage } from '../ProjectImage';
+
 // Project image area with skeleton loader and RGB-glitch hover overlay.
 // `variant="grid"` renders the full-height hero image (with hover-delayed
 // zoom); `variant="matrix"` renders the small thumbnail (gated on
@@ -25,8 +27,9 @@ export default function CardMedia({
         {project.image && !imageError ? (
           isVisible && (
             <>
-              <img
-                src={project.image}
+              <ProjectImage
+                imagePath={project.image}
+                profile="thumb"
                 alt={project.title}
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
@@ -35,14 +38,17 @@ export default function CardMedia({
                   setImageLoaded(true);
                 }}
                 className={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-80 blur-0 scale-100' : 'opacity-0 blur-sm scale-105'} group-hover:opacity-100`}
+                pictureClassName="block w-full h-full"
                 style={{ viewTransitionName: isSelected ? 'none' : `project-image-${project.id}` }}
               />
-              <img
-                src={project.image}
+              <ProjectImage
+                imagePath={project.image}
+                profile="thumb"
                 alt=""
-                className={`absolute inset-0 w-full h-full object-cover mix-blend-screen transition-all duration-700 group-hover:animate-image-glitch ${imageLoaded ? 'opacity-0 group-hover:opacity-60' : 'opacity-0'}`}
+                loading="lazy"
+                className={`w-full h-full object-cover mix-blend-screen transition-all duration-700 group-hover:animate-image-glitch ${imageLoaded ? 'opacity-0 group-hover:opacity-60' : 'opacity-0'}`}
+                pictureClassName="absolute inset-0"
                 style={{ filter: 'drop-shadow(2px 0 0 rgba(255,0,0,1)) drop-shadow(-2px 0 0 rgba(0,255,255,1))' }}
-                aria-hidden="true"
               />
             </>
           )
@@ -83,21 +89,25 @@ export default function CardMedia({
           </div>
         </div>
       )}
-      <img
-        src={project.image}
+      <ProjectImage
+        imagePath={project.image}
+        profile="card"
         alt={project.title}
         loading="lazy"
         onLoad={() => setImageLoaded(true)}
         className={`w-full h-full object-cover transition-all duration-[1500ms] ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:animate-image-glitch ${imageLoaded ? 'opacity-100' : 'opacity-0'} ${isHoverDelayed ? 'scale-125' : 'scale-100'}`}
+        pictureClassName="block w-full h-full"
         style={{ viewTransitionName: isSelected ? 'none' : `project-image-${project.id}` }}
       />
       {/* 🌌 CURATOR FEATURE: RGB Glitch Split Hover Effect */}
-      <img
-        src={project.image}
+      <ProjectImage
+        imagePath={project.image}
+        profile="card"
         alt=""
-        className={`absolute inset-0 w-full h-full object-cover mix-blend-screen transition-all duration-[1500ms] ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:animate-image-glitch ${imageLoaded ? 'opacity-0 group-hover:opacity-70' : 'opacity-0'} ${isHoverDelayed ? 'scale-[1.26] -translate-x-1 translate-y-0.5' : 'scale-100 translate-x-0'}`}
+        loading="lazy"
+        className={`w-full h-full object-cover mix-blend-screen transition-all duration-[1500ms] ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:animate-image-glitch ${imageLoaded ? 'opacity-0 group-hover:opacity-70' : 'opacity-0'} ${isHoverDelayed ? 'scale-[1.26] -translate-x-1 translate-y-0.5' : 'scale-100 translate-x-0'}`}
+        pictureClassName="absolute inset-0"
         style={{ filter: 'drop-shadow(3px 0 0 rgba(255,0,0,1)) drop-shadow(-3px 0 0 rgba(0,255,255,1))' }}
-        aria-hidden="true"
       />
       {/* Inner Holographic Reflection (ramp up on hover) */}
       <div className={`absolute inset-0 bg-gradient-to-tr from-accent-500/0 via-white/5 to-white/20 mix-blend-overlay transition-all duration-1000 ${isHoverDelayed ? 'opacity-100 shadow-[inset_0_0_30px_rgba(255,255,255,0.4)]' : 'opacity-0'}`}></div>

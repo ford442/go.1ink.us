@@ -60,31 +60,13 @@ export default function CardGrid({
       onDragEnd={onDragEnd}
       onDrop={onDrop}
       onContextMenu={onContextMenu}
-      tabIndex={tabIndex}
-      onKeyDown={handleKeyDown}
-      onFocus={handleFocus}
+      onMouseEnter={onMouseEnter}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
     >
       <div
         ref={cardRef}
-        className="glass-card card-3d block rounded-xl flex flex-col h-full relative group will-change-transform animate-float-idle cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-        tabIndex={0}
-        role="button"
-        aria-label={`View details for ${project.title}`}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            soundSystem.playClick();
-            if (onProjectClick) onProjectClick(project);
-          }
-        }}
-        onMouseEnter={onMouseEnter}
-        onMouseMove={onMouseMove}
-        onMouseLeave={onMouseLeave}
-        onClick={(e) => {
-          e.preventDefault();
-          soundSystem.playClick();
-          if (onProjectClick) onProjectClick(project);
-        }}
+        className="glass-card card-3d block rounded-xl flex flex-col h-full relative group will-change-transform animate-float-idle cursor-pointer"
       >
         <div
           className="relative w-full h-full transition-transform duration-700 pointer-events-none rounded-xl"
@@ -113,6 +95,10 @@ export default function CardGrid({
             onCopyLink={onCopyLink}
             complexityScore={complexityScore}
             onFlip={() => setIsFlipped(true)}
+            onProjectClick={onProjectClick}
+            tabIndex={tabIndex}
+            onFocus={handleFocus}
+            onCardKeyDown={handleKeyDown}
           />
 
           <CardGridBack
