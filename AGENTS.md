@@ -23,8 +23,9 @@ This is a single-page application (SPA) built with modern React patterns, served
 | Deployment | Python + Paramiko (SFTP) | - |
 | Deployment | Python (HTTP upload to storage.noahcohn.com) | - |
 
-No TypeScript — `.jsx`/`.js` throughout. `@types/react`/`@types/react-dom`
-are devDependencies purely for editor intellisense, not compilation.
+TypeScript is adopted incrementally: the data/lib layer, every hook, and the
+domain-context contracts are typed, while most UI components remain JSX.
+`checkJs: false` keeps unconverted JSX out of type-checking scope.
 
 ---
 
@@ -54,8 +55,7 @@ go.1ink.us/
 │   ├── data/
 │   │   ├── projects.json      # Project catalog (edit here)
 │   │   ├── projectData.ts     # Validates + re-exports projects.json
-│   │   └── constants.js       # Runtime CATEGORIES (mirrors src/constants.ts)
-│   ├── constants.ts           # Categories/tags/theme lookups (typed)
+│   ├── constants.ts           # Single runtime + validation source for categories/tags
 │   ├── App.css                # Custom CSS animations and 3D effects
 │   └── index.css              # Tailwind CSS import
 └── (End of structure)              # E2E test scripts and screenshots
@@ -117,6 +117,7 @@ Production build enforces an **initial JS gzip budget of ~150 KB** (entry + modu
 |-------|------------|
 | `SystemMap` + `vendor-force-graph` | Map view opened |
 | `HoloTerminal` | Holo terminal opened |
+| `ProjectQuickView` | A project quick view opened |
 | `MatrixRain` | Matrix mode enabled |
 | `OmniPalette` / `Screensaver` / `ShortcutCheatsheet` | First open / idle / cheatsheet |
 
@@ -184,7 +185,7 @@ python scripts/deploy.py
 
 ### App.jsx as Composition Root
 
-`App.jsx` (~255 LOC, down from ~840) no longer owns most of its state and
+`App.jsx` (254 LOC, down from 786 before this refactor) no longer owns most of its state and
 side effects directly — it calls a set of focused hooks under `src/hooks/`
 and wires their results together, then hands six memoized values to
 `AppProviders`:
@@ -196,7 +197,7 @@ and wires their results together, then hands six memoized values to
 | `useIdleProtocol({ timeoutMs, isBooting })` | activity tracking + the 60s idle flag that triggers the screensaver |
 | `useToasts()` | toast queue |
 | `useFavorites({ isLockdown, addToast, addActivityLog })` | favorites list (persisted) + drag-and-drop reordering |
-| `useQuickViewModal({ isLockdown, addToast, addActivityLog, setIsWarping })` | quick-view modal open/close, warp transition, focus trap, body scroll lock |
+| `useQuickViewModal({ isLockdown, addToast, addActivityLog, setIsWarping, warpTransition })` | quick-view modal open/close, performance-gated warp transition, image reset, focus trap, body scroll lock |
 | `useContextMenu()` | right-click context menu open/close + outside-click dismissal |
 | `useLayoutGlitchTransition(displayMode)` | the brief glitch animation played on layout switch |
 | `usePagination({ displayMode, activeFilters, searchQuery, sortOption })` | current page, items-per-page, and keyboard-focused card index |
@@ -218,12 +219,12 @@ actually reads changes:
 
 | Context | File | Holds | Typical consumers |
 |---|---|---|---|
-| `SettingsContext` | `context/SettingsContext.js` | theme, CRT, matrix rain, sound, display mode, god mode | `CommandHeader`, `BackgroundElements`, `MainContent` |
-| `BrowserContext` | `context/BrowserContext.js` | filters, search, sort, pagination, favorites | `Sidebar`, `MainContent`, `SystemMap` |
-| `TerminalContext` | `context/TerminalContext.js` | terminal/holo-terminal open state, history, input | `TerminalBar`, `HoloTerminal` |
-| `OverlayContext` | `context/OverlayContext.js` | toasts, omni palette, context menu, quick-view modal, lockdown, idle, warp | `ProjectQuickView`, `ContextMenu`, `SystemOverlays` |
-| `EffectsContext` | `context/EffectsContext.js` | background refs only (starfield/grids/cursor-trail canvas) — stable for the app's lifetime | `BackgroundElements` |
-| `ActivityContext` | `context/ActivityContext.js` | boot sequence + running activity log | `BootScreen`, `Sidebar`, `ActivityFeed` |
+| `SettingsContext` | `context/SettingsContext.ts` | theme, CRT, matrix rain, sound, display mode, god mode | `CommandHeader`, `BackgroundElements`, `MainContent` |
+| `BrowserContext` | `context/BrowserContext.ts` | filters, search, sort, pagination, favorites | `Sidebar`, `MainContent`, `SystemMap` |
+| `TerminalContext` | `context/TerminalContext.ts` | terminal/holo-terminal open state, history, input | `TerminalBar`, `HoloTerminal` |
+| `OverlayContext` | `context/OverlayContext.ts` | toasts, omni palette, context menu, quick-view modal, lockdown, idle, warp | `ProjectQuickView`, `ContextMenu`, `SystemOverlays` |
+| `EffectsContext` | `context/EffectsContext.ts` | background refs only (starfield/grids/cursor-trail canvas) — stable for the app's lifetime | `BackgroundElements` |
+| `ActivityContext` | `context/ActivityContext.ts` | boot sequence + running activity log | `BootScreen`, `Sidebar`, `ActivityFeed` |
 
 `EffectsContext` is deliberately split off from boot/activity-log state
 (`ActivityContext`), even though an early proposal grouped them: typing
@@ -231,7 +232,7 @@ in the search box calls `addActivityLog` once the query is 3+ characters,
 so bundling that with the starfield/grid refs would re-render the
 background on every few keystrokes.
 
-Each context's value is built with `useMemo` in `hooks/useAppProviderValues.js`
+Each context's value is built with `useMemo` in `hooks/useAppProviderValues.ts`
 (called from `App.jsx`), and the callbacks that go into those values
 (`changeTheme`, `toggleFavorite`, `handleProjectSelect`, drag handlers,
 etc.) are wrapped in `useCallback` so the memoized objects don't change
@@ -243,15 +244,13 @@ Consumers import the specific hook(s) they need, e.g.
 `useSettingsContext()`, `useBrowserContext()`; a component that spans
 domains (e.g. `MainContent`, which reads filters, display mode, and the
 quick-view modal state) calls more than one. `AppProviders`
-(`app/context/AppProviders.jsx`) nests the six providers around the tree.
+(`app/context/AppProviders.tsx`) nests the six providers around the tree.
 
-Known gap: `toggleFilter`/`handleTagClick`/`handlePageChange`
-(`hooks/useProjectBrowser.js`) and the terminal's key/submit handlers
-(`hooks/useTerminalController.js`) are not yet `useCallback`-stabilized
-internally, so `BrowserContext`/`TerminalContext` still recompute on every
-`App` render even when unrelated domains change. This doesn't break the
-domain isolation (those two contexts just don't get the full memoization
-benefit yet) — a good next step if further profiling shows it matters.
+`toggleFilter`/`handleTagClick`/`handlePageChange`
+(`hooks/useProjectBrowser.ts`) and the terminal key/submit handlers
+(`hooks/useTerminalController.ts`) are `useCallback`-stabilized. The six
+provider values are assembled in `useAppProviderValues`, with complete
+domain-specific dependency lists so unrelated context identities stay stable.
 
 ### Hooks (`src/hooks/`)
 
@@ -271,8 +270,8 @@ benefit yet) — a good next step if further profiling shows it matters.
   bar over `useTerminalController`. Type `help` for the full command list.
   `components/HoloTerminal/` is a second, floating "holo-terminal" panel
   variant with the same command engine plus a live audio waveform and
-  system monitor — currently implemented but not mounted anywhere in the
-  render tree (no trigger wires it up yet).
+  system monitor. It is lazy-loaded and mounted from `App.jsx`; the `holo`
+  terminal command and its Omni Palette item toggle it.
 - **Omni Command Palette** (`components/OmniPalette.jsx`, `Cmd/Ctrl+K`): a
   fuzzy-searchable command menu for themes, layout mode, effects toggles,
   and filter/navigation actions — the fast path for anything the terminal
@@ -294,7 +293,10 @@ so automated screenshots skip the boot screen).
 ### Key Components
 
 #### app/App.jsx
-Composition root only — see Context Architecture above. Owns URL/localStorage-backed settings, the idle/lockdown/warp/glitch state, favorites drag-and-drop, toasts, and the context menu, then wires ~9 feature hooks together and renders the layout shell.
+Thin composition root only — see Context Architecture above. It retains only
+composition-level state/callbacks, delegates persistence and feature behavior
+to focused hooks, wires loadout bootstrap state, builds the six context values
+through `useAppProviderValues`, and renders the layout shell.
 
 #### components/Card/
 The project card was a single ~1200-line file; it's split by concern, each
@@ -331,7 +333,7 @@ Two components draw a live waveform from `lib/SoundSystem.js`'s analyser
 data: `components/AudioVisualizer.jsx` (CommandHeader's compact themed
 meter) and `components/HoloTerminal/AudioVisualizer.jsx` (the larger,
 always-cyan panel inside the holo-terminal). They share their drawing loop
-via `hooks/useAudioWaveform.js` and only differ in canvas sizing/color.
+via `hooks/useAudioWaveform.ts` and only differ in canvas sizing/color.
 
 #### effects/Starfield.jsx
 - **Memoized**: Prevents unnecessary re-renders
@@ -343,8 +345,12 @@ via `hooks/useAudioWaveform.js` and only differ in canvas sizing/color.
 Project records live in `src/data/projects.json` (editable without touching
 TypeScript) and are validated at load time by `src/data/projectData.ts` via
 `src/lib/validateProjects.ts`. Every tag must exist in `CATEGORIES`
-(`src/constants.ts` / `src/data/constants.js`); invalid tags fail
+(`src/constants.ts`, the single runtime and validation source); invalid tags fail
 `npm run validate:projects` and CI.
+
+Quick View resolves `relatedIds` into in-hub navigation, exposes `repo` as a
+secure external source link, and renders `changelog` in a native accessible
+disclosure. The modal is lazy-loaded on first open.
 
 ```typescript
 // src/types.ts
@@ -409,21 +415,22 @@ started. TS is being adopted gradually rather than in one pass — mixing
 `.ts`/`.tsx` and `.js`/`.jsx` is fully supported by Vite (esbuild
 transpiles both) and by `tsconfig.json`'s `allowJs: true`.
 
-**Current state**: `tsconfig.json` has `checkJs: false`, so `.js`/`.jsx`
-files are included for module resolution but not type-checked — only
-already-converted `.ts`/`.tsx` files are held to account by
-`npm run typecheck` (`tsc --noEmit`). Converted so far: `src/types.ts`
-(the shared domain types), `src/constants.ts`, `src/data/projectData.ts`,
-`src/lib/validateProjects.ts`.
+**Current state**: 61 `.ts`/`.tsx` and 64 `.js`/`.jsx` files live under
+`src/`. `strict: true` applies to every converted file; `checkJs: false`
+keeps unconverted JSX available for module resolution without treating it as
+typed source. All 27 hooks are TypeScript. `app/context/contextTypes.ts`, the
+generic context factory, six domain contexts, `AppProviders.tsx`, and
+`useAppProviderValues.ts` enforce the provider contracts. `src/constants.ts`
+is the only category/tag constants module used by validation and runtime UI.
 
 **Phased plan** (each phase should leave `npm run typecheck` and
 `npm run build` both clean):
 
 1. ~~Add `tsconfig.json` (`allowJs` + `checkJs: false`) and a `typecheck` script~~ — done
 2. ~~Type the data layer: `src/types.ts` (`Project`, `Category`, `DisplayMode`, `ThemeId`, `SortOption`, …), then convert `constants.js` → `constants.ts` and `projectData.js` → `projectData.ts`~~ — done
-3. Convert hooks (`src/hooks/*.js` → `.ts`) — start with the ones with the least cross-file coupling (`useAudioWaveform`, `useBackgroundEffects`) before the terminal/browser hooks that touch most of the app's state shape
-4. Convert components (`.jsx` → `.tsx`), leaf-first (`Tooltip`, `Clock`, `DecryptText`) before container components (`App.jsx`, `MainContent.jsx`)
-5. Turn `strict: true` on in `tsconfig.json` once most of the codebase is converted, then fix whatever strict-mode errors that surfaces
+3. ~~Convert every hook (`src/hooks/*.js` → `.ts`) and type the context/provider boundary~~ — done
+4. Convert components (`.jsx` → `.tsx`), leaf-first (`Tooltip`, `Clock`, `DecryptText`) before container components (`App.jsx`, `MainContent.jsx`) — next
+5. ~~Enable `strict: true` for converted TypeScript while retaining `checkJs: false` for JSX~~ — done
 
 **Conventions for new/converted files**:
 - New files should be written in TypeScript (`.ts`/`.tsx`) rather than JS
@@ -519,7 +526,7 @@ already-converted `.ts`/`.tsx` files are held to account by
 
 ### Adding a New Category
 
-1. Update `CATEGORIES` object in `src/data/constants.js`
+1. Update `CATEGORIES` in `src/constants.ts`
 2. Add corresponding icon to `CATEGORY_ICONS` in the same file
 
 ### Modifying Card Effects
@@ -567,5 +574,5 @@ already-converted `.ts`/`.tsx` files are held to account by
 ## Cursor Cloud specific instructions
 
 - Pure static Vite/React SPA — no backend, database, or external services. The dev server (`npm run dev`, http://localhost:5173) is the only process to run for local development. Dependencies are refreshed automatically on startup via `npm ci`.
-- `npm run lint` currently fails on ~11 **pre-existing** errors in the committed code (e.g. `no-undef` for `process`, several `no-unused-vars`, one `react-hooks/set-state-in-effect`). These are not caused by environment setup — expect a non-zero exit until they're fixed in the source. `npm run typecheck`, `npm run test:unit`, and `npm run build` all pass clean.
+- `npm run lint`, `npm run typecheck`, `npm run test:unit`, and `npm run build` are expected to pass clean. Treat failures in these gates as regressions to investigate.
 - `npm run build` runs a `prebuild` (`optimize-images` + `generate-pwa-icons`, both use `sharp`) and a `postbuild` bundle-budget check, so a full build takes ~40s. Playwright browsers are not installed by the update script; run `npm run test:e2e:install` first if you need `npm run test:e2e` / `test:a11y`.

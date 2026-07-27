@@ -11,11 +11,11 @@
     "featured": true,
     "year": 2023,
     "status": "live",
-    "repo": null,
+    "repo": "https://github.com/ford442/cave_crystals",
     "embedUrl": "https://go.1ink.us/cave-crystals/index.html",
     "accent": "#22d3ee",
-    "relatedIds": [9],
-    "changelog": null
+    "relatedIds": [9, 14],
+    "changelog": "Expanded the campaign catalog with validated JSON levels and asset inventory gates."
   },
   {
     "id": 2,
@@ -33,7 +33,7 @@
     "embedUrl": null,
     "accent": "#a855f7",
     "relatedIds": [6],
-    "changelog": null
+    "changelog": "Current release: browser-based multitrack workspace with Web Audio playback and editing tools."
   },
   {
     "id": 3,
@@ -47,11 +47,11 @@
     "featured": true,
     "year": 2023,
     "status": "live",
-    "repo": null,
+    "repo": "https://github.com/ford442/image_video_effects",
     "embedUrl": null,
     "accent": "#ec4899",
-    "relatedIds": [16],
-    "changelog": null
+    "relatedIds": [16, 11, 12],
+    "changelog": "Current release: expanded the real-time shader library for image, video, and webcam effects."
   },
   {
     "id": 4,
@@ -68,7 +68,7 @@
     "repo": null,
     "embedUrl": "https://go.1ink.us/litebrite/index.html",
     "accent": "#f472b6",
-    "relatedIds": [],
+    "relatedIds": [10, 16],
     "changelog": null
   },
   {
@@ -83,10 +83,10 @@
     "featured": false,
     "year": 2023,
     "status": "live",
-    "repo": null,
+    "repo": "https://github.com/ford442/brain_viz",
     "embedUrl": null,
     "accent": "#38bdf8",
-    "relatedIds": [],
+    "relatedIds": [16, 3],
     "changelog": null
   },
   {
@@ -119,10 +119,10 @@
     "featured": false,
     "year": 2022,
     "status": "live",
-    "repo": null,
+    "repo": "https://github.com/ford442/weather_clock",
     "embedUrl": null,
     "accent": "#60a5fa",
-    "relatedIds": [],
+    "relatedIds": [8, 15],
     "changelog": null
   },
   {
@@ -140,7 +140,7 @@
     "repo": null,
     "embedUrl": null,
     "accent": "#2dd4bf",
-    "relatedIds": [],
+    "relatedIds": [7, 13],
     "changelog": null
   },
   {
@@ -158,7 +158,7 @@
     "repo": null,
     "embedUrl": null,
     "accent": "#fb7185",
-    "relatedIds": [1],
+    "relatedIds": [1, 14],
     "changelog": null
   },
   {
@@ -176,8 +176,8 @@
     "repo": null,
     "embedUrl": null,
     "accent": "#818cf8",
-    "relatedIds": [],
-    "changelog": null
+    "relatedIds": [4, 15],
+    "changelog": "Current release: expanded reusable component demos with React, Tailwind CSS, and motion patterns."
   },
   {
     "id": 11,
@@ -194,7 +194,7 @@
     "repo": null,
     "embedUrl": null,
     "accent": "#06b6d4",
-    "relatedIds": [12],
+    "relatedIds": [12, 3],
     "changelog": null
   },
   {
@@ -212,7 +212,7 @@
     "repo": null,
     "embedUrl": null,
     "accent": "#0891b2",
-    "relatedIds": [11],
+    "relatedIds": [11, 3],
     "changelog": null
   },
   {
@@ -230,7 +230,7 @@
     "repo": null,
     "embedUrl": null,
     "accent": "#fbbf24",
-    "relatedIds": [],
+    "relatedIds": [15, 8],
     "changelog": null
   },
   {
@@ -248,7 +248,7 @@
     "repo": null,
     "embedUrl": "https://go.1ink.us/tetris/index.html",
     "accent": "#ef4444",
-    "relatedIds": [],
+    "relatedIds": [1, 9],
     "changelog": null
   },
   {
@@ -266,7 +266,7 @@
     "repo": null,
     "embedUrl": null,
     "accent": "#94a3b8",
-    "relatedIds": [],
+    "relatedIds": [13, 10],
     "changelog": null
   },
   {
@@ -284,7 +284,7 @@
     "repo": null,
     "embedUrl": null,
     "accent": "#c084fc",
-    "relatedIds": [3, 5],
-    "changelog": null
+    "relatedIds": [3, 5, 4],
+    "changelog": "Current release: added layered color separation and analysis controls for crop-circle imagery."
   }
 ]

@@ -110,8 +110,9 @@ export interface LoadoutPack {
 }
 
 /** Named loadout persisted in localStorage. */
-export interface Loadout extends LoadoutPack {
+export interface Loadout extends Omit<LoadoutPack, 'name'> {
   id: string;
+  name: string;
   createdAt: string;
   updatedAt: string;
 }

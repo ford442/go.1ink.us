@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import soundSystem from '../lib/SoundSystem';
-import { CATEGORY_THEMES } from '../data/constants';
+import { CATEGORY_THEMES } from '../constants';
 import { useTerminalContext } from '../app/context/TerminalContext';
 import useFocusTrap from '../hooks/useFocusTrap';
 

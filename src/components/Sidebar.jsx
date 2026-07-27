@@ -2,7 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import RadarHUD from '../effects/RadarHUD';
 import projectData from '../data/projectData';
 import soundSystem from '../lib/SoundSystem';
-import { CATEGORIES, CATEGORY_ICONS, CATEGORY_BUTTON_STYLES } from '../data/constants';
+import { CATEGORIES, CATEGORY_ICONS, CATEGORY_BUTTON_STYLES } from '../constants';
 import { useBrowserContext } from '../app/context/BrowserContext';
 import { useActivityContext } from '../app/context/ActivityContext';
 import { useSettingsContext } from '../app/context/SettingsContext';

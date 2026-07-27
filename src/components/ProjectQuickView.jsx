@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { TAG_TO_CATEGORIES } from '../data/constants';
+import { useEffect, useRef, useState } from 'react';
+import { TAG_TO_CATEGORIES } from '../constants';
+import projects from '../data/projectData';
 import { useOverlayContext } from '../app/context/OverlayContext';
 import { useBrowserContext } from '../app/context/BrowserContext';
 import { canPreviewProject } from '../lib/projectEmbed';
@@ -9,14 +10,24 @@ import ProjectMetaBadges from './ProjectMetaBadges';
 import { trackProjectLaunch } from '../lib/trackEvent';
 
 export default function ProjectQuickView() {
-  const { selectedProject, closeProjectModal, modalRef, modalImageLoaded, setModalImageLoaded } = useOverlayContext();
+  const { selectedProject, closeProjectModal, handleProjectSelect, modalRef, modalImageLoaded, setModalImageLoaded } = useOverlayContext();
   const { handleCopyLink, toggleFavorite, favorites } = useBrowserContext();
   const [previewProjectId, setPreviewProjectId] = useState(null);
+  const closeButtonRef = useRef(null);
+
+  useEffect(() => {
+    if (!selectedProject) return undefined;
+    const focusTimer = window.setTimeout(() => closeButtonRef.current?.focus(), 0);
+    return () => window.clearTimeout(focusTimer);
+  }, [selectedProject]);
 
   if (!selectedProject) return null;
 
   const isEmbeddable = canPreviewProject(selectedProject);
   const isPreviewMode = previewProjectId === selectedProject.id;
+  const relatedProjects = selectedProject.relatedIds
+    .map((relatedId) => projects.find((project) => project.id === relatedId))
+    .filter(Boolean);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-fade-in" ref={modalRef}>
@@ -40,6 +51,7 @@ export default function ProjectQuickView() {
         {isPreviewMode && isEmbeddable ? (
           <>
             <button
+              ref={closeButtonRef}
               onClick={closeProjectModal}
               className="absolute top-3 right-3 z-30 p-2 text-gray-400 hover:text-white bg-black/50 hover:bg-black/70 rounded-full transition-colors border border-white/10 hover:border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
               aria-label="Close modal"
@@ -104,8 +116,9 @@ export default function ProjectQuickView() {
               </div>
             </div>
 
-            <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-between relative z-10">
+            <div className="w-full md:w-1/2 max-h-[90vh] overflow-y-auto p-6 md:p-8 flex flex-col justify-between relative z-10">
               <button
+                ref={closeButtonRef}
                 onClick={closeProjectModal}
                 className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors border border-transparent hover:border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
                 aria-label="Close modal"
@@ -157,9 +170,48 @@ export default function ProjectQuickView() {
                     ))}
                   </div>
                 </div>
+
+                {relatedProjects.length > 0 && (
+                  <section className="mb-8" aria-labelledby={`related-projects-${selectedProject.id}`}>
+                    <h3
+                      id={`related-projects-${selectedProject.id}`}
+                      className="text-xs font-mono text-gray-500 uppercase tracking-widest mb-3"
+                    >
+                      Related Systems
+                    </h3>
+                    <div className="flex flex-wrap gap-2" data-testid="related-projects">
+                      {relatedProjects.map((project) => (
+                        <button
+                          key={project.id}
+                          type="button"
+                          onClick={() => handleProjectSelect(project)}
+                          aria-label={`Open related project ${project.title}`}
+                          className="group inline-flex items-center gap-2 rounded-lg border border-accent-500/25 bg-accent-950/30 px-3 py-2 text-left transition-all hover:border-accent-400/60 hover:bg-accent-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
+                        >
+                          <span aria-hidden="true" className="text-lg">{project.icon}</span>
+                          <span className="font-mono text-xs font-semibold text-accent-200 group-hover:text-white">
+                            {project.title}
+                          </span>
+                          <span aria-hidden="true" className="text-accent-500 transition-transform group-hover:translate-x-0.5">→</span>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {selectedProject.changelog && (
+                  <details className="mb-8 rounded-lg border border-white/10 bg-black/25 px-4 py-3">
+                    <summary className="cursor-pointer select-none font-mono text-xs font-bold uppercase tracking-widest text-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400">
+                      Patch Notes
+                    </summary>
+                    <p className="mt-3 whitespace-pre-wrap border-l-2 border-accent-500/40 pl-3 font-mono text-sm leading-relaxed text-gray-300">
+                      {selectedProject.changelog}
+                    </p>
+                  </details>
+                )}
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 mt-auto pt-6 border-t border-white/10">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4 mt-auto pt-6 border-t border-white/10">
                 <button
                   onClick={() => handleCopyLink(selectedProject)}
                   className="bg-accent-900/40 hover:bg-accent-500/20 text-accent-300 border border-accent-500/30 hover:border-accent-400 px-6 py-3 rounded-lg font-bold tracking-widest uppercase text-sm flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)] group"
@@ -179,6 +231,18 @@ export default function ProjectQuickView() {
                     <span className="animate-pulse">◉</span>
                     Launch Preview
                   </button>
+                )}
+
+                {selectedProject.repo && (
+                  <a
+                    href={selectedProject.repo}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/15 hover:border-accent-400/50 px-6 py-3 rounded-lg font-bold tracking-widest uppercase text-sm flex items-center justify-center gap-2 transition-all duration-300"
+                  >
+                    View Source
+                    <span aria-hidden="true">↗</span>
+                  </a>
                 )}
 
                 <a

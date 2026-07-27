@@ -1,0 +1,147 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useBrowserContext } from '../app/context/BrowserContext';
+import { useSettingsContext } from '../app/context/SettingsContext';
+import { useOverlayContext } from '../app/context/OverlayContext';
+import { useActivityContext } from '../app/context/ActivityContext';
+import soundSystem from '../lib/SoundSystem';
+
+interface SpeechRecognitionResultEvent {
+  resultIndex: number;
+  results: Record<number, Record<number, { transcript: string }>>;
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string;
+}
+
+interface SpeechRecognitionInstance {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onstart: (() => void) | null;
+  onresult: ((event: SpeechRecognitionResultEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
+interface SpeechRecognitionConstructor {
+  new (): SpeechRecognitionInstance;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  }
+}
+
+export default function useVoiceCommand() {
+  const { setSearchQuery } = useBrowserContext();
+  const { changeTheme, setDisplayMode } = useSettingsContext();
+  const { setIsLockdown, addToast } = useOverlayContext();
+  const { addActivityLog } = useActivityContext();
+
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const [isSupported] = useState(() => {
+    return typeof window !== 'undefined' && (!!window.SpeechRecognition || !!window.webkitSpeechRecognition);
+  });
+
+  const processCommand = useCallback((cmd: string) => {
+    if (cmd.includes('theme')) {
+      if (cmd.includes('cyan')) changeTheme('cyan');
+      else if (cmd.includes('purple')) changeTheme('purple');
+      else if (cmd.includes('emerald')) changeTheme('emerald');
+      else if (cmd.includes('gold')) changeTheme('gold');
+      soundSystem.playSuccess();
+      addToast('System theme updated via voice command.', 'success');
+    } else if (cmd.includes('search')) {
+      const term = cmd.replace('search for', '').replace('search', '').trim();
+      if (term) {
+        setSearchQuery(term);
+        soundSystem.playSuccess();
+        addToast(`Searching for: ${term}`, 'success');
+      }
+    } else if (cmd.includes('layout') || cmd.includes('view') || cmd.includes('mode')) {
+      if (cmd.includes('grid')) setDisplayMode('grid');
+      else if (cmd.includes('list')) setDisplayMode('list');
+      else if (cmd.includes('matrix')) setDisplayMode('matrix');
+      else if (cmd.includes('map')) setDisplayMode('map');
+      else if (cmd.includes('constellation') || cmd.includes('stars')) setDisplayMode('constellation');
+      soundSystem.playSuccess();
+      addToast('Display mode updated via voice command.', 'success');
+    } else if (cmd.includes('lockdown')) {
+      if (cmd.includes('disable') || cmd.includes('off') || cmd.includes('cancel')) {
+        setIsLockdown(false);
+        soundSystem.playSuccess();
+      } else {
+        setIsLockdown(true);
+        soundSystem.playAlert();
+      }
+    } else {
+       addToast(`Unknown voice command: ${cmd}`, 'warning');
+    }
+  }, [changeTheme, setSearchQuery, setDisplayMode, setIsLockdown, addToast]);
+
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        soundSystem.playClick();
+        addActivityLog('VOICE_PROTOCOL: LISTENING...');
+      };
+
+      recognition.onresult = (event) => {
+        const current = event.resultIndex;
+        const result = event.results[current][0].transcript.toLowerCase();
+        setTranscript(result);
+        addActivityLog(`VOICE_PROTOCOL: "${result}"`);
+        processCommand(result);
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+  }, [addActivityLog, processCommand]);
+
+  const startListening = useCallback(() => {
+    if (recognitionRef.current && !isListening) {
+      try {
+        recognitionRef.current.start();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [isListening]);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+    }
+  }, [isListening]);
+
+  return {
+    isSupported,
+    isListening,
+    transcript,
+    startListening,
+    stopListening
+  };
+}

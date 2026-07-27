@@ -13,7 +13,7 @@ system, on top of standard search/filter/sort browsing.
 
 - **Project Portfolio**: Card-based grid, list, and dense "matrix" layouts, plus an interactive force-graph "Neural Map" view (`react-force-graph-2d`) that clusters projects by shared tags
 - **Search & Filter**: Real-time search with keyboard shortcuts (`/` to focus, `Cmd/Ctrl+K` for the Omni Command Palette), hierarchical category/tag filtering, and sortable results — all synced to the URL (`?filters=&q=&sort=&view=`) for deep linking
-- **Terminal**: A command-line bar (backtick to open) with commands like `filter`, `sort`, `view`, `theme`, `sound`, `crt`, `matrix`, `lockdown`, `open <id>`, and `fav <id>` — see `help` in-app for the full list
+- **Terminal**: A command-line bar (backtick to open) with autocomplete and commands like `filter`, `sort`, `view`, `theme`, `sound`, `crt`, `matrix`, `perf`, `holo`, `lockdown`, `open <id>`, and `fav <id>` — see `help` in-app for the full list
 - **Omni Command Palette**: `Cmd/Ctrl+K` opens a fuzzy-searchable command menu for themes, layout, effects, and navigation
 - **Favorites**: Drag-and-drop reorderable favorites list, persisted locally
 - **Themes**: Four color themes (cyan/purple/emerald/gold), a CRT scanline/vignette effect, and a Matrix-rain background mode, all toggleable from the header, terminal, or Omni Palette
@@ -55,12 +55,12 @@ system, on top of standard search/filter/sort browsing.
 
 ```
 src/
-  app/          # App.jsx (composition root) + context/ (React context providers)
+  app/          # Thin App.jsx composition root + context/ domain providers
   components/   # UI: header, sidebar, cards, terminal, overlays, holo-terminal
   effects/      # Ambient/decorative visuals: starfield, matrix rain, particle network, radar HUD, screensaver, cursor trail
   hooks/        # Feature and utility hooks (persisted state, URL sync, idle protocol, favorites, toasts, …)
   lib/          # SoundSystem (procedural Web Audio SFX engine)
-  data/         # projectData.js (project list) + constants.js (categories/tags)
+  data/         # projects.json catalog + validated projectData.ts export
   styles/       # Tailwind entry point + theme CSS variables
 ```
 
@@ -68,10 +68,10 @@ See `AGENTS.md` for the full architecture deep dive (context domains, hook compo
 
 ## Customization
 
-To add your own projects, edit `src/data/projectData.js` and update the
+To add your own projects, edit `src/data/projects.json` and update the
 project objects with your own information (id, title, description, url,
 image, icon, tags, tech). Tags must map to a category in
-`src/data/constants.js`.
+`src/constants.ts`, the shared runtime and validation source.
 
 ## Deployment
 

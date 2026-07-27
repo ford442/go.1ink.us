@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CATEGORIES } from '../src/data/constants.js';
+import { CATEGORIES } from '../src/constants.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectsPath = path.join(__dirname, '../src/data/projects.json');

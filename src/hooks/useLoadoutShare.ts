@@ -1,4 +1,10 @@
 import { useEffect, useRef } from 'react';
+import {
+  applyLoadoutShare,
+  parseLoadoutShareSearch,
+  resolveLoadoutShare,
+  type LoadoutShareParams,
+} from '../lib/loadoutShare';
 
 interface UseLoadoutShareParams {
   replaceFavorites: (ids: number[], label?: string, options?: { silent?: boolean }) => void;
@@ -8,10 +14,9 @@ interface UseLoadoutShareParams {
   addActivityLog: (text: string) => void;
 }
 
-function captureShareParams() {
+function captureShareParams(): LoadoutShareParams {
   if (typeof window === 'undefined') return { pack: null, ids: null };
-  const params = new URLSearchParams(window.location.search);
-  return { pack: params.get('pack'), ids: params.get('ids') };
+  return parseLoadoutShareSearch(window.location.search);
 }
 
 /** One-shot bootstrap: apply ?pack= or ?ids= on first mount. */
@@ -23,7 +28,7 @@ export default function useLoadoutShare({
   addActivityLog,
 }: UseLoadoutShareParams) {
   const appliedRef = useRef(false);
-  const shareParamsRef = useRef(null);
+  const shareParamsRef = useRef<LoadoutShareParams | null>(null);
 
   if (shareParamsRef.current === null) {
     shareParamsRef.current = captureShareParams();
@@ -36,26 +41,16 @@ export default function useLoadoutShare({
     const { pack: packParam, ids: idsParam } = shareParamsRef.current ?? { pack: null, ids: null };
     if (!packParam && !idsParam) return;
 
-    const apply = (ids: number[], label?: string) => {
-      replaceFavorites(ids, label, { silent: true });
-      setActiveFilters(['Favorites']);
-      setCurrentPage(1);
-      const name = label ? `[${label.toUpperCase()}]` : `[${ids.length} NODES]`;
-      addToast(`> SYS_CMD: LOADOUT_DEPLOYED ${name}`, 'success');
-      addActivityLog(`LOADOUT DEPLOYED ${name}`);
-    };
-
-    if (packParam) {
-      import('../lib/loadoutCodec')
-        .then(({ decodePackParam }) => decodePackParam(packParam))
-        .then((pack) => apply(pack.ids, pack.name))
-        .catch(() => addToast('> SYS_ERR: LOADOUT_PACK_DECODE_FAILED', 'error'));
-      return;
-    }
-
-    if (idsParam) {
-      const raw = idsParam.split(',').map((s) => parseInt(s.trim(), 10));
-      apply(raw);
-    }
+    resolveLoadoutShare({ pack: packParam, ids: idsParam })
+      .then((pack) => {
+        if (pack) applyLoadoutShare(pack, {
+          replaceFavorites,
+          setActiveFilters,
+          setCurrentPage,
+          addToast,
+          addActivityLog,
+        });
+      })
+      .catch(() => addToast('> SYS_ERR: LOADOUT_PACK_DECODE_FAILED', 'error'));
   }, [replaceFavorites, setActiveFilters, setCurrentPage, addToast, addActivityLog]);
 }

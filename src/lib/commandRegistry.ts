@@ -1,5 +1,5 @@
 import projectData from '../data/projectData';
-import { CATEGORIES, TAG_TO_CATEGORIES, CATEGORY_ICONS } from '../data/constants';
+import { CATEGORIES, TAG_TO_CATEGORIES, CATEGORY_ICONS } from '../constants';
 import soundSystem from './SoundSystem';
 import {
   deleteLoadoutByName,

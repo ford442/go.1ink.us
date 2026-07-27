@@ -5,7 +5,7 @@ import Card from './Card';
 const SystemMap = lazy(() => import('./SystemMap'));
 const SystemConstellation = lazy(() => import('./SystemConstellation'));
 import ConstellationOverlay from '../effects/ConstellationOverlay';
-import { CATEGORY_ICONS } from '../data/constants';
+import { CATEGORY_ICONS } from '../constants';
 import { useBrowserContext } from '../app/context/BrowserContext';
 import { useSettingsContext } from '../app/context/SettingsContext';
 import { useOverlayContext } from '../app/context/OverlayContext';

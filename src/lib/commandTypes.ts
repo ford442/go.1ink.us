@@ -1,4 +1,4 @@
-import type { DisplayMode, PerformanceMode, SortOption, ThemeId } from '../types';
+import type { DisplayMode, PerformanceMode, Project, SortOption, ThemeId } from '../types';
 
 export type TerminalResponseType = 'system' | 'error' | 'success' | 'warning';
 
@@ -42,7 +42,7 @@ export interface CommandContext {
   favorites: number[];
   activeFilters: string[];
   handleDisplayModeChange: (mode: DisplayMode) => void;
-  handleProjectSelect: (project: { id: number; title: string }) => void;
+  handleProjectSelect: (project: Project) => void;
   projectsMatchingQuery: Array<{ id: number; title: string }>;
   setCurrentPage: (page: number) => void;
   setIsCrtEnabled: (enabled: boolean) => void;
@@ -53,7 +53,7 @@ export interface CommandContext {
   setPerformanceMode: (mode: PerformanceMode) => void;
   setRandomSeed: (seed: number) => void;
   setSortOption: (option: SortOption) => void;
-  toggleFavorite: (project: { id: number; title: string }) => void;
+  toggleFavorite: (project: Project) => void;
   toggleFilter: (filter: string) => void;
   replaceFavorites: (ids: number[], label?: string, options?: { silent?: boolean }) => void;
   setActiveFilters: (filters: string[]) => void;

@@ -21,9 +21,9 @@
     "test:a11y": "playwright test e2e/a11y.spec.js e2e/keyboard-path.spec.js",
     "test:e2e:install": "playwright install --with-deps chromium",
     "typecheck": "tsc --noEmit",
-    "validate:projects": "node scripts/validate-projects.mjs",
+    "validate:projects": "node --import tsx scripts/validate-projects.mjs",
     "check:health": "node scripts/check-project-health.mjs",
-    "test:unit": "node --import tsx --test scripts/test-terminal-parser.mjs scripts/test-loadout-codec.mjs scripts/test-audio-notes.mjs",
+    "test:unit": "node --import tsx scripts/unit-tests.mjs",
     "deploy": "python deploy.py"
   },
   "dependencies": {

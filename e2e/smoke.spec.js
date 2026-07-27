@@ -47,13 +47,79 @@ test('offline shows banner and cached catalog after SW install', async ({ page, 
   await expect(page.locator('#project-grid [id^="project-card-"]').first()).toBeVisible({ timeout: 10_000 });
 });
 
-test('quick view modal opens and closes', async ({ page }) => {
+test('lite-mode quick view bypasses warp, traps focus, and restores scrolling', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('curator_perf', 'lite'));
   await page.goto('/');
-  await page.locator('#project-card-1').click();
+  await expect(page.locator('html')).toHaveAttribute('data-perf', 'lite');
+  await page.getByRole('button', { name: /View details for/i }).first().click();
+  const dialog = page.getByRole('dialog');
   const closeButton = page.getByRole('button', { name: 'Close modal' });
-  await expect(closeButton).toBeVisible();
+  await expect(page.locator('.animate-warp-speed')).toHaveCount(0);
+  await expect(dialog).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe('hidden');
+  await expect(closeButton.first()).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(dialog.locator(':focus')).toHaveCount(1);
   await closeButton.click();
   await expect(closeButton).not.toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe('');
+});
+
+test('quick view exposes related systems, source, and patch notes', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('curator_perf', 'lite'));
+  await page.goto('/?q=Cave%20Crystals');
+  await page.getByRole('button', { name: 'View details for Cave Crystals' }).click();
+
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('heading', { name: 'Related Systems' })).toBeVisible();
+  const sourceLink = dialog.getByRole('link', { name: /View Source/i });
+  await expect(sourceLink).toHaveAttribute('href', 'https://github.com/ford442/cave_crystals');
+  await expect(sourceLink).toHaveAttribute('target', '_blank');
+  await expect(sourceLink).toHaveAttribute('rel', 'noopener noreferrer');
+
+  const patchNotes = dialog.getByText('Patch Notes');
+  await patchNotes.click();
+  await expect(dialog.getByText(/campaign catalog/i)).toBeVisible();
+
+  await dialog.getByRole('button', { name: 'Open related project Candy World' }).click();
+  await expect(dialog.getByRole('heading', { name: 'Candy World' })).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Open related project Cave Crystals' })).toBeVisible();
+});
+
+test('theme, CRT, and Matrix settings persist across reload', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('curator_theme', 'purple');
+    localStorage.setItem('curator_crt', 'true');
+    localStorage.setItem('curator_matrix', 'true');
+    localStorage.setItem('curator_perf', 'full');
+  });
+  await page.goto('/');
+
+  const assertPersistedEffects = async () => {
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'purple');
+    await expect(page.locator('.crt-scanlines')).toBeAttached();
+    await expect(page.locator('canvas.fixed.inset-0.w-full.h-full.pointer-events-none.z-0')).toBeAttached();
+  };
+
+  await assertPersistedEffects();
+  await page.reload();
+  await assertPersistedEffects();
+});
+
+test('terminal autocomplete opens HoloTerminal and shortcut map remains wired', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: '`' })));
+  const terminalInput = page.getByRole('textbox', { name: 'Terminal command input' });
+  await terminalInput.fill('hol');
+  await terminalInput.press('Tab');
+  await expect(terminalInput).toHaveValue('holo ');
+  await terminalInput.press('Enter');
+  await expect(page.getByText('HOLO.TERM // v2.0')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Close terminal' }).click();
+  await expect(terminalInput).not.toBeVisible();
+  await page.keyboard.press('?');
+  await expect(page.getByRole('dialog', { name: 'Global Shortcuts' })).toBeVisible();
 });
 
 test('keyboard / focuses search input', async ({ page }) => {
