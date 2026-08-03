@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import usePersistedState from './usePersistedState';
 import {
   PERF_STORAGE_KEY,
   getPerformanceFlags,
   parsePerformanceMode,
   resolveEffectiveMode,
+  rerollRandomFlags,
 } from '../lib/performanceMode';
 import type { PerformanceMode } from '../types';
 
@@ -36,7 +37,21 @@ export default function usePerformanceMode() {
     [performanceMode, prefersReducedMotion]
   );
 
-  const flags = useMemo(() => getPerformanceFlags(effectiveMode), [effectiveMode]);
+  // Bumped by rerollPerformance to force a re-read of the (freshly re-rolled)
+  // session flags below, since effectiveMode itself doesn't change on reroll.
+  const [rerollNonce, setRerollNonce] = useState(0);
+
+  const flags = useMemo(
+    () => getPerformanceFlags(effectiveMode),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [effectiveMode, rerollNonce]
+  );
+
+  const rerollPerformance = useCallback(() => {
+    rerollRandomFlags();
+    setRerollNonce((n) => n + 1);
+    setPerformanceMode('random');
+  }, [setPerformanceMode]);
 
   useEffect(() => {
     document.documentElement.dataset.perf = effectiveMode;
@@ -53,5 +68,6 @@ export default function usePerformanceMode() {
     effectiveMode,
     flags,
     prefersReducedMotion,
+    rerollPerformance,
   };
 }

@@ -1,4 +1,4 @@
-import type { DisplayMode, PerformanceMode, Project, SortOption, ThemeId } from '../types';
+import type { DisplayMode, PerformanceFlags, PerformanceMode, Project, SortOption, ThemeId } from '../types';
 
 export type TerminalResponseType = 'system' | 'error' | 'success' | 'warning';
 
@@ -51,6 +51,7 @@ export interface CommandContext {
   setIsMatrixMode: (enabled: boolean) => void;
   setIsSoundEnabled: (enabled: boolean) => void;
   setPerformanceMode: (mode: PerformanceMode) => void;
+  rerollPerformance: () => void;
   setRandomSeed: (seed: number) => void;
   setSortOption: (option: SortOption) => void;
   toggleFavorite: (project: Project) => void;
@@ -64,4 +65,5 @@ export interface CommandContext {
   isSoundEnabled: boolean;
   performanceMode: PerformanceMode;
   effectiveMode: PerformanceMode;
+  flags: PerformanceFlags;
 }

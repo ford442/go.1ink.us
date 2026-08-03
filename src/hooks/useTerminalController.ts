@@ -27,8 +27,10 @@ export default function useTerminalController({
   setRandomSeed,
   setSortOption,
   setPerformanceMode,
+  rerollPerformance,
   effectiveMode,
   performanceMode,
+  flags,
   toggleFavorite,
   toggleFilter,
   replaceFavorites,
@@ -67,6 +69,7 @@ export default function useTerminalController({
     setIsMatrixMode,
     setIsSoundEnabled,
     setPerformanceMode,
+    rerollPerformance,
     setRandomSeed,
     setSortOption,
     toggleFavorite,
@@ -80,6 +83,7 @@ export default function useTerminalController({
     isSoundEnabled,
     performanceMode,
     effectiveMode,
+    flags,
   }), [
     addActivityLog,
     activeFilters,
@@ -95,6 +99,7 @@ export default function useTerminalController({
     setIsMatrixMode,
     setIsSoundEnabled,
     setPerformanceMode,
+    rerollPerformance,
     setRandomSeed,
     setSortOption,
     toggleFavorite,
@@ -108,6 +113,7 @@ export default function useTerminalController({
     isSoundEnabled,
     performanceMode,
     effectiveMode,
+    flags,
   ]);
 
   const commandRegistry = useMemo(

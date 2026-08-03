@@ -39,8 +39,12 @@ export interface ResolvedProjectConnectivity extends ProjectHealthRecord {
   source: 'override' | 'probe' | 'default';
 }
 
-/** User-facing performance preset; `'auto'` picks based on device signals. */
-export type PerformanceMode = 'auto' | 'full' | 'balanced' | 'lite';
+/**
+ * User-facing performance preset; `'auto'` picks based on device signals.
+ * `'random'` rolls a session-stable weighted subset of effect flags (see
+ * `lib/performanceMode.ts`) instead of a fixed set.
+ */
+export type PerformanceMode = 'auto' | 'full' | 'balanced' | 'lite' | 'random';
 
 /** Resolved feature gates derived from effective performance mode. */
 export interface PerformanceFlags {

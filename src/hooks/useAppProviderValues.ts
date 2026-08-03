@@ -139,6 +139,7 @@ export default function useAppProviderValues({
     starfieldRef: effects.starfieldRef,
     performanceMode: effects.performanceMode,
     setPerformanceMode: effects.setPerformanceMode,
+    rerollPerformance: effects.rerollPerformance,
     effectiveMode: effects.effectiveMode,
     flags: effects.flags,
     prefersReducedMotion: effects.prefersReducedMotion,
