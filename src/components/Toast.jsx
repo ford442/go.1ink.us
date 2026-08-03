@@ -1,20 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
 
-import { useRef } from 'react';
+const EXIT_DURATION_MS = 300;
 
 export default function Toast({ toast, removeToast }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
   const [progress, setProgress] = useState(100);
   const duration = toast.duration || 3000;
   const remainingRef = useRef(duration);
+
+  const dismiss = () => {
+    if (isLeaving) return;
+    setIsLeaving(true);
+    setTimeout(() => removeToast(toast.id), EXIT_DURATION_MS);
+  };
 
   useEffect(() => {
     let startTime = Date.now();
     let animationFrame;
 
     const animate = () => {
-      if (isHovered) {
+      if (isHovered || isLeaving) {
         // Just update startTime so elapsed doesn't grow while paused
         startTime = Date.now();
         animationFrame = requestAnimationFrame(animate);
@@ -25,7 +31,7 @@ export default function Toast({ toast, removeToast }) {
       const currentRemaining = remainingRef.current - elapsed;
 
       if (currentRemaining <= 0) {
-        removeToast(toast.id);
+        dismiss();
       } else {
         setProgress((currentRemaining / duration) * 100);
         animationFrame = requestAnimationFrame(animate);
@@ -39,7 +45,8 @@ export default function Toast({ toast, removeToast }) {
       // when unmounting (or hovering), save remaining time
       remainingRef.current -= (Date.now() - startTime);
     };
-  }, [isHovered, removeToast, toast.id, duration]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isHovered, isLeaving, toast.id, duration]);
 
   let borderClass, textClass, icon;
   switch (toast.type) {
@@ -101,16 +108,11 @@ export default function Toast({ toast, removeToast }) {
   }
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, x: 50, scale: 0.95 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
-      exit={{ opacity: 0, x: 20, scale: 0.95 }}
-      transition={{ duration: 0.2 }}
+    <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={() => removeToast(toast.id)}
-      className={`relative bg-black/80 backdrop-blur-md border ${borderClass} rounded-lg overflow-hidden flex flex-col pointer-events-auto cursor-pointer hover:bg-black/90 transition-colors w-[300px] shadow-lg`}
+      onClick={dismiss}
+      className={`relative bg-black/80 backdrop-blur-md border ${borderClass} rounded-lg overflow-hidden flex flex-col pointer-events-auto cursor-pointer hover:bg-black/90 transition-colors w-[300px] shadow-lg ${isLeaving ? 'animate-fade-out-right' : 'animate-slide-in-right'}`}
       role="alert"
       aria-label={`${toast.type} notification: ${toast.message}`}
     >
@@ -128,6 +130,6 @@ export default function Toast({ toast, removeToast }) {
           style={{ width: `${progress}%` }}
         />
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -6,8 +6,14 @@ const ROOT = join(import.meta.dirname, '..');
 const DIST = join(ROOT, 'dist');
 const ASSETS = join(DIST, 'assets');
 
-/** Gzip budget for synchronously loaded JS (entry + modulepreload vendor chunks). */
-const INITIAL_GZIP_BUDGET_KB = 159;
+/**
+ * Gzip budget for synchronously loaded JS (entry + modulepreload vendor chunks).
+ * framer-motion no longer ships on the critical path (MainContent's card grid and
+ * Toast now use CSS animations; `vendor-motion` only loads with ShortcutCheatsheet),
+ * so the initial bundle dropped from ~156 KB to ~116 KB. Budget is set with headroom
+ * above that for incidental growth while still catching real regressions early.
+ */
+const INITIAL_GZIP_BUDGET_KB = 130;
 
 function gzipSize(bytes) {
   return gzipSync(bytes).length;

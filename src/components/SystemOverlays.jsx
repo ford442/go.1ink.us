@@ -1,5 +1,4 @@
 import { lazy, Suspense } from 'react';
-import { AnimatePresence } from 'framer-motion';
 const OmniPalette = lazy(() => import('./OmniPalette'));
 const Screensaver = lazy(() => import('../effects/Screensaver'));
 const ShortcutCheatsheet = lazy(() => import('./ShortcutCheatsheet'));
@@ -69,11 +68,9 @@ export default function SystemOverlays() {
   </div>
 
   <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-3 pointer-events-none" aria-live="polite" aria-relevant="additions" aria-atomic="false">
-    <AnimatePresence>
-      {toasts.map((toast) => (
-        <Toast key={toast.id} toast={toast} removeToast={removeToast} />
-      ))}
-    </AnimatePresence>
+    {toasts.map((toast) => (
+      <Toast key={toast.id} toast={toast} removeToast={removeToast} />
+    ))}
   </div>
     </>
   );

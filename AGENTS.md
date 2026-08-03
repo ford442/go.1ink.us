@@ -111,17 +111,21 @@ Branch protection should require the **CI** checks to pass before merge.
 
 ### Bundle budget
 
-Production build enforces an **initial JS gzip budget of ~150 KB** (entry + modulepreloaded vendor chunks) via `scripts/check-bundle-budget.mjs`. Heavy views are code-split with `React.lazy`:
+Production build enforces an **initial JS gzip budget of 130 KB** (entry + modulepreloaded vendor chunks, actual ~116 KB) via `scripts/check-bundle-budget.mjs`. Heavy views are code-split with `React.lazy`:
 
 | Chunk | Loads when |
 |-------|------------|
 | `SystemMap` + `vendor-force-graph` | Map view opened |
+| `SystemConstellation` | Constellation view opened |
 | `HoloTerminal` | Holo terminal opened |
 | `ProjectQuickView` | A project quick view opened |
 | `MatrixRain` | Matrix mode enabled |
 | `OmniPalette` / `Screensaver` / `ShortcutCheatsheet` | First open / idle / cheatsheet |
+| `vendor-motion` (`framer-motion`) | Only with `ShortcutCheatsheet` — no longer on the critical path |
 
 `vite.config.js` sets `manualChunks` for `vendor-react` and `vendor-motion`, `sourcemap: false` in prod, and `reportCompressedSize: true`. `react-force-graph-2d` ships inside the lazy `SystemMap` chunk (not preloaded).
+
+`framer-motion` was previously pulled into the entry bundle because `MainContent`, `Toast`, and `SystemOverlays` imported it eagerly (~41 KB gzip). `MainContent.jsx` was split into `src/components/MainContent/` (`MainContent.jsx` orchestrator, `ViewToolbar`, `ProjectGridView`, `Pagination`, `EmptyState`, `useGridPerspective`), and the card-grid entrance/hover animation and `Toast` enter/exit now use CSS keyframes in `App.css` (`animate-card-enter`, `animate-slide-in-right` / `animate-fade-out-right`) instead of `motion.div`/`AnimatePresence`. `ShortcutCheatsheet` is the only remaining `framer-motion` consumer and is already behind a lazy boundary, so `vendor-motion` no longer ships until it's opened.
 
 ---
 
