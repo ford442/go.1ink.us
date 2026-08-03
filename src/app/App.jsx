@@ -162,6 +162,7 @@ function App() {
     setIsCheatsheetOpen,
     setIsSoundEnabled,
     setPerformanceMode: performance.setPerformanceMode,
+    rerollPerformance: performance.rerollPerformance,
     effectiveMode: performance.effectiveMode,
     performanceMode: performance.performanceMode,
     isCrtEnabled,

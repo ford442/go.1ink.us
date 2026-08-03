@@ -33,13 +33,21 @@ export {
 } from './commandParserUtils';
 
 const perfLabel = (mode: PerformanceMode | string) =>
-  ({ auto: 'AUTO', full: 'FULL', balanced: 'BALANCED', lite: 'LITE' } as const)[mode as PerformanceMode]
+  ({ auto: 'AUTO', full: 'FULL', balanced: 'BALANCED', lite: 'LITE', random: 'RANDOM' } as const)[mode as PerformanceMode]
   ?? String(mode).toUpperCase();
+
+const PERF_MODE_ICONS: Record<PerformanceMode, string> = {
+  auto: '⚡',
+  full: '🚀',
+  balanced: '⚖️',
+  lite: '🪶',
+  random: '🎲',
+};
 
 const ON_OFF = ['on', 'off'] as const;
 const THEMES: ThemeId[] = ['cyan', 'purple', 'emerald', 'gold'];
 const VIEWS: DisplayMode[] = ['grid', 'matrix', 'list', 'map', 'constellation'];
-const PERF_MODES: PerformanceMode[] = ['auto', 'full', 'balanced', 'lite'];
+const PERF_MODES: PerformanceMode[] = ['auto', 'full', 'balanced', 'lite', 'random'];
 const SORT_MAP: Record<string, SortOption> = {
   featured: 'Featured',
   newest: 'Newest',
@@ -393,7 +401,7 @@ export function createCommandRegistry(_ctx: CommandContext): CommandDefinition[]
       aliases: ['performance'],
       args: [{ name: 'mode', description: 'Performance preset', required: false, values: [...PERF_MODES] }],
       help: 'Set or inspect performance mode preset.',
-      usage: 'perf [auto|full|balanced|lite]',
+      usage: 'perf [auto|full|balanced|lite|random]',
       omni: PERF_MODES.map((mode) => ({
         id: `perf-${mode}`,
         label: (c: CommandContext) => {
@@ -401,7 +409,7 @@ export function createCommandRegistry(_ctx: CommandContext): CommandDefinition[]
           const forced = mode === 'lite' && c.effectiveMode === 'lite' && c.performanceMode !== 'lite' ? ' (active)' : '';
           return `Performance: ${mode.charAt(0).toUpperCase()}${mode.slice(1)}${active}${forced}`;
         },
-        icon: mode === 'auto' ? '⚡' : mode === 'full' ? '🚀' : mode === 'balanced' ? '⚖️' : '🪶',
+        icon: PERF_MODE_ICONS[mode],
         keywords: ['perf', 'performance', mode],
         isActive: (c: CommandContext) => c.performanceMode === mode,
         action: (c: CommandContext) => c.setPerformanceMode(mode),
@@ -410,16 +418,41 @@ export function createCommandRegistry(_ctx: CommandContext): CommandDefinition[]
         if (args.length === 0) {
           return {
             type: 'system',
-            text: `> PERF_MODE: ${perfLabel(ctx.performanceMode)} (active: ${perfLabel(ctx.effectiveMode)})\nUsage: perf <auto|full|balanced|lite>`,
+            text: `> PERF_MODE: ${perfLabel(ctx.performanceMode)} (active: ${perfLabel(ctx.effectiveMode)})\nUsage: perf <auto|full|balanced|lite|random>`,
           };
         }
         const modeParam = args[0].toLowerCase() as PerformanceMode;
         if (!PERF_MODES.includes(modeParam)) {
-          return { type: 'error', text: `ERR: Invalid mode '${modeParam}'. Use auto, full, balanced, or lite.` };
+          return { type: 'error', text: `ERR: Invalid mode '${modeParam}'. Use auto, full, balanced, lite, or random.` };
         }
         ctx.setPerformanceMode(modeParam);
         ctx.addActivityLog(`PERF MODE SET: ${modeParam.toUpperCase()}`);
         return { type: 'success', text: `> PERFORMANCE_GATE: ${modeParam.toUpperCase()}` };
+      },
+    },
+    {
+      name: 'reroll',
+      aliases: ['fx-reroll'],
+      help: 'Re-roll the random performance mode\'s active effect subset.',
+      usage: 'reroll',
+      omni: {
+        id: 'perf-reroll',
+        label: (c: CommandContext) => c.effectiveMode === 'random' ? 'Reroll Random Effects 🎲' : 'Reroll Random Effects (switches to Random) 🎲',
+        icon: '🎲',
+        keywords: ['perf', 'performance', 'random', 'reroll', 'fx', 'dice'],
+        isActive: (c: CommandContext) => c.performanceMode === 'random',
+        action: (c: CommandContext) => c.rerollPerformance(),
+      },
+      run(ctx) {
+        ctx.rerollPerformance();
+        ctx.addActivityLog('PERF FX REROLLED');
+        if (ctx.effectiveMode === 'lite' && ctx.performanceMode !== 'lite') {
+          return {
+            type: 'warning',
+            text: '> FX_REROLL: new combination rolled, but LITE is still forced (reduced motion).',
+          };
+        }
+        return { type: 'success', text: '> FX_REROLL: new random effect combination engaged.' };
       },
     },
     {

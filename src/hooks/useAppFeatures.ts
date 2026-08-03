@@ -5,7 +5,7 @@ import useBackgroundEffects from './useBackgroundEffects';
 import type { PerformanceFlags } from '../types';
 
 type UseAppFeaturesParams = UseProjectBrowserParams
-  & Omit<UseTerminalControllerParams, 'projectsMatchingQuery' | 'toggleFilter'>
+  & Omit<UseTerminalControllerParams, 'projectsMatchingQuery' | 'toggleFilter' | 'flags'>
   & UseGlobalShortcutsParams
   & { performanceFlags: PerformanceFlags };
 
@@ -50,6 +50,7 @@ export default function useAppFeatures({
   setSortOption,
   setIsSoundEnabled,
   setPerformanceMode,
+  rerollPerformance,
   effectiveMode,
   performanceMode,
   isCrtEnabled,
@@ -104,12 +105,14 @@ export default function useAppFeatures({
     setSortOption,
     setIsSoundEnabled,
     setPerformanceMode,
+    rerollPerformance,
     toggleFavorite,
     toggleFilter,
     replaceFavorites,
     setActiveFilters,
     effectiveMode,
     performanceMode,
+    flags: performanceFlags,
     isCrtEnabled,
     isLockdown,
     isMatrixMode,

@@ -154,6 +154,7 @@ export interface EffectsContextValue {
   starfieldRef: RefObject<HTMLDivElement | null>;
   performanceMode: PerformanceMode;
   setPerformanceMode: Setter<PerformanceMode>;
+  rerollPerformance: () => void;
   effectiveMode: Exclude<PerformanceMode, 'auto'>;
   flags: PerformanceFlags;
   prefersReducedMotion: boolean;

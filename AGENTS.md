@@ -154,6 +154,17 @@ Production build enforces an **initial JS gzip budget of 130 KB** (entry + modul
 4. **will-change**: Apply to elements with frequent transforms
 5. **Context Domain Isolation**: Read from the narrowest context hook you need (see Context Architecture) rather than a broader one, so unrelated state changes don't re-render your component
 
+### Performance Modes
+
+`src/lib/performanceMode.ts` resolves a `PerformanceMode` preference (`auto | full | balanced | lite | random`, persisted to `localStorage` under `curator_perf`) into an effective mode and a `PerformanceFlags` object of 14 booleans (`starfield`, `particleNetwork`, `matrixRain`, `customCursor`, `warpTransition`, `cursorTrail`, `parallaxGrids`, `scrollVelocity`, `filmGrain`, `radarHud`, `card3d`, `floatingDebris`, `ambientOrbs`, `constellation3d`) gating individual visual-effect layers. `prefers-reduced-motion` and an explicit `lite`/`full`/`balanced` preference are hard floors that always win over `auto`'s device-based detection.
+
+`random` mode rolls a weighted, session-stable subset instead of a fixed preset — variety without running every effect at once:
+
+- Flags are grouped into three tiers with independent per-flag roll chances: cheap ambient (`starfield`, `filmGrain`, `parallaxGrids`, 80%), medium (`cursorTrail`, `card3d`, `ambientOrbs`, `floatingDebris`, `radarHud`, 50%), heavy (`particleNetwork`, `matrixRain`, `constellation3d`, `warpTransition`, `scrollVelocity`, `customCursor`, 30%).
+- The result is clamped to 6-8 active flags (topping up from cheap tiers first if under, trimming from heavy tiers first if over) so a roll is never all-off or effectively `full`.
+- The roll is persisted to `sessionStorage` (`curator_perf_random_roll`, not `localStorage`) so a page refresh keeps the same combination, while a new tab/session gets a fresh one.
+- The terminal `reroll` command (alias `fx-reroll`) and the 🎲 Omni Palette entry clear the session roll, generate a new one, and switch `performanceMode` to `random` if it wasn't already. `prefers-reduced-motion` still forces `lite` regardless of reroll.
+
 ---
 
 ## Deployment Process
