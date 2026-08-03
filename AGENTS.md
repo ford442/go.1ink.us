@@ -411,6 +411,46 @@ npm run check:health -- --strict  # exit 1 if any node degraded/unknown
 
 ---
 
+### Ground station / orbital visibility (`src/ground/`)
+
+A dependency-free, framework-free TypeScript module for "what can I see from
+here". It is pure computation — no React, no three.js — so it can run in a
+worker, in tests, or inline in a render loop.
+
+| File | Responsibility |
+|------|----------------|
+| `geodesy.ts` | WGS84 constants, geodetic <-> ECEF, GMST, ECI <-> ECEF, topocentric look angles |
+| `GroundStation.ts` | Station model, preset cities, validation, opt-in geolocation, `stationFrame()` precompute |
+| `propagator.ts` | `SatellitePropagator` interface + built-in Keplerian/J2 propagator |
+| `tle.ts` | TLE parsing (single set and catalog blobs) -> elements -> propagator |
+| `visibility.ts` | Per-satellite horizon test and whole-constellation evaluation |
+| `footprint.ts` | Coverage spherical cap, boundary ring as lat/lon or unit vectors |
+| `passes.ts` | AOS / culmination / LOS prediction with max elevation |
+
+**Hot path.** `stationFrame()` precomputes the station's ECEF position and
+zenith unit vector once. The per-frame test is then `isAboveHorizon()`: three
+subtracts, a dot product, one square root, one compare — cheap enough to fold
+into an existing per-satellite loop without a second pass over the data.
+
+**Propagator swap.** Everything downstream of `SatellitePropagator` is
+model-agnostic. The built-in Keplerian+J2 model is fine for footprints and for
+shortlisting passes, but it is *not* SGP4: quoting AOS times to the minute
+against reference tools needs a real SGP4 behind `propagatorFromFunction()` (or
+by replacing the body of `propagatorFromTle()`). The pass search refines
+crossings by bisection to sub-second precision, so prediction accuracy is
+bounded by the propagator, not by the search.
+
+**Geolocation is strictly opt-in.** `requestGeolocationStation()` is the only
+code that touches `navigator.geolocation`, it is never called at import time,
+and it rejects rather than falling back to a default location so a refused
+permission leaves the current station untouched.
+
+```bash
+npm run test:unit   # includes scripts/test-ground-station.mjs
+```
+
+---
+
 ## TypeScript Migration
 
 The stack is JS + React 19 + Vite 7; `@types/react`/`@types/react-dom` were
