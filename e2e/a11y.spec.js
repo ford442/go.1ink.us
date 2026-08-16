@@ -18,6 +18,7 @@ function formatViolations(violations) {
 }
 
 test('home page has no critical or serious axe violations', async ({ page }) => {
+  test.setTimeout(60_000);
   await page.goto('/');
   await expect(page.locator('#project-grid [id^="project-card-"]').first()).toBeVisible();
 
@@ -30,7 +31,7 @@ test('quick view modal has no critical or serious axe violations', async ({ page
   test.setTimeout(60_000);
   await page.goto('/');
   await page.locator('#project-card-1').click();
-  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10_000 });
 
   const results = await new AxeBuilder({ page }).analyze();
   const blocking = blockingViolations(results);

@@ -25,20 +25,38 @@ const VARIANTS = {
       ? 'bg-accent-500/50 text-white border-accent-400 shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.4)]'
       : 'text-gray-400 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white'
     }`
+  },
+  compact: {
+    wrapper: 'flex flex-wrap gap-1 mt-auto pointer-events-auto pt-2 border-t border-white/5',
+    slice: 2,
+    tagClass: (isHighlighted) => `px-2 py-0.5 text-[9px] font-semibold tracking-wider border rounded-full transition-all duration-200 cursor-pointer z-20 ${isHighlighted
+      ? 'bg-accent-500/80 text-white border-accent-300 shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.6)]'
+      : 'text-accent-200 bg-accent-900/30 border-accent-500/20 hover:bg-accent-800/50 hover:text-white hover:border-accent-400'
+    }`
+  },
+  dense: {
+    wrapper: 'flex flex-wrap gap-1 mt-auto pointer-events-auto pt-2 border-t border-white/5',
+    slice: 2,
+    tagClass: (isHighlighted) => `px-2 py-0.5 text-[9px] font-semibold tracking-wider border rounded-full transition-all duration-200 cursor-pointer z-20 ${isHighlighted
+      ? 'bg-accent-500/80 text-white border-accent-300 shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.6)]'
+      : 'text-accent-200 bg-accent-900/30 border-accent-500/20 hover:bg-accent-800/50 hover:text-white hover:border-accent-400'
+    }`
   }
 };
 
 // Renders the clickable tag-pill list shared across grid/list/matrix
 // layouts. Each variant differs in wrapper visibility breakpoints, pill
 // styling, and how many tags are shown.
-export default function CardTagList({ variant, tags, highlightedTags, onTagClick, onHoverTag, searchQuery, regex }) {
-  const cfg = VARIANTS[variant];
-  const visibleTags = cfg.slice ? tags.slice(0, cfg.slice) : tags;
+export default function CardTagList({ variant = 'compact', tags = [], highlightedTags = [], onTagClick, onHoverTag, searchQuery, regex }) {
+  const cfg = VARIANTS[variant] || VARIANTS.compact;
+  const safeTags = Array.isArray(tags) ? tags : [];
+  const visibleTags = cfg.slice ? safeTags.slice(0, cfg.slice) : safeTags;
+  const safeHighlighted = Array.isArray(highlightedTags) ? highlightedTags : [];
 
   return (
     <div className={cfg.wrapper}>
       {visibleTags.map((tag, i) => {
-        const isHighlighted = highlightedTags.includes(tag);
+        const isHighlighted = safeHighlighted.includes(tag);
         return (
           <button
             key={i}

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import ConstellationOverlay from '../../effects/ConstellationOverlay';
 import { useBrowserContext } from '../../app/context/BrowserContext';
 import { useSettingsContext } from '../../app/context/SettingsContext';
@@ -7,6 +7,8 @@ import { useEffectsContext } from '../../app/context/EffectsContext';
 import { BrandImage } from '../ProjectImage';
 import ViewToolbar from './ViewToolbar';
 import ProjectGridView from './ProjectGridView';
+import FeaturedSection from './FeaturedSection';
+import RecentlyUpdatedSection from './RecentlyUpdatedSection';
 import Pagination from './Pagination';
 import EmptyState from './EmptyState';
 import useGridPerspective from './useGridPerspective';
@@ -18,13 +20,38 @@ export default function MainContent() {
   const { filteredProjects, activeFilters, searchQuery, setSearchQuery, setActiveFilters, setCurrentPage, toggleFilter, sortOption, hoveredTag, paginatedProjects, focusedCardIndex, setFocusedCardIndex, favorites, toggleFavorite, handleCopyLink, handleTagClick, activeFiltersSet, draggedFavoriteId, dragOverFavoriteId, handleDragStart, handleDragOver, handleDragEnd, handleDrop, setHoveredTag, totalPages, currentPage, handlePageChange, suggestedTags } = useBrowserContext();
   const { displayMode, isGlitching, handleDisplayModeChange } = useSettingsContext();
   const { selectedProject, handleContextMenu, handleProjectSelect, isDataMode, isWarping } = useOverlayContext();
-  const { flags } = useEffectsContext();
+  const { flags, effectiveMode, performanceMode } = useEffectsContext();
   const showWarpFx = flags.warpTransition && isWarping;
 
+  // Memoize search regex for card highlights
+  const regex = useMemo(() => {
+    if (!searchQuery) return null;
+    const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(${escapedQuery})`, 'gi');
+  }, [searchQuery]);
+
+  // Featured and Recently Updated subsets (respecting active filters/search)
+  const featuredProjects = useMemo(
+    () => filteredProjects.filter((project) => project.featured),
+    [filteredProjects]
+  );
+
+  const recentProjects = useMemo(
+    () => filteredProjects.filter((project) => Boolean(project.changelog)),
+    [filteredProjects]
+  );
+
+  // In dense / compact mode, avoid enabling card3d grid perspective or constellation overlay
+  // unless the user is explicitly in Full (or has opted into those flags via random mode).
+  const isDenseLayout = displayMode === 'dense';
+  const allowDenseHeavyFx = effectiveMode === 'full' || performanceMode === 'random';
+  const enableGridPerspective = flags.card3d && (!isDenseLayout || allowDenseHeavyFx);
+
   // 🌌 CURATOR FEATURE: Global Holographic Command Table Perspective
-  const gridRef = useGridPerspective(flags.card3d);
+  const gridRef = useGridPerspective(enableGridPerspective);
   const [hoveredProjectId, setHoveredProjectId] = useState(null);
   const isMapMode = displayMode === 'map' || displayMode === 'constellation';
+  const enableConstellationOverlay = !isMapMode && flags.constellation3d && (!isDenseLayout || allowDenseHeavyFx);
 
   return (
     <>
@@ -50,7 +77,7 @@ export default function MainContent() {
           <>
             <div className="relative">
               {/* Tactical Tag Constellation Overlay */}
-              {!isMapMode && (
+              {enableConstellationOverlay && (
                 <ConstellationOverlay
                   hoveredTag={hoveredTag}
                   visibleProjects={paginatedProjects}
@@ -74,36 +101,74 @@ export default function MainContent() {
                   <SystemConstellation />
                 </Suspense>
               ) : (
-                <ProjectGridView
-                  gridRef={gridRef}
-                  displayMode={displayMode}
-                  isGlitching={isGlitching}
-                  showWarpFx={showWarpFx}
-                  paginatedProjects={paginatedProjects}
-                  focusedCardIndex={focusedCardIndex}
-                  setFocusedCardIndex={setFocusedCardIndex}
-                  hoveredProjectId={hoveredProjectId}
-                  setHoveredProjectId={setHoveredProjectId}
-                  handleTagClick={handleTagClick}
-                  activeFilters={activeFilters}
-                  searchQuery={searchQuery}
-                  handleProjectSelect={handleProjectSelect}
-                  selectedProject={selectedProject}
-                  favorites={favorites}
-                  toggleFavorite={toggleFavorite}
-                  handleContextMenu={handleContextMenu}
-                  handleCopyLink={handleCopyLink}
-                  isDataMode={isDataMode}
-                  sortOption={sortOption}
-                  activeFiltersSet={activeFiltersSet}
-                  draggedFavoriteId={draggedFavoriteId}
-                  dragOverFavoriteId={dragOverFavoriteId}
-                  handleDragStart={handleDragStart}
-                  handleDragOver={handleDragOver}
-                  handleDragEnd={handleDragEnd}
-                  handleDrop={handleDrop}
-                  setHoveredTag={setHoveredTag}
-                />
+                <>
+                  {displayMode === 'dense' && (
+                    <>
+                      <FeaturedSection
+                        featuredProjects={featuredProjects}
+                        searchQuery={searchQuery}
+                        regex={regex}
+                        activeFilters={activeFilters}
+                        onTagClick={handleTagClick}
+                        onHoverTag={setHoveredTag}
+                        onProjectClick={handleProjectSelect}
+                        favorites={favorites}
+                        toggleFavorite={toggleFavorite}
+                        onCopyLink={handleCopyLink}
+                        hoveredProjectId={hoveredProjectId}
+                        setHoveredProjectId={setHoveredProjectId}
+                      />
+
+                      <RecentlyUpdatedSection
+                        recentProjects={recentProjects}
+                        onProjectClick={handleProjectSelect}
+                      />
+
+                      {(featuredProjects.length > 0 || recentProjects.length > 0) && (
+                        <div className="flex items-center justify-between mb-3.5 border-b border-white/10 pb-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-400 text-xs font-mono">■</span>
+                            <h2 className="text-xs font-mono font-bold tracking-widest text-gray-300 uppercase">
+                              ALL_PROTOCOLS
+                            </h2>
+                            <span className="text-[10px] font-mono text-gray-500">[{filteredProjects.length}]</span>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  <ProjectGridView
+                    gridRef={gridRef}
+                    displayMode={displayMode}
+                    isGlitching={isGlitching}
+                    showWarpFx={showWarpFx}
+                    paginatedProjects={paginatedProjects}
+                    focusedCardIndex={focusedCardIndex}
+                    setFocusedCardIndex={setFocusedCardIndex}
+                    hoveredProjectId={hoveredProjectId}
+                    setHoveredProjectId={setHoveredProjectId}
+                    handleTagClick={handleTagClick}
+                    activeFilters={activeFilters}
+                    searchQuery={searchQuery}
+                    handleProjectSelect={handleProjectSelect}
+                    selectedProject={selectedProject}
+                    favorites={favorites}
+                    toggleFavorite={toggleFavorite}
+                    handleContextMenu={handleContextMenu}
+                    handleCopyLink={handleCopyLink}
+                    isDataMode={isDataMode}
+                    sortOption={sortOption}
+                    activeFiltersSet={activeFiltersSet}
+                    draggedFavoriteId={draggedFavoriteId}
+                    dragOverFavoriteId={dragOverFavoriteId}
+                    handleDragStart={handleDragStart}
+                    handleDragOver={handleDragOver}
+                    handleDragEnd={handleDragEnd}
+                    handleDrop={handleDrop}
+                    setHoveredTag={setHoveredTag}
+                  />
+                </>
               )}
             </div>
 

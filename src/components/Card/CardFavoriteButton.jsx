@@ -26,7 +26,7 @@ const VARIANTS = {
 // Favorite (heart) toggle button used across grid/list/matrix layouts.
 // `variant="grid"` matches the larger, opacity-gated header button; the
 // default "compact" variant matches the always-visible list/matrix button.
-export default function CardFavoriteButton({ variant = 'compact', project, isFavorite, onToggleFavorite, favoriteParticles, triggerFavoriteBurst }) {
+export default function CardFavoriteButton({ variant = 'compact', project, isFavorite, onToggleFavorite, favoriteParticles = [], triggerFavoriteBurst }) {
   const cfg = VARIANTS[variant] || VARIANTS.compact;
 
   return (
@@ -37,7 +37,7 @@ export default function CardFavoriteButton({ variant = 'compact', project, isFav
             e.preventDefault();
             e.stopPropagation();
             soundSystem.playClick();
-            triggerFavoriteBurst();
+            if (triggerFavoriteBurst) triggerFavoriteBurst();
             if (onToggleFavorite) onToggleFavorite(project);
           }}
           className={cfg.button(isFavorite)}

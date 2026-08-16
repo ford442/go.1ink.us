@@ -1,6 +1,7 @@
 import projectData from '../data/projectData';
 import { CATEGORIES, TAG_TO_CATEGORIES, CATEGORY_ICONS } from '../constants';
 import soundSystem from './SoundSystem';
+import { deriveTransmissions } from './transmissions';
 import {
   deleteLoadoutByName,
   exportLoadoutByName,
@@ -46,7 +47,7 @@ const PERF_MODE_ICONS: Record<PerformanceMode, string> = {
 
 const ON_OFF = ['on', 'off'] as const;
 const THEMES: ThemeId[] = ['cyan', 'purple', 'emerald', 'gold'];
-const VIEWS: DisplayMode[] = ['grid', 'matrix', 'list', 'map', 'constellation'];
+const VIEWS: DisplayMode[] = ['dense', 'grid', 'matrix', 'list', 'map', 'constellation'];
 const PERF_MODES: PerformanceMode[] = ['auto', 'full', 'balanced', 'lite', 'random'];
 const SORT_MAP: Record<string, SortOption> = {
   featured: 'Featured',
@@ -208,26 +209,38 @@ export function createCommandRegistry(_ctx: CommandContext): CommandDefinition[]
       name: 'view',
       args: [{ name: 'mode', description: 'Layout mode', required: true, values: [...VIEWS] }],
       help: 'Switch display layout protocol.',
-      usage: 'view <grid|matrix|list|map|constellation>',
+      usage: 'view <dense|grid|matrix|list|map|constellation>',
       omni: VIEWS.filter((v) => v !== 'list').map((view) => ({
         id: `view-${view}`,
-        label: view === 'map'
-          ? 'View: Neural Map'
-          : view === 'constellation'
-            ? 'View: Constellation'
-            : `View: ${view.charAt(0).toUpperCase()}${view.slice(1)}`,
-        icon: view === 'grid' ? '🔲' : view === 'matrix' ? '☰' : view === 'constellation' ? '✦' : '🌌',
+        label: view === 'dense'
+          ? 'View: Dense Grid'
+          : view === 'map'
+            ? 'View: Neural Map'
+            : view === 'constellation'
+              ? 'View: Constellation'
+              : `View: ${view.charAt(0).toUpperCase()}${view.slice(1)}`,
+        icon: view === 'dense' ? '▦' : view === 'grid' ? '🔲' : view === 'matrix' ? '☰' : view === 'constellation' ? '✦' : '🌌',
         keywords: ['view', view],
         action: (c: CommandContext) => c.handleDisplayModeChange(view),
       })),
       run(ctx, args) {
-        if (args.length === 0) return missingArg('view <grid|matrix|list|map|constellation>');
+        if (args.length === 0) return missingArg('view <dense|grid|matrix|list|map|constellation>');
         const viewParam = args[0].toLowerCase() as DisplayMode;
         if (!VIEWS.includes(viewParam)) {
           return { type: 'error', text: `ERR: Unknown display protocol '${args[0]}'` };
         }
         ctx.handleDisplayModeChange(viewParam);
         return { type: 'success', text: `> DISPLAY_PROTOCOL_UPDATED: [${viewParam.toUpperCase()}]` };
+      },
+    },
+    {
+      name: 'dense',
+      aliases: ['compact'],
+      help: 'Quick switch to Dense Grid catalog view.',
+      usage: 'dense',
+      run(ctx) {
+        ctx.handleDisplayModeChange('dense');
+        return { type: 'success', text: '> DISPLAY_PROTOCOL_UPDATED: [DENSE]' };
       },
     },
     {
@@ -263,6 +276,38 @@ export function createCommandRegistry(_ctx: CommandContext): CommandDefinition[]
           text: ctx.projectsMatchingQuery
             .map((p) => `[${p.id.toString().padStart(4, '0')}] ${p.title}`)
             .join('\n'),
+        };
+      },
+    },
+    {
+      name: 'transmissions',
+      aliases: ['news', 'updates', 'patchnotes'],
+      help: 'List latest transmissions and project patch notes.',
+      usage: 'transmissions',
+      omni: [
+        {
+          id: 'transmissions-latest',
+          label: 'Transmissions: View Latest Patch Notes',
+          icon: '📡',
+          keywords: ['transmissions', 'news', 'updates', 'changelog', 'patch'],
+          action: (c: CommandContext) => {
+            const list = deriveTransmissions(projectData);
+            if (list.length > 0) {
+              c.handleProjectSelect(list[0].project);
+            }
+          },
+        },
+      ],
+      run() {
+        const list = deriveTransmissions(projectData);
+        if (list.length === 0) {
+          return { type: 'system', text: 'NO_ACTIVE_TRANSMISSIONS_DETECTED.' };
+        }
+        return {
+          type: 'system',
+          text: list
+            .map((t) => `[${t.formattedDate}] ${t.project.title.toUpperCase()}: ${t.summary}`)
+            .join('\n\n'),
         };
       },
     },

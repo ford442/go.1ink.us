@@ -66,7 +66,8 @@ export default function useVoiceCommand() {
         addToast(`Searching for: ${term}`, 'success');
       }
     } else if (cmd.includes('layout') || cmd.includes('view') || cmd.includes('mode')) {
-      if (cmd.includes('grid')) setDisplayMode('grid');
+      if (cmd.includes('dense') || cmd.includes('compact')) setDisplayMode('dense');
+      else if (cmd.includes('grid')) setDisplayMode('grid');
       else if (cmd.includes('list')) setDisplayMode('list');
       else if (cmd.includes('matrix')) setDisplayMode('matrix');
       else if (cmd.includes('map')) setDisplayMode('map');

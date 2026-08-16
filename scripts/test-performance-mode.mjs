@@ -11,8 +11,8 @@ import {
 const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
 const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
 
-function setBrowser({ cores = 8, saveData = false, coarse = false, reduced = false } = {}) {
-  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { hardwareConcurrency: cores, connection: { saveData } } });
+function setBrowser({ cores = 16, memory = 16, saveData = false, coarse = false, reduced = false } = {}) {
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { hardwareConcurrency: cores, deviceMemory: memory, connection: { saveData } } });
   Object.defineProperty(globalThis, 'window', {
     configurable: true,
     value: { matchMedia: (query) => ({ matches: query.includes('pointer') ? coarse : reduced }) },
@@ -34,13 +34,16 @@ describe('performanceMode parsing and resolution', () => {
 });
 
 describe('performanceMode hardware detection', () => {
-  it('selects Full for capable devices', () => { setBrowser(); assert.equal(detectPerformanceMode(), 'full'); });
-  it('selects Balanced for coarse pointers', () => { setBrowser({ coarse: true }); assert.equal(detectPerformanceMode(), 'balanced'); });
+  it('selects Full for capable high-end devices', () => { setBrowser({ cores: 16, memory: 16 }); assert.equal(detectPerformanceMode(), 'full'); });
+  it('selects Balanced for typical 8-core desktop devices', () => { setBrowser({ cores: 8, memory: 16 }); assert.equal(detectPerformanceMode(), 'balanced'); });
   it('selects Balanced for four-core devices', () => { setBrowser({ cores: 4 }); assert.equal(detectPerformanceMode(), 'balanced'); });
+  it('selects Balanced for mid-memory devices', () => { setBrowser({ cores: 16, memory: 8 }); assert.equal(detectPerformanceMode(), 'balanced'); });
+  it('selects Balanced for coarse pointers', () => { setBrowser({ coarse: true }); assert.equal(detectPerformanceMode(), 'balanced'); });
   it('selects Lite for two-core devices', () => { setBrowser({ cores: 2 }); assert.equal(detectPerformanceMode(), 'lite'); });
+  it('selects Lite for low-memory devices', () => { setBrowser({ memory: 2 }); assert.equal(detectPerformanceMode(), 'lite'); });
   it('selects Lite when data saver is enabled', () => { setBrowser({ saveData: true }); assert.equal(detectPerformanceMode(), 'lite'); });
   it('selects Lite for reduced-motion devices', () => { setBrowser({ reduced: true }); assert.equal(detectPerformanceMode(), 'lite'); });
-  it('uses detection when preference is auto', () => { setBrowser({ cores: 4 }); assert.equal(resolveEffectiveMode('auto', false), 'balanced'); });
+  it('uses detection when preference is auto', () => { setBrowser({ cores: 8 }); assert.equal(resolveEffectiveMode('auto', false), 'balanced'); });
 });
 
 describe('performanceMode flags', () => {

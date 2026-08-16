@@ -3,7 +3,7 @@
 // "TypeScript Migration" section for the phased conversion plan this file
 // is step 3 of.
 
-export type DisplayMode = 'grid' | 'list' | 'matrix' | 'map' | 'constellation';
+export type DisplayMode = 'dense' | 'grid' | 'list' | 'matrix' | 'map' | 'constellation';
 
 export type ThemeId = 'cyan' | 'purple' | 'emerald' | 'gold';
 
@@ -124,4 +124,15 @@ export interface Loadout extends Omit<LoadoutPack, 'name'> {
 export interface LoadoutStore {
   version: 1;
   loadouts: Loadout[];
+}
+
+/** Major feature update / changelog dispatch derived from project catalog. */
+export interface Transmission {
+  id: string;
+  projectId: number;
+  project: Project;
+  date: string;
+  formattedDate: string;
+  summary: string;
+  raw: string;
 }

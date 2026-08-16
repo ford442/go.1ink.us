@@ -15,7 +15,7 @@
     "embedUrl": "https://go.1ink.us/cave-crystals/index.html",
     "accent": "#22d3ee",
     "relatedIds": [9, 14],
-    "changelog": "Expanded the campaign catalog with validated JSON levels and asset inventory gates."
+    "changelog": "2026-08-12 · Expanded campaign catalog with validated JSON levels and asset inventory gates."
   },
   {
     "id": 2,
@@ -33,7 +33,7 @@
     "embedUrl": null,
     "accent": "#a855f7",
     "relatedIds": [6],
-    "changelog": "Current release: browser-based multitrack workspace with Web Audio playback and editing tools."
+    "changelog": "2026-08-05 · Synthesizer rack rewrite, 303 overdrive filter, and live MIDI keyboard mapping."
   },
   {
     "id": 3,
@@ -51,7 +51,7 @@
     "embedUrl": null,
     "accent": "#ec4899",
     "relatedIds": [16, 11, 12],
-    "changelog": "Current release: expanded the real-time shader library for image, video, and webcam effects."
+    "changelog": "2026-07-28 · Added real-time CRT distortion, VHS tape degradation, and webcam shader booth."
   },
   {
     "id": 4,
@@ -87,7 +87,7 @@
     "embedUrl": null,
     "accent": "#38bdf8",
     "relatedIds": [16, 3],
-    "changelog": null
+    "changelog": "2026-07-15 · Three.js neural connectome visualizer with D3 graph projection."
   },
   {
     "id": 6,
@@ -159,7 +159,7 @@
     "embedUrl": null,
     "accent": "#fb7185",
     "relatedIds": [1, 14],
-    "changelog": null
+    "changelog": "2026-06-01 · Beta v0.9 engine upgrade with Phaser.js physics and new obstacle courses."
   },
   {
     "id": 10,
@@ -177,7 +177,7 @@
     "embedUrl": null,
     "accent": "#818cf8",
     "relatedIds": [4, 15],
-    "changelog": "Current release: expanded reusable component demos with React, Tailwind CSS, and motion patterns."
+    "changelog": "2026-06-20 · Interactive micro-interaction demos with Tailwind CSS and kinetic feedback."
   },
   {
     "id": 11,
@@ -285,6 +285,6 @@
     "embedUrl": null,
     "accent": "#c084fc",
     "relatedIds": [3, 5, 4],
-    "changelog": "Current release: added layered color separation and analysis controls for crop-circle imagery."
+    "changelog": "2026-08-14 · Layered color separation and spectral analysis controls for high-resolution imagery."
   }
 ]

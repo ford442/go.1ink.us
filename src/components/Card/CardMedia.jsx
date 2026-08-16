@@ -61,6 +61,40 @@ export default function CardMedia({
     );
   }
 
+  if (variant === 'compact' || variant === 'dense') {
+    if (!project.image || imageError) {
+      return (
+        <div className="h-28 sm:h-32 bg-gradient-to-br from-indigo-900/50 to-purple-900/50 flex items-center justify-center relative overflow-hidden rounded-t-xl border-b border-white/5 shrink-0">
+          <span className="text-4xl transform transition-transform duration-300 group-hover:scale-110 drop-shadow">{project.icon}</span>
+        </div>
+      );
+    }
+    return (
+      <div className="h-28 sm:h-32 overflow-hidden rounded-t-xl relative border-b border-white/5 shrink-0 bg-black/40">
+        {!imageLoaded && !imageError && (
+          <div className="absolute inset-0 flex items-center justify-center tinted-glass z-10 overflow-hidden">
+            <div className="w-1.5 h-1.5 bg-accent-400 animate-pulse shadow-[0_0_8px_rgba(var(--rgb-accent-400),0.8)]"></div>
+          </div>
+        )}
+        <ProjectImage
+          imagePath={project.image}
+          profile="thumb"
+          alt={project.title}
+          loading="lazy"
+          onLoad={() => setImageLoaded?.(true)}
+          onError={() => {
+            setImageError?.(true);
+            setImageLoaded?.(true);
+          }}
+          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${imageLoaded ? 'opacity-90 blur-0' : 'opacity-0 blur-sm'} group-hover:opacity-100`}
+          pictureClassName="block w-full h-full"
+          style={{ viewTransitionName: isSelected ? 'none' : `project-image-${project.id}` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-30 transition-opacity pointer-events-none"></div>
+      </div>
+    );
+  }
+
   // grid variant
   if (!project.image) {
     return (

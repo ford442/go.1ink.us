@@ -56,7 +56,8 @@ export function validateProjects(projects: Project[]): void {
         `Project "${project.title}" accent must be a hex color (#RRGGBB) or null`);
     }
     if (project.changelog !== null) {
-      assert(typeof project.changelog === 'string', `Project "${project.title}" changelog must be a string or null`);
+      assert(typeof project.changelog === 'string' && project.changelog.trim().length > 0,
+        `Project "${project.title}" changelog must be a non-empty string or null`);
     }
 
     assert(Array.isArray(project.relatedIds), `Project "${project.title}" relatedIds must be an array`);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { DisplayMode, SortOption } from '../types';
 
-const VALID_VIEWS: DisplayMode[] = ['grid', 'matrix', 'list', 'map', 'constellation'];
+const VALID_VIEWS: DisplayMode[] = ['dense', 'grid', 'matrix', 'list', 'map', 'constellation'];
 const VALID_SORTS: SortOption[] = ['Featured', 'Newest', 'A-Z', 'Random', 'Most Complex'];
 
 function isDisplayMode(value: string | null): value is DisplayMode {
@@ -39,9 +39,9 @@ export default function useUrlSyncedFilters() {
     if (isDisplayMode(urlMode)) return urlMode;
     if (typeof window !== 'undefined') {
       const storedMode = localStorage.getItem('curator_display_mode');
-      return isDisplayMode(storedMode) ? storedMode : 'grid';
+      return isDisplayMode(storedMode) ? storedMode : 'dense';
     }
-    return 'grid';
+    return 'dense';
   });
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export default function useUrlSyncedFilters() {
     if (activeFilters.length > 0) params.set('filters', activeFilters.join(','));
     if (searchQuery) params.set('q', searchQuery);
     if (sortOption !== 'Featured') params.set('sort', sortOption);
-    if (displayMode !== 'grid') params.set('view', displayMode);
+    if (displayMode !== 'dense') params.set('view', displayMode);
 
     const queryString = params.toString();
     const newUrl = queryString ? `?${queryString}` : window.location.pathname;

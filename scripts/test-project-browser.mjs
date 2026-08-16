@@ -113,6 +113,6 @@ describe('pagination', () => {
     assert.deepEqual(paginate([1, 2], 1, 0), []);
   });
   it('maps every display mode to its production page size', () => {
-    assert.deepEqual(['grid', 'list', 'matrix', 'map', 'constellation'].map(getItemsPerPage), [6, 8, 10, 100, 100]);
+    assert.deepEqual(['dense', 'grid', 'list', 'matrix', 'map', 'constellation'].map(getItemsPerPage), [24, 6, 8, 10, 100, 100]);
   });
 });

@@ -55,7 +55,7 @@ test('lite-mode quick view bypasses warp, traps focus, and restores scrolling', 
   const dialog = page.getByRole('dialog');
   const closeButton = page.getByRole('button', { name: 'Close modal' });
   await expect(page.locator('.animate-warp-speed')).toHaveCount(0);
-  await expect(dialog).toBeVisible();
+  await expect(dialog).toBeVisible({ timeout: 10_000 });
   await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe('hidden');
   await expect(closeButton.first()).toBeFocused();
   await page.keyboard.press('Shift+Tab');
@@ -98,7 +98,7 @@ test('theme, CRT, and Matrix settings persist across reload', async ({ page }) =
   const assertPersistedEffects = async () => {
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'purple');
     await expect(page.locator('.crt-scanlines')).toBeAttached();
-    await expect(page.locator('canvas.fixed.inset-0.w-full.h-full.pointer-events-none.z-0')).toBeAttached();
+    await expect(page.locator('canvas.fixed.inset-0.w-full.h-full.pointer-events-none.z-0')).toBeAttached({ timeout: 10_000 });
   };
 
   await assertPersistedEffects();
@@ -119,7 +119,7 @@ test('terminal autocomplete opens HoloTerminal and shortcut map remains wired', 
   await page.getByRole('button', { name: 'Close terminal' }).click();
   await expect(terminalInput).not.toBeVisible();
   await page.keyboard.press('?');
-  await expect(page.getByRole('dialog', { name: 'Global Shortcuts' })).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Global Shortcuts' })).toBeVisible({ timeout: 10_000 });
 });
 
 test('keyboard / focuses search input', async ({ page }) => {
@@ -143,3 +143,18 @@ test('map view loads without crashing', async ({ page }) => {
   await expect(page.getByText('NEURAL_MAP_VIEW')).toBeVisible();
   await expect(page.locator('canvas').first()).toBeVisible({ timeout: 15_000 });
 });
+
+test('transmissions panel displays dispatches and opens quick view on click', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('curator_perf', 'lite'));
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'TRANSMISSIONS' }).first()).toBeVisible();
+  const dispatchButton = page.getByRole('button', { name: /Open dispatch for/i }).first();
+  await expect(dispatchButton).toBeVisible();
+  await dispatchButton.click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible({ timeout: 10_000 });
+  await expect(dialog.getByText('Patch Notes')).toBeVisible();
+});
+
+

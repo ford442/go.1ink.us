@@ -23,9 +23,9 @@ const ShortcutCheatsheet = ({ isOpen, onClose }) => {
   const shortcuts = [
     { key: '?', description: 'Toggle this keyboard map' },
     { key: '/', description: 'Focus project search' },
-    { key: 'Ctrl + K', description: 'Open Omni command palette' },
-    { key: '`', description: 'Toggle terminal bar' },
-    { key: 'L', description: 'Cycle layout (grid → matrix → list → map → constellation)' },
+    { key: 'Ctrl + K', description: 'Open Omni command palette (perf, layout, theme)' },
+    { key: '`', description: 'Toggle terminal bar (type "perf" or "help")' },
+    { key: 'L', description: 'Cycle layout (dense → grid → matrix → list → map → constellation)' },
     { key: 'Alt (hold)', description: 'Data mode — raw JSON on cards' },
     { key: '↓ from search', description: 'Focus first project card' },
     { key: 'Arrow keys', description: 'Move between project cards' },

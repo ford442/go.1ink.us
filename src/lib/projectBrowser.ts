@@ -2,6 +2,8 @@ import { CATEGORIES, CATEGORY_SETS, TAG_TO_CATEGORIES } from '../constants';
 import type { Category, DisplayMode, EnhancedProject, Project, SortOption } from '../types';
 
 const ITEMS_PER_PAGE: Partial<Record<DisplayMode, number>> = {
+  dense: 24,
+  grid: 6,
   map: 100,
   constellation: 100,
   matrix: 10,
@@ -150,5 +152,5 @@ export function paginate<T>(projects: T[], page: number, pageSize: number): T[] 
 }
 
 export function getItemsPerPage(displayMode: DisplayMode): number {
-  return ITEMS_PER_PAGE[displayMode] ?? 6;
+  return ITEMS_PER_PAGE[displayMode] ?? 24;
 }

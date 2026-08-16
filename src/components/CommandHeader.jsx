@@ -7,6 +7,7 @@ import { formatNetTelemetry } from '../lib/projectConnectivity';
 import { useSettingsContext } from '../app/context/SettingsContext';
 import { useBrowserContext } from '../app/context/BrowserContext';
 import { useOverlayContext } from '../app/context/OverlayContext';
+import { useEffectsContext } from '../app/context/EffectsContext';
 import useVoiceCommand from '../hooks/useVoiceCommand';
 import useOnlineStatus from '../hooks/useOnlineStatus';
 
@@ -21,6 +22,7 @@ export default function CommandHeader() {
   const { isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, isGodMode } = useSettingsContext();
   const { totalProjects } = useBrowserContext();
   const { isCheatsheetOpen, setIsCheatsheetOpen } = useOverlayContext();
+  const { performanceMode, setPerformanceMode, effectiveMode } = useEffectsContext();
   const { isSupported, isListening, startListening, stopListening } = useVoiceCommand();
   const isOnline = useOnlineStatus();
 
@@ -189,6 +191,23 @@ export default function CommandHeader() {
          <button onClick={() => changeTheme('purple')} className={`w-3 h-3 rounded-full bg-purple-400 ${theme === 'purple' ? 'ring-2 ring-white scale-125' : 'opacity-50 hover:opacity-100'} transition-all`} aria-label="Purple theme" aria-pressed={theme === 'purple'}></button>
          <button onClick={() => changeTheme('emerald')} className={`w-3 h-3 rounded-full bg-emerald-400 ${theme === 'emerald' ? 'ring-2 ring-white scale-125' : 'opacity-50 hover:opacity-100'} transition-all`} aria-label="Emerald theme" aria-pressed={theme === 'emerald'}></button>
          <button onClick={() => changeTheme('gold')} className={`w-3 h-3 rounded-full bg-amber-400 ${theme === 'gold' ? 'ring-2 ring-white scale-125' : 'opacity-50 hover:opacity-100'} transition-all`} aria-label="Gold theme" aria-pressed={theme === 'gold'}></button>
+      </div>
+
+      <div className="hidden lg:flex items-center gap-1.5 border-r border-accent-500/30 pr-4">
+        <span className="opacity-50 text-accent-200/70 mr-1">PERF:</span>
+        <button
+          onClick={() => {
+            const cycle = ['auto', 'balanced', 'lite', 'full', 'random'];
+            const nextMode = cycle[(cycle.indexOf(performanceMode) + 1) % cycle.length];
+            setPerformanceMode(nextMode);
+            soundSystem.playClick();
+          }}
+          className="px-2 py-0.5 rounded bg-black/40 border border-white/10 hover:border-accent-400/50 text-[10px] font-mono text-accent-300 hover:text-white transition-all uppercase"
+          aria-label={`Performance mode ${performanceMode} (effective: ${effectiveMode})`}
+          title={`Performance Mode: ${performanceMode.toUpperCase()} [Effective: ${effectiveMode.toUpperCase()}] — Click to cycle`}
+        >
+          {performanceMode === 'auto' ? `AUTO (${effectiveMode.toUpperCase()})` : performanceMode.toUpperCase()}
+        </button>
       </div>
 
       <div className="hidden md:flex items-center gap-2 text-accent-200/70 border-r border-accent-500/30 pr-4">

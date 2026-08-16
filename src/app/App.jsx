@@ -8,6 +8,7 @@ import CommandHeader from '../components/CommandHeader';
 import BackgroundElements from '../components/BackgroundElements';
 import Sidebar from '../components/Sidebar';
 import MainContent from '../components/MainContent';
+import TransmissionsPanel from '../components/TransmissionsPanel';
 import TerminalBar from '../components/TerminalBar';
 import { BrandImage } from '../components/ProjectImage';
 import ContextMenu from '../components/ContextMenu';
@@ -235,9 +236,12 @@ function App() {
               <BrandImage brand="title" alt="Web apps from 1ink.us" loading="eager" fetchPriority="high" className="relative max-w-lg md:max-w-2xl h-auto max-h-48 md:max-h-64 object-contain animate-fade-in animate-float drop-shadow-2xl filter" pictureClassName="relative block" />
             </div>
           </header>
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 lg:gap-12 animate-fade-in relative" style={{ animationDelay: '0.2s' }}>
+          <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row gap-6 lg:gap-8 xl:gap-8 animate-fade-in relative" style={{ animationDelay: '0.2s' }}>
             <Sidebar />
             <MainContent />
+            <div className="hidden xl:block w-72 shrink-0">
+              <TransmissionsPanel onSelectProject={quickView.handleProjectSelect} />
+            </div>
           </div>
         </div>
         {quickView.selectedProject && (

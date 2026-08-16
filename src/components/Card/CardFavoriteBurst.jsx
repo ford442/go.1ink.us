@@ -1,5 +1,6 @@
 // Renders the transient particle dots spawned by useFavoriteBurst.
 export default function CardFavoriteBurst({ particles, size = 'sm' }) {
+  if (!particles || !Array.isArray(particles) || particles.length === 0) return null;
   const dotClass = size === 'lg' ? 'w-1.5 h-1.5' : 'w-1 h-1';
   return (
     <>

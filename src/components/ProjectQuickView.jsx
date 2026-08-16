@@ -4,6 +4,7 @@ import projects from '../data/projectData';
 import { useOverlayContext } from '../app/context/OverlayContext';
 import { useBrowserContext } from '../app/context/BrowserContext';
 import { canPreviewProject } from '../lib/projectEmbed';
+import { parseChangelog } from '../lib/transmissions';
 import { ProjectImage } from './ProjectImage';
 import ProjectEmbedDock from './ProjectEmbedDock';
 import ProjectMetaBadges from './ProjectMetaBadges';
@@ -199,16 +200,25 @@ export default function ProjectQuickView() {
                   </section>
                 )}
 
-                {selectedProject.changelog && (
-                  <details className="mb-8 rounded-lg border border-white/10 bg-black/25 px-4 py-3">
-                    <summary className="cursor-pointer select-none font-mono text-xs font-bold uppercase tracking-widest text-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400">
-                      Patch Notes
-                    </summary>
-                    <p className="mt-3 whitespace-pre-wrap border-l-2 border-accent-500/40 pl-3 font-mono text-sm leading-relaxed text-gray-300">
-                      {selectedProject.changelog}
-                    </p>
-                  </details>
-                )}
+                {selectedProject.changelog && (() => {
+                  const { formattedDate, summary } = parseChangelog(selectedProject.changelog, selectedProject.year);
+                  return (
+                    <details className="mb-8 rounded-lg border border-accent-500/30 bg-accent-950/20 px-4 py-3 shadow-inner">
+                      <summary className="cursor-pointer select-none font-mono text-xs font-bold uppercase tracking-widest text-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 flex items-center justify-between">
+                        <span className="flex items-center gap-2">
+                          <span className="text-accent-400 text-xs">⚡</span>
+                          Patch Notes
+                        </span>
+                        <span className="text-[10px] text-accent-400 bg-accent-900/40 px-2 py-0.5 rounded border border-accent-500/30">
+                          {formattedDate}
+                        </span>
+                      </summary>
+                      <p className="mt-3 whitespace-pre-wrap border-l-2 border-accent-500/40 pl-3 font-mono text-sm leading-relaxed text-gray-200">
+                        {summary}
+                      </p>
+                    </details>
+                  );
+                })()}
               </div>
 
               <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4 mt-auto pt-6 border-t border-white/10">

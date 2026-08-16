@@ -56,6 +56,11 @@ export default function CardGridBack({ project, isFlipped, onClose }) {
           <div>&gt; ALLOCATION: {Math.floor((project.id * 17.3) % 500) + 100} MB</div>
           <div>&gt; CPU_LOAD: {((project.id * 3.14) % 5).toFixed(2)}%</div>
           <div>&gt; ENCRYPTION: SHA-256 (VALID)</div>
+          {project.changelog && (
+            <div className="mt-2 text-accent-300">
+              <span className="text-accent-400 font-bold">&gt; LATEST_PATCH:</span> {project.changelog}
+            </div>
+          )}
           <div className="mt-2 text-accent-400/70 animate-pulse">AWAITING FURTHER COMMANDS_</div>
         </div>
       </div>

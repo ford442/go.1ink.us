@@ -9,6 +9,7 @@ import CardDataMode from './CardDataMode';
 import CardMatrix from './CardMatrix';
 import CardList from './CardList';
 import CardGrid from './CardGrid';
+import CardCompact from './CardCompact';
 
 // Shell: owns the state/behavior shared across every layout variant
 // (tilt, hover-delay, image loading, favorite burst, search-highlight
@@ -167,7 +168,32 @@ const Card = ({
     );
   }
 
-  // Grid Layout (Default)
+  if (layout === 'dense' || layout === 'compact') {
+    return (
+      <CardCompact
+        {...shared}
+        imageLoaded={media.imageLoaded}
+        setImageLoaded={media.setImageLoaded}
+        imageError={media.imageError}
+        setImageError={media.setImageError}
+        isVisible={media.isVisible}
+        isHovered={hover.isHovered}
+        searchQuery={searchQuery}
+        regex={regex}
+        highlightedTags={highlightedTags}
+        onTagClick={onTagClick}
+        onHoverTag={onHoverTag}
+        isFavorite={isFavorite}
+        onToggleFavorite={onToggleFavorite}
+        favoriteParticles={favoriteParticles}
+        triggerFavoriteBurst={triggerFavoriteBurst}
+        onCopyLink={onCopyLink}
+        complexityScore={complexityScore}
+      />
+    );
+  }
+
+  // Grid Layout (Default 3D Tilt)
   return (
     <CardGrid
       {...shared}

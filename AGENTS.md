@@ -156,7 +156,15 @@ Production build enforces an **initial JS gzip budget of 130 KB** (entry + modul
 
 ### Performance Modes
 
-`src/lib/performanceMode.ts` resolves a `PerformanceMode` preference (`auto | full | balanced | lite | random`, persisted to `localStorage` under `curator_perf`) into an effective mode and a `PerformanceFlags` object of 14 booleans (`starfield`, `particleNetwork`, `matrixRain`, `customCursor`, `warpTransition`, `cursorTrail`, `parallaxGrids`, `scrollVelocity`, `filmGrain`, `radarHud`, `card3d`, `floatingDebris`, `ambientOrbs`, `constellation3d`) gating individual visual-effect layers. `prefers-reduced-motion` and an explicit `lite`/`full`/`balanced` preference are hard floors that always win over `auto`'s device-based detection.
+`src/lib/performanceMode.ts` resolves a `PerformanceMode` preference (`auto | full | balanced | lite | random`, persisted to `localStorage` under `curator_perf`) into an effective mode and a `PerformanceFlags` object of 14 booleans (`starfield`, `particleNetwork`, `matrixRain`, `customCursor`, `warpTransition`, `cursorTrail`, `parallaxGrids`, `scrollVelocity`, `filmGrain`, `radarHud`, `card3d`, `floatingDebris`, `ambientOrbs`, `constellation3d`) gating individual visual-effect layers. `prefers-reduced-motion` and an explicit `lite`/`full`/`balanced`/`random` preference are hard floors that always win over `auto`'s device-based detection.
+
+**Auto Detection Defaults**:
+- `auto` detection prioritizes 60 FPS readability and smoothness: typical desktops and laptops (<= 8 cores or < 16GB RAM), as well as mobile/touch pointers, default to `balanced` (or `lite` if cores <= 2, saveData enabled, or reduced-motion requested).
+- Only dedicated high-end workstations (12+ cores, >= 16GB RAM) detect `full` by default.
+- Users can switch explicitly to `full` anytime via the header `PERF` button, Omni Palette (`Cmd+K` -> `Performance: Full`), or terminal (`perf full`).
+
+**Dense Layout Effect Gating**:
+- In `dense` catalog mode, heavy DOM/canvas overhead (`card3d` command table tilt perspective and `ConstellationOverlay` tag network lines) is automatically suppressed unless the user is explicitly in `full` mode or has rolled those flags in `random` mode.
 
 `random` mode rolls a weighted, session-stable subset instead of a fixed preset — variety without running every effect at once:
 

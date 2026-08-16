@@ -18,6 +18,14 @@ const VARIANTS = {
   grid: {
     base: 'perspective-container warp-scroll-effect focus-visible:outline-none rounded-xl animate-slide-in-up transition-all duration-500 ease-out hover:-translate-y-3 hover:shadow-[0_20px_40px_-15px_rgba(var(--rgb-accent-400),0.3)] hover:z-10',
     dragOver: 'ring-2 ring-pink-500 scale-105 z-50'
+  },
+  dense: {
+    base: 'card-focusable focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-xl animate-slide-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-lg',
+    dragOver: 'ring-2 ring-pink-500 rounded-xl'
+  },
+  compact: {
+    base: 'card-focusable focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-xl animate-slide-in-up transition-all duration-300 hover:-translate-y-1 hover:shadow-lg',
+    dragOver: 'ring-2 ring-pink-500 rounded-xl'
   }
 };
 

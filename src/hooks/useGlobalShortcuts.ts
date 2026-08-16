@@ -97,7 +97,7 @@ export default function useGlobalShortcuts({
         if (!isTextEntry) {
           e.preventDefault();
           setDisplayMode((prev) => {
-            const nextMode = prev === 'grid' ? 'matrix' : prev === 'matrix' ? 'list' : prev === 'list' ? 'map' : prev === 'map' ? 'constellation' : 'grid';
+            const nextMode = prev === 'dense' ? 'grid' : prev === 'grid' ? 'matrix' : prev === 'matrix' ? 'list' : prev === 'list' ? 'map' : prev === 'map' ? 'constellation' : 'dense';
             addActivityLog(`SYS.UI: LAYOUT_UPDATED_${nextMode.toUpperCase()}`);
             return nextMode;
           });

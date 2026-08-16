@@ -142,13 +142,15 @@ export function detectPerformanceMode(): Exclude<PerformanceMode, 'auto'> {
   if (typeof window === 'undefined') return 'balanced';
 
   const cores = navigator.hardwareConcurrency ?? 4;
+  const memory = (navigator as unknown as { deviceMemory?: number }).deviceMemory;
   const saveData = getSaveDataEnabled();
   const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   if (reducedMotion) return 'lite';
-  if (saveData || cores <= 2) return 'lite';
-  if (coarsePointer || cores <= 4) return 'balanced';
+  if (saveData || cores <= 2 || (memory !== undefined && memory <= 2)) return 'lite';
+  // Typical desktops and laptops (<= 8 cores or < 16GB RAM) land on balanced for high FPS and clarity
+  if (coarsePointer || cores <= 8 || (memory !== undefined && memory < 16)) return 'balanced';
   return 'full';
 }
 

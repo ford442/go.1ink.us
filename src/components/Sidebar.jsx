@@ -6,8 +6,10 @@ import { CATEGORIES, CATEGORY_ICONS, CATEGORY_BUTTON_STYLES } from '../constants
 import { useBrowserContext } from '../app/context/BrowserContext';
 import { useActivityContext } from '../app/context/ActivityContext';
 import { useSettingsContext } from '../app/context/SettingsContext';
+import { useOverlayContext } from '../app/context/OverlayContext';
 import { useEffectsContext } from '../app/context/EffectsContext';
 import ActivityFeed from './ActivityFeed';
+import TransmissionsPanel from './TransmissionsPanel';
 
 const LoadoutPanel = lazy(() => import('./LoadoutPanel'));
 const OperatorProfileCard = lazy(() => import('./OperatorProfileCard'));
@@ -16,6 +18,7 @@ export default function Sidebar() {
   const { searchInputRef, searchQuery, setSearchQuery, setCurrentPage, filteredProjects, suggestedTags, toggleFilter, isMobileFiltersOpen, setIsMobileFiltersOpen, activeFilters, sortOption, setSortOption, activeFiltersSet, counts, setHoveredTag, favoriteCount, activeCategories, handleTagClick, favorites, setRandomSeed } = useBrowserContext();
   const { addActivityLog, userActivityLogs } = useActivityContext();
   const { displayMode, theme, changeTheme } = useSettingsContext();
+  const { handleProjectSelect } = useOverlayContext() || {};
   const { flags } = useEffectsContext();
 
   return (
@@ -364,6 +367,9 @@ export default function Sidebar() {
 
       <div className="hidden lg:block mt-6">
         <ActivityFeed logs={userActivityLogs} />
+      </div>
+      <div className="hidden lg:block xl:hidden mt-6">
+        <TransmissionsPanel onSelectProject={handleProjectSelect} variant="sidebar" limit={4} />
       </div>
       <div className="hidden lg:block mt-6">
         {flags.radarHud && (
