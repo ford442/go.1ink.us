@@ -27,16 +27,30 @@ export default function CustomCursor() {
   useEffect(() => {
     if (!isPointerDevice || !flags.customCursor || !allowCustomCursor) return;
 
+    // Frames the ring may keep lerping after the pointer stops before the loop
+    // parks itself. At 0.15 easing the ring is visually settled well inside this.
+    const IDLE_FRAME_BUDGET = 45;
+    let idleFrames = 0;
+
+    const schedule = () => {
+      if (requestRef.current || document.hidden) return;
+      requestRef.current = requestAnimationFrame(animate);
+    };
+
     const onMouseMove = (e) => {
       mouse.current.x = e.clientX;
       mouse.current.y = e.clientY;
+      idleFrames = 0;
+      schedule();
 
       if (cursorDotRef.current) {
         cursorDotRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
       }
     };
 
-    const animate = () => {
+    function animate() {
+      requestRef.current = null;
+
       // Lerp the ring towards the mouse
       ring.current.x += (mouse.current.x - ring.current.x) * 0.15;
       ring.current.y += (mouse.current.y - ring.current.y) * 0.15;
@@ -61,7 +75,25 @@ export default function CustomCursor() {
         }
       }
 
-      requestRef.current = requestAnimationFrame(animate);
+      // The ring is the only thing still moving once the pointer stops; when it
+      // has converged there is nothing left to paint, so park the loop.
+      const dx = mouse.current.x - ring.current.x;
+      const dy = mouse.current.y - ring.current.y;
+      if (dx * dx + dy * dy < 0.01) idleFrames++;
+      else idleFrames = 0;
+
+      if (idleFrames >= IDLE_FRAME_BUDGET) return;
+      schedule();
+    }
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        if (requestRef.current) cancelAnimationFrame(requestRef.current);
+        requestRef.current = null;
+      } else {
+        idleFrames = 0;
+        schedule();
+      }
     };
 
     const onMouseOver = (e) => {
@@ -74,24 +106,31 @@ export default function CustomCursor() {
       if (isClickable && !isInput) {
         isHoveringRef.current = true;
         setIsHovering(true); // For React state if needed elsewhere, but ref drives animation
+        idleFrames = 0;
+        schedule();
       }
     };
 
     const onMouseOut = () => {
       isHoveringRef.current = false;
       setIsHovering(false);
+      idleFrames = 0;
+      schedule();
     };
 
-    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
     document.addEventListener('mouseover', onMouseOver);
     document.addEventListener('mouseout', onMouseOut);
-    requestRef.current = requestAnimationFrame(animate);
+    document.addEventListener('visibilitychange', handleVisibility);
+    schedule();
 
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseover', onMouseOver);
       document.removeEventListener('mouseout', onMouseOut);
-      cancelAnimationFrame(requestRef.current);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      requestRef.current = null;
     };
   }, [isPointerDevice, flags.customCursor, allowCustomCursor]);
 

@@ -31,8 +31,13 @@ export default function MainContent() {
   }, [searchQuery]);
 
   // Featured and Recently Updated subsets (respecting active filters/search)
+  // Ordered by the curated `rank` rather than by the active sort, so the
+  // featured shelf stays stable while the user re-sorts the grid below it.
+  // (`filteredProjects` is unsorted — sorting happens downstream of it.)
   const featuredProjects = useMemo(
-    () => filteredProjects.filter((project) => project.featured),
+    () => filteredProjects
+      .filter((project) => project.featured)
+      .sort((a, b) => (a.rank ?? Number.MAX_SAFE_INTEGER) - (b.rank ?? Number.MAX_SAFE_INTEGER) || a.id - b.id),
     [filteredProjects]
   );
 

@@ -45,6 +45,10 @@ export default function useBackgroundEffects(flags: PerformanceFlags = DEFAULT_F
     let pageMouseX = 0;
     let pageMouseY = 0;
     let animationFrameId = 0;
+    // Frames the loop may run after the last committed change before parking.
+    // Enough to let the starfield lerp and the cursor trail finish settling.
+    const IDLE_FRAME_BUDGET = 90;
+    let idleFrames = 0;
     const trailParticles: TrailParticle[] = [];
 
     // Cache the accent color instead of calling the (layout-forcing)
@@ -77,6 +81,11 @@ export default function useBackgroundEffects(flags: PerformanceFlags = DEFAULT_F
     let lastSpawnY = NaN;
 
     const updateTransforms = () => {
+      // Set by any branch that writes to the DOM/canvas this frame. Frames that
+      // commit nothing count toward the idle budget below, so a settled page
+      // stops scheduling frames instead of spinning at 60fps forever.
+      let didWork = false;
+
       currentMouseX += (targetMouseX - currentMouseX) * 0.03;
       currentMouseY += (targetMouseY - currentMouseY) * 0.03;
 
@@ -85,12 +94,14 @@ export default function useBackgroundEffects(flags: PerformanceFlags = DEFAULT_F
         if (transform !== lastStarfieldTransform) {
           starfieldRef.current.style.transform = transform;
           lastStarfieldTransform = transform;
+          didWork = true;
         }
       }
 
       if (flags.parallaxGrids && (pageMouseX !== lastMaskX || pageMouseY !== lastMaskY)) {
         lastMaskX = pageMouseX;
         lastMaskY = pageMouseY;
+        didWork = true;
 
         if (gridSpotlightRef.current) {
           const mask = `radial-gradient(300px circle at ${pageMouseX}px ${pageMouseY}px, black, transparent)`;
@@ -127,9 +138,10 @@ export default function useBackgroundEffects(flags: PerformanceFlags = DEFAULT_F
           }
 
           if (trailParticles.length > 0) {
+            didWork = true;
             const ctx = canvas.getContext('2d');
             if (!ctx) {
-              animationFrameId = requestAnimationFrame(updateTransforms);
+              schedule();
               return;
             }
             if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
@@ -163,11 +175,37 @@ export default function useBackgroundEffects(flags: PerformanceFlags = DEFAULT_F
         }
       }
 
+      if (didWork) idleFrames = 0;
+      else idleFrames++;
+
+      if (idleFrames >= IDLE_FRAME_BUDGET) {
+        // Nothing has moved for a while — park the loop. Pointer and scroll
+        // events call schedule() again, so this is invisible to the user.
+        animationFrameId = 0;
+        return;
+      }
+      schedule();
+    };
+
+    const schedule = () => {
+      if (animationFrameId || document.hidden) return;
       animationFrameId = requestAnimationFrame(updateTransforms);
+    };
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        animationFrameId = 0;
+      } else {
+        idleFrames = 0;
+        schedule();
+      }
     };
 
     const handleScroll = () => {
       scrollY = window.scrollY;
+      idleFrames = 0;
+      schedule();
     };
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -175,6 +213,8 @@ export default function useBackgroundEffects(flags: PerformanceFlags = DEFAULT_F
       targetMouseY = e.clientY - window.innerHeight / 2;
       pageMouseX = e.clientX;
       pageMouseY = e.clientY;
+      idleFrames = 0;
+      schedule();
 
       if (flags.parallaxGrids) {
         const px = targetMouseX / (window.innerWidth / 2);
@@ -186,11 +226,13 @@ export default function useBackgroundEffects(flags: PerformanceFlags = DEFAULT_F
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    updateTransforms();
+    document.addEventListener('visibilitychange', handleVisibility);
+    schedule();
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('visibilitychange', handleVisibility);
       cancelAnimationFrame(animationFrameId);
       if (themeObserver) themeObserver.disconnect();
       if (!flags.parallaxGrids) {

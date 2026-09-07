@@ -79,11 +79,14 @@ export interface Project {
   title: string;
   description: string;
   url: string;
-  image: string;
+  /** Path under `public/images/projects`, or null to fall back to the `icon` emoji. */
+  image: string | null;
   icon: string;
   tags: string[];
   tech: string[];
   featured: boolean;
+  /** Manual display order for the default "Featured" sort; lower sorts first. Unranked projects fall to the end of their group. */
+  rank?: number;
   year: number;
   status: ProjectStatus;
   repo: string | null;
