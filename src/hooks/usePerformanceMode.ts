@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import usePersistedState from './usePersistedState';
+import usePrefersReducedMotion from './usePrefersReducedMotion';
 import {
   PERF_STORAGE_KEY,
   getPerformanceFlags,
@@ -19,18 +20,7 @@ export default function usePerformanceMode() {
     }
   );
 
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  });
-
-  useEffect(() => {
-    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => setPrefersReducedMotion(motionQuery.matches);
-    update();
-    motionQuery.addEventListener('change', update);
-    return () => motionQuery.removeEventListener('change', update);
-  }, []);
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   const effectiveMode = useMemo(
     () => resolveEffectiveMode(performanceMode, prefersReducedMotion),

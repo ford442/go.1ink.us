@@ -140,6 +140,11 @@ export function sortProjects<T extends Project>(
       }
       return sorted.sort((a, b) => {
         if (a.featured !== b.featured) return a.featured ? -1 : 1;
+        // Explicit `rank` drives display order; unranked entries fall to the end
+        // of their group and keep their historical id ordering among themselves.
+        const rankA = a.rank ?? Number.MAX_SAFE_INTEGER;
+        const rankB = b.rank ?? Number.MAX_SAFE_INTEGER;
+        if (rankA !== rankB) return rankA - rankB;
         return a.id - b.id;
       });
   }

@@ -1,19 +1,42 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 const RadarHUD = ({ projects, favorites, displayMode }) => {
-  const [scrollProgress, setScrollProgress] = useState(0);
   const radarRef = useRef(null);
+  // Scroll position drives exactly two things — the bounding box offset and the
+  // "Pos" readout — so it is written straight to those nodes. Holding it in
+  // React state instead re-rendered the whole radar (one blip per project) on
+  // every scroll frame.
+  const viewportBoxRef = useRef(null);
+  const positionLabelRef = useRef(null);
 
   useEffect(() => {
     let ticking = false;
 
+    const applyScroll = () => {
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = scrollHeight > 0
+        ? Math.min(Math.max(window.scrollY / scrollHeight, 0), 1)
+        : 0;
+
+      const viewportHeightPercent = document.documentElement.scrollHeight > 0
+        ? (window.innerHeight / document.documentElement.scrollHeight) * 100
+        : 10;
+      const clampedViewportHeight = Math.max(viewportHeightPercent, 5); // minimum 5% height
+
+      if (viewportBoxRef.current) {
+        viewportBoxRef.current.style.height = `${clampedViewportHeight}%`;
+        // Keep the box entirely within the HUD.
+        viewportBoxRef.current.style.top = `${progress * (100 - clampedViewportHeight)}%`;
+      }
+      if (positionLabelRef.current) {
+        positionLabelRef.current.textContent = `Pos: ${Math.round(progress * 100)}%`;
+      }
+    };
+
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-          const currentScroll = window.scrollY;
-          const progress = scrollHeight > 0 ? currentScroll / scrollHeight : 0;
-          setScrollProgress(Math.min(Math.max(progress, 0), 1));
+          applyScroll();
           ticking = false;
         });
         ticking = true;
@@ -21,10 +44,14 @@ const RadarHUD = ({ projects, favorites, displayMode }) => {
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll, { passive: true });
     // Initial call
-    handleScroll();
+    applyScroll();
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
   }, [projects]); // Re-calculate if projects list changes height
 
   const handleRadarClick = (e) => {
@@ -43,16 +70,6 @@ const RadarHUD = ({ projects, favorites, displayMode }) => {
   // Calculate dots grid configuration based on displayMode
   const columns = displayMode === 'grid' ? 3 : 1;
   const dotClass = displayMode === 'grid' ? 'w-2 h-2' : 'w-full h-1';
-
-  // Height of the viewport box relative to the radar HUD
-  const viewportHeightPercent = typeof window !== 'undefined' && document.documentElement.scrollHeight > 0
-    ? (window.innerHeight / document.documentElement.scrollHeight) * 100
-    : 10;
-
-  const clampedViewportHeight = Math.max(viewportHeightPercent, 5); // minimum 5% height
-
-  // Adjust top position to keep the box entirely within the HUD
-  const boxTop = scrollProgress * (100 - clampedViewportHeight);
 
   return (
     <div className="relative flex flex-col items-center group pointer-events-auto">
@@ -104,11 +121,9 @@ const RadarHUD = ({ projects, favorites, displayMode }) => {
 
         {/* Viewport Bounding Box */}
         <div
+          ref={viewportBoxRef}
           className="absolute z-20 left-0 w-full border border-accent-400/80 bg-accent-400/10 shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.3)] pointer-events-none transition-all duration-100 ease-out"
-          style={{
-            height: `${clampedViewportHeight}%`,
-            top: `${boxTop}%`
-          }}
+          style={{ height: '10%', top: '0%' }}
         >
           {/* Corner accents for the bounding box */}
           <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-accent-300"></div>
@@ -124,7 +139,7 @@ const RadarHUD = ({ projects, favorites, displayMode }) => {
       {/* Stats/Legend */}
       <div className="flex justify-between w-full mt-2 px-1 text-[9px] font-mono text-accent-500/50 uppercase tracking-widest">
         <span>Nodes: {projects.length}</span>
-        <span>Pos: {Math.round(scrollProgress * 100)}%</span>
+        <span ref={positionLabelRef}>Pos: 0%</span>
       </div>
     </div>
   );

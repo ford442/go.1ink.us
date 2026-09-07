@@ -22,6 +22,7 @@ export function validateProjects(projects: Project[]): void {
   assert(projects.length > 0, 'projects.json must contain at least one project');
 
   const ids = new Set<number>();
+  const ranks = new Map<number, string>();
 
   for (const project of projects) {
     assert(Number.isInteger(project.id) && project.id > 0, `Project "${project.title}" has invalid id`);
@@ -38,6 +39,15 @@ export function validateProjects(projects: Project[]): void {
     assert(typeof project.year === 'number' && project.year >= 2000 && project.year <= 2100,
       `Project "${project.title}" has invalid year ${project.year}`);
     assert(typeof project.featured === 'boolean', `Project "${project.title}" must declare featured (boolean)`);
+
+    if (project.rank !== undefined) {
+      assert(Number.isInteger(project.rank) && project.rank > 0,
+        `Project "${project.title}" rank must be a positive integer`);
+      const takenBy = ranks.get(project.rank);
+      assert(takenBy === undefined,
+        `Project "${project.title}" reuses rank ${project.rank} (already held by "${takenBy}")`);
+      ranks.set(project.rank, project.title);
+    }
     assert(VALID_STATUSES.has(project.status), `Project "${project.title}" has invalid status "${project.status}"`);
 
     if (project.repo !== null) {

@@ -6,15 +6,27 @@
     "url": "https://go.1ink.us/cave-crystals/index.html",
     "image": "/crystalcave.png",
     "icon": "💎",
-    "tags": ["Game", "Web", "Adventure"],
-    "tech": ["HTML5 Canvas", "JavaScript", "GLSL"],
+    "tags": [
+      "Game",
+      "Web",
+      "Adventure"
+    ],
+    "tech": [
+      "HTML5 Canvas",
+      "JavaScript",
+      "GLSL"
+    ],
     "featured": true,
+    "rank": 7,
     "year": 2023,
     "status": "live",
     "repo": "https://github.com/ford442/cave_crystals",
     "embedUrl": "https://go.1ink.us/cave-crystals/index.html",
     "accent": "#22d3ee",
-    "relatedIds": [9, 14],
+    "relatedIds": [
+      9,
+      14
+    ],
     "changelog": "2026-08-12 · Expanded campaign catalog with validated JSON levels and asset inventory gates."
   },
   {
@@ -24,15 +36,27 @@
     "url": "https://go.1ink.us/hyphon",
     "image": "/hyphon.png",
     "icon": "🎹",
-    "tags": ["Audio", "DAW", "Music"],
-    "tech": ["Web Audio API", "React", "Node.js"],
+    "tags": [
+      "Audio",
+      "DAW",
+      "Music"
+    ],
+    "tech": [
+      "Web Audio API",
+      "React",
+      "Node.js"
+    ],
     "featured": true,
+    "rank": 1,
     "year": 2024,
     "status": "live",
     "repo": null,
     "embedUrl": null,
     "accent": "#a855f7",
-    "relatedIds": [6],
+    "relatedIds": [
+      6,
+      13
+    ],
     "changelog": "2026-08-05 · Synthesizer rack rewrite, 303 overdrive filter, and live MIDI keyboard mapping."
   },
   {
@@ -42,15 +66,28 @@
     "url": "https://go.1ink.us/pixelocity/index.html",
     "image": "/pixel.png",
     "icon": "🌈",
-    "tags": ["Graphics", "Shaders", "Video"],
-    "tech": ["WebGL", "GLSL", "React"],
+    "tags": [
+      "Graphics",
+      "Shaders",
+      "Video"
+    ],
+    "tech": [
+      "WebGL",
+      "GLSL",
+      "React"
+    ],
     "featured": true,
+    "rank": 8,
     "year": 2023,
     "status": "live",
     "repo": "https://github.com/ford442/image_video_effects",
     "embedUrl": null,
     "accent": "#ec4899",
-    "relatedIds": [16, 11, 12],
+    "relatedIds": [
+      16,
+      11,
+      12
+    ],
     "changelog": "2026-07-28 · Added real-time CRT distortion, VHS tape degradation, and webcam shader booth."
   },
   {
@@ -60,15 +97,27 @@
     "url": "https://go.1ink.us/litebrite/index.html",
     "image": "/litebrite.png",
     "icon": "✨",
-    "tags": ["Interactive", "Art", "Toy"],
-    "tech": ["HTML5", "CSS3", "Vanilla JS"],
+    "tags": [
+      "Interactive",
+      "Art",
+      "Toy"
+    ],
+    "tech": [
+      "HTML5",
+      "CSS3",
+      "Vanilla JS"
+    ],
     "featured": false,
+    "rank": 16,
     "year": 2022,
     "status": "live",
     "repo": null,
     "embedUrl": "https://go.1ink.us/litebrite/index.html",
     "accent": "#f472b6",
-    "relatedIds": [10, 16],
+    "relatedIds": [
+      10,
+      16
+    ],
     "changelog": null
   },
   {
@@ -78,15 +127,27 @@
     "url": "https://go.1ink.us/brain-viz",
     "image": "/brain-viz.png",
     "icon": "🧠",
-    "tags": ["Visualization", "Data", "Science"],
-    "tech": ["D3.js", "Three.js", "React"],
+    "tags": [
+      "Visualization",
+      "Data",
+      "Science"
+    ],
+    "tech": [
+      "D3.js",
+      "Three.js",
+      "React"
+    ],
     "featured": false,
+    "rank": 10,
     "year": 2023,
     "status": "live",
     "repo": "https://github.com/ford442/brain_viz",
     "embedUrl": null,
     "accent": "#38bdf8",
-    "relatedIds": [16, 3],
+    "relatedIds": [
+      16,
+      3
+    ],
     "changelog": "2026-07-15 · Three.js neural connectome visualizer with D3 graph projection."
   },
   {
@@ -96,15 +157,26 @@
     "url": "https://go.1ink.us/rain-chime",
     "image": "/rain-chime.png",
     "icon": "🔔",
-    "tags": ["Sound", "Ambient", "Relaxation"],
-    "tech": ["Web Audio API", "Canvas", "JS"],
+    "tags": [
+      "Sound",
+      "Ambient",
+      "Relaxation"
+    ],
+    "tech": [
+      "Web Audio API",
+      "Canvas",
+      "JS"
+    ],
     "featured": false,
+    "rank": 17,
     "year": 2023,
     "status": "live",
     "repo": null,
     "embedUrl": null,
     "accent": "#34d399",
-    "relatedIds": [2],
+    "relatedIds": [
+      2
+    ],
     "changelog": null
   },
   {
@@ -114,15 +186,27 @@
     "url": "https://go.1ink.us/weather-clock",
     "image": "/weather-clock.png",
     "icon": "⏰",
-    "tags": ["Utility", "Weather", "Clock"],
-    "tech": ["REST API", "React", "CSS Grid"],
+    "tags": [
+      "Utility",
+      "Weather",
+      "Clock"
+    ],
+    "tech": [
+      "REST API",
+      "React",
+      "CSS Grid"
+    ],
     "featured": false,
+    "rank": 11,
     "year": 2022,
     "status": "live",
     "repo": "https://github.com/ford442/weather_clock",
     "embedUrl": null,
     "accent": "#60a5fa",
-    "relatedIds": [8, 15],
+    "relatedIds": [
+      8,
+      15
+    ],
     "changelog": null
   },
   {
@@ -132,15 +216,26 @@
     "url": "https://go.1ink.us/streetview",
     "image": "/streetview.png",
     "icon": "🗺️",
-    "tags": ["Maps", "360", "Exploration"],
-    "tech": ["Google Maps API", "WebGL"],
-    "featured": false,
+    "tags": [
+      "Maps",
+      "360",
+      "Exploration"
+    ],
+    "tech": [
+      "Google Maps API",
+      "WebGL"
+    ],
+    "featured": true,
+    "rank": 4,
     "year": 2023,
     "status": "live",
     "repo": null,
     "embedUrl": null,
     "accent": "#2dd4bf",
-    "relatedIds": [7, 13],
+    "relatedIds": [
+      7,
+      13
+    ],
     "changelog": null
   },
   {
@@ -150,15 +245,27 @@
     "url": "https://go.1ink.us/candy-world/v0.9/index.html",
     "image": "/candy-world.png",
     "icon": "🍬",
-    "tags": ["Game", "Fun", "Candy"],
-    "tech": ["Phaser.js", "JavaScript", "HTML5"],
-    "featured": false,
+    "tags": [
+      "Game",
+      "Fun",
+      "Candy"
+    ],
+    "tech": [
+      "Phaser.js",
+      "JavaScript",
+      "HTML5"
+    ],
+    "featured": true,
+    "rank": 6,
     "year": 2022,
     "status": "beta",
     "repo": null,
     "embedUrl": null,
     "accent": "#fb7185",
-    "relatedIds": [1, 14],
+    "relatedIds": [
+      1,
+      14
+    ],
     "changelog": "2026-06-01 · Beta v0.9 engine upgrade with Phaser.js physics and new obstacle courses."
   },
   {
@@ -168,15 +275,27 @@
     "url": "https://go.1ink.us/ui/index.html",
     "image": "/ui.png",
     "icon": "🧩",
-    "tags": ["UI", "Components", "Design"],
-    "tech": ["React", "Tailwind CSS", "Framer Motion"],
-    "featured": true,
+    "tags": [
+      "UI",
+      "Components",
+      "Design"
+    ],
+    "tech": [
+      "React",
+      "Tailwind CSS",
+      "Framer Motion"
+    ],
+    "featured": false,
+    "rank": 15,
     "year": 2024,
     "status": "live",
     "repo": null,
     "embedUrl": null,
     "accent": "#818cf8",
-    "relatedIds": [4, 15],
+    "relatedIds": [
+      4,
+      15
+    ],
     "changelog": "2026-06-20 · Interactive micro-interaction demos with Tailwind CSS and kinetic feedback."
   },
   {
@@ -186,15 +305,27 @@
     "url": "https://go.1ink.us/fluid-experiment",
     "image": "/fluid-1.png",
     "icon": "💧",
-    "tags": ["Graphics", "Fluid", "Experiment"],
-    "tech": ["WebGL", "GLSL", "Math"],
+    "tags": [
+      "Graphics",
+      "Fluid",
+      "Experiment"
+    ],
+    "tech": [
+      "WebGL",
+      "GLSL",
+      "Math"
+    ],
     "featured": false,
+    "rank": 12,
     "year": 2023,
     "status": "live",
     "repo": null,
     "embedUrl": null,
     "accent": "#06b6d4",
-    "relatedIds": [12, 3],
+    "relatedIds": [
+      12,
+      3
+    ],
     "changelog": null
   },
   {
@@ -204,33 +335,57 @@
     "url": "https://go.1ink.us/fluid-experiment-2",
     "image": "/fluid-2.png",
     "icon": "🌊",
-    "tags": ["Graphics", "Fluid", "Experiment"],
-    "tech": ["WebGL", "GLSL", "Math"],
+    "tags": [
+      "Graphics",
+      "Fluid",
+      "Experiment"
+    ],
+    "tech": [
+      "WebGL",
+      "GLSL",
+      "Math"
+    ],
     "featured": false,
+    "rank": 13,
     "year": 2024,
     "status": "live",
     "repo": null,
     "embedUrl": null,
     "accent": "#0891b2",
-    "relatedIds": [11, 3],
+    "relatedIds": [
+      11,
+      3
+    ],
     "changelog": null
   },
   {
     "id": 13,
     "title": "Project M",
-    "description": "A linked project listed by the user.",
+    "description": "Our custom WebAssembly compilation of the projectM music visualizer — the open-source MilkDrop engine built to WASM so its preset library renders live in the browser.",
     "url": "https://projectm.1ink.us",
     "image": "/projectm.png",
     "icon": "🎯",
-    "tags": ["External", "Project"],
-    "tech": ["React", "Vite", "Tailwind"],
-    "featured": false,
+    "tags": [
+      "Visualization",
+      "Audio",
+      "External"
+    ],
+    "tech": [
+      "WebAssembly",
+      "WebGL",
+      "Emscripten"
+    ],
+    "featured": true,
+    "rank": 3,
     "year": 2024,
     "status": "live",
     "repo": null,
     "embedUrl": null,
     "accent": "#fbbf24",
-    "relatedIds": [15, 8],
+    "relatedIds": [
+      15,
+      8
+    ],
     "changelog": null
   },
   {
@@ -240,15 +395,25 @@
     "url": "https://go.1ink.us/tetris/index.html",
     "image": "/tetris.png",
     "icon": "🎮",
-    "tags": ["Game", "Tetris"],
-    "tech": ["Vanilla JS", "HTML5 Canvas"],
-    "featured": false,
+    "tags": [
+      "Game",
+      "Tetris"
+    ],
+    "tech": [
+      "Vanilla JS",
+      "HTML5 Canvas"
+    ],
+    "featured": true,
+    "rank": 5,
     "year": 2022,
     "status": "live",
     "repo": null,
     "embedUrl": "https://go.1ink.us/tetris/index.html",
     "accent": "#ef4444",
-    "relatedIds": [1, 9],
+    "relatedIds": [
+      1,
+      9
+    ],
     "changelog": null
   },
   {
@@ -258,15 +423,26 @@
     "url": "https://www.noahcohn.com",
     "image": "/noahcohn.png",
     "icon": "🌐",
-    "tags": ["External", "Portfolio"],
-    "tech": ["Next.js", "React", "Tailwind CSS"],
+    "tags": [
+      "External",
+      "Portfolio"
+    ],
+    "tech": [
+      "Next.js",
+      "React",
+      "Tailwind CSS"
+    ],
     "featured": false,
+    "rank": 14,
     "year": 2024,
     "status": "live",
     "repo": null,
     "embedUrl": null,
     "accent": "#94a3b8",
-    "relatedIds": [13, 10],
+    "relatedIds": [
+      13,
+      10
+    ],
     "changelog": null
   },
   {
@@ -276,15 +452,59 @@
     "url": "https://go.1ink.us/chromashift/index.html",
     "image": "/chromashift.png",
     "icon": "🛸",
-    "tags": ["Interactive", "Art", "Visualization"],
-    "tech": ["WebGL", "TypeScript", "WASM"],
+    "tags": [
+      "Interactive",
+      "Art",
+      "Visualization"
+    ],
+    "tech": [
+      "WebGL",
+      "TypeScript",
+      "WASM"
+    ],
     "featured": true,
+    "rank": 2,
     "year": 2025,
     "status": "live",
     "repo": null,
     "embedUrl": null,
     "accent": "#c084fc",
-    "relatedIds": [3, 5, 4],
+    "relatedIds": [
+      3,
+      5,
+      4
+    ],
     "changelog": "2026-08-14 · Layered color separation and spectral analysis controls for high-resolution imagery."
+  },
+  {
+    "id": 17,
+    "title": "XM Player",
+    "description": "Browser-based tracker module player — XM, MOD, S3M and IT files decoded by libopenmpt compiled to WebAssembly, with live WebGPU visualizations.",
+    "url": "https://go.1ink.us/xm-player/",
+    "image": null,
+    "icon": "🎼",
+    "tags": [
+      "Audio",
+      "Music",
+      "Interactive"
+    ],
+    "tech": [
+      "libopenmpt",
+      "WebAssembly",
+      "WebGPU",
+      "React"
+    ],
+    "featured": false,
+    "rank": 9,
+    "year": 2026,
+    "status": "live",
+    "repo": null,
+    "embedUrl": null,
+    "accent": "#06b6d4",
+    "relatedIds": [
+      2,
+      13
+    ],
+    "changelog": "2026-09-07 · Added to catalog — libopenmpt WASM tracker playback with WebGPU visualizer."
   }
 ]

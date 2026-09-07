@@ -1000,3 +1000,22 @@
   white-space: nowrap;
   border-width: 0;
 }
+
+/*
+ * Offscreen card culling.
+ *
+ * Each card stacks several composited layers (backdrop blurs on the favourite
+ * and copy-link buttons, the flip-card back, gradients, hover transitions).
+ * With a full grid the browser was laying out and painting every one of them,
+ * including the rows far below the fold. `content-visibility: auto` lets it
+ * skip that work until a card nears the viewport.
+ *
+ * `contain-intrinsic-size: auto <fallback>` makes the browser remember each
+ * card's last rendered height, so the scrollbar stays stable and the page does
+ * not jump as cards are skipped and un-skipped; the fallback only applies
+ * before a card has ever been rendered.
+ */
+.card-offscreen-skip {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 320px;
+}

@@ -102,6 +102,38 @@ describe('sortProjects', () => {
   it('uses favorite list order for the Favorites-only Featured view', () => {
     assert.deepEqual(ids(sortProjects([fixtures[1], fixtures[3]], 'Featured', 1, { activeFilters: ['Favorites'], favorites: [4, 2] })), [4, 2]);
   });
+
+  describe('rank tie-breaker', () => {
+    const ranked = [
+      project({ id: 1, title: 'Alpha', featured: true, rank: 4 }),
+      project({ id: 2, title: 'Beta', rank: 2 }),
+      project({ id: 3, title: 'Gamma', featured: true, rank: 3 }),
+      project({ id: 4, title: 'Delta', rank: 1 }),
+    ];
+
+    it('orders by rank within the featured group and within the rest', () => {
+      assert.deepEqual(ids(sortProjects(ranked, 'Featured', 1)), [3, 1, 4, 2]);
+    });
+
+    it('keeps featured ahead of unfeatured even when the unfeatured rank is lower', () => {
+      const sorted = sortProjects(ranked, 'Featured', 1);
+      assert.equal(sorted.filter((p) => p.featured).length, 2);
+      assert.ok(sorted.slice(0, 2).every((p) => p.featured));
+    });
+
+    it('sorts unranked projects after ranked ones, keeping id order among themselves', () => {
+      const mixed = [
+        project({ id: 7, title: 'Seven' }),
+        project({ id: 5, title: 'Five' }),
+        project({ id: 9, title: 'Nine', rank: 2 }),
+      ];
+      assert.deepEqual(ids(sortProjects(mixed, 'Featured', 1)), [9, 5, 7]);
+    });
+
+    it('leaves the other sort options untouched by rank', () => {
+      assert.deepEqual(ids(sortProjects(ranked, 'A-Z', 1)), [1, 2, 4, 3]);
+    });
+  });
 });
 
 describe('pagination', () => {

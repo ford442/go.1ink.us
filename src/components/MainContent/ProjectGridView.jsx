@@ -81,6 +81,11 @@ export default function ProjectGridView({
         <div
           key={project.id}
           className={`animate-card-enter ${displayMode === 'dense' ? 'transition-transform duration-200' : 'hover:scale-[1.02] transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)]'} ${displayMode === 'grid' ? 'break-inside-avoid inline-block w-full mb-6 md:mb-8' : ''} ${
+            // Skip layout/paint for rows below the fold. Restricted to the two
+            // linear layouts — the `grid` mode is CSS multi-column masonry,
+            // where skipping an item's layout would reflow the whole column.
+            displayMode === 'dense' || displayMode === 'list' ? 'card-offscreen-skip' : ''
+          } ${
             hoveredProjectId && hoveredProjectId !== project.id && displayMode !== 'dense'
               ? 'blur-[4px] opacity-40 scale-[0.98] grayscale-[30%]'
               : ''

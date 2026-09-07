@@ -129,6 +129,49 @@ describe('transmissions module', () => {
     });
   });
 
+  describe('validateProjects with rank field', () => {
+    const base = (overrides) => ({
+      id: 1,
+      title: 'App',
+      description: 'Desc',
+      url: 'https://example.com',
+      image: '/1.png',
+      icon: '💎',
+      tags: ['Game'],
+      tech: ['JS'],
+      featured: false,
+      year: 2023,
+      status: 'live',
+      repo: null,
+      embedUrl: null,
+      accent: null,
+      relatedIds: [],
+      changelog: null,
+      ...overrides,
+    });
+
+    it('accepts a catalog with no ranks at all', () => {
+      assert.doesNotThrow(() => validateProjects([base({ id: 1 }), base({ id: 2 })]));
+    });
+
+    it('accepts distinct positive integer ranks', () => {
+      assert.doesNotThrow(() => validateProjects([base({ id: 1, rank: 1 }), base({ id: 2, rank: 2 })]));
+    });
+
+    it('throws when two projects share a rank', () => {
+      assert.throws(
+        () => validateProjects([base({ id: 1, title: 'A', rank: 3 }), base({ id: 2, title: 'B', rank: 3 })]),
+        ProjectValidationError,
+      );
+    });
+
+    it('throws on a zero, negative or fractional rank', () => {
+      for (const rank of [0, -1, 1.5]) {
+        assert.throws(() => validateProjects([base({ rank })]), ProjectValidationError);
+      }
+    });
+  });
+
   describe('validateProjects with changelog field', () => {
     it('accepts valid project catalog with null and string changelogs', () => {
       const valid = [
