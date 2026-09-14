@@ -1,13 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { PerformanceFlags } from '../types';
 
-interface TrailParticle {
-  x: number;
-  y: number;
-  life: number;
-  size: number;
-}
-
 const DEFAULT_FLAGS: PerformanceFlags = {
   starfield: true,
   particleNetwork: true,
@@ -27,12 +20,11 @@ const DEFAULT_FLAGS: PerformanceFlags = {
 
 export default function useBackgroundEffects(flags: PerformanceFlags = DEFAULT_FLAGS) {
   const gridSpotlightRef = useRef<HTMLDivElement | null>(null);
-  const starfieldRef = useRef<HTMLDivElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const starfieldRef = useRef<HTMLCanvasElement | null>(null);
   const deepGridRef = useRef<HTMLDivElement | null>(null);
   const baseGridRef = useRef<HTMLDivElement | null>(null);
 
-  const needsLoop = flags.starfield || flags.parallaxGrids || flags.cursorTrail;
+  const needsLoop = flags.starfield || flags.parallaxGrids;
 
   useEffect(() => {
     if (!needsLoop) return;
@@ -46,42 +38,19 @@ export default function useBackgroundEffects(flags: PerformanceFlags = DEFAULT_F
     let pageMouseY = 0;
     let animationFrameId = 0;
     // Frames the loop may run after the last committed change before parking.
-    // Enough to let the starfield lerp and the cursor trail finish settling.
+    // Enough to let the starfield lerp settle.
     const IDLE_FRAME_BUDGET = 90;
     let idleFrames = 0;
-    const trailParticles: TrailParticle[] = [];
-
-    // Cache the accent color instead of calling the (layout-forcing)
-    // getComputedStyle() once per trail particle per frame. Refresh it only
-    // when the active theme changes, mirroring effects/ParticleNetwork.
-    let trailRgb = '34, 211, 238';
-    let themeObserver: MutationObserver | null = null;
-    if (flags.cursorTrail) {
-      const readAccent = () => {
-        const rgb = getComputedStyle(document.documentElement)
-          .getPropertyValue('--rgb-accent-400')
-          .trim();
-        trailRgb = rgb || '34, 211, 238';
-      };
-      readAccent();
-      themeObserver = new MutationObserver(readAccent);
-      themeObserver.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['data-theme'],
-      });
-    }
 
     // Track what was last committed to the DOM so idle frames (no pointer
-    // movement, parallax settled) don't repaint full-viewport mask layers or
-    // clear/redraw the trail canvas for no reason.
+    // movement, parallax settled) don't repaint full-viewport mask layers for
+    // no reason.
     let lastStarfieldTransform = '';
     let lastMaskX = NaN;
     let lastMaskY = NaN;
-    let lastSpawnX = NaN;
-    let lastSpawnY = NaN;
 
     const updateTransforms = () => {
-      // Set by any branch that writes to the DOM/canvas this frame. Frames that
+      // Set by any branch that writes to the DOM this frame. Frames that
       // commit nothing count toward the idle budget below, so a settled page
       // stops scheduling frames instead of spinning at 60fps forever.
       let didWork = false;
@@ -117,61 +86,6 @@ export default function useBackgroundEffects(flags: PerformanceFlags = DEFAULT_F
         if (baseGridRef.current) {
           baseGridRef.current.style.maskImage = deepMask;
           baseGridRef.current.style.webkitMaskImage = deepMask;
-        }
-      }
-
-      if (flags.cursorTrail) {
-        const canvas = canvasRef.current;
-        if (canvas) {
-          // Only spawn a new particle when the pointer actually moved, so an
-          // idle cursor lets the trail fade out and stop instead of endlessly
-          // stamping particles at the last position.
-          if (pageMouseX !== lastSpawnX || pageMouseY !== lastSpawnY) {
-            lastSpawnX = pageMouseX;
-            lastSpawnY = pageMouseY;
-            trailParticles.push({
-              x: pageMouseX,
-              y: pageMouseY,
-              life: 1.0,
-              size: Math.random() * 4 + 2,
-            });
-          }
-
-          if (trailParticles.length > 0) {
-            didWork = true;
-            const ctx = canvas.getContext('2d');
-            if (!ctx) {
-              schedule();
-              return;
-            }
-            if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
-              canvas.width = window.innerWidth;
-              canvas.height = window.innerHeight;
-            }
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            for (let i = trailParticles.length - 1; i >= 0; i--) {
-              const p = trailParticles[i];
-              p.life -= 0.02;
-              p.y -= 0.5;
-
-              if (p.life <= 0) {
-                trailParticles.splice(i, 1);
-                // Clear once more when the last particle dies so no stale
-                // pixels linger on the canvas.
-                if (trailParticles.length === 0) {
-                  ctx.clearRect(0, 0, canvas.width, canvas.height);
-                }
-                continue;
-              }
-
-              ctx.beginPath();
-              ctx.fillStyle = `rgba(${trailRgb}, ${p.life * 0.5})`;
-              ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-              ctx.fill();
-            }
-          }
         }
       }
 
@@ -234,17 +148,15 @@ export default function useBackgroundEffects(flags: PerformanceFlags = DEFAULT_F
       window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('visibilitychange', handleVisibility);
       cancelAnimationFrame(animationFrameId);
-      if (themeObserver) themeObserver.disconnect();
       if (!flags.parallaxGrids) {
         document.documentElement.style.removeProperty('--parallax-x');
         document.documentElement.style.removeProperty('--parallax-y');
       }
     };
-  }, [needsLoop, flags.starfield, flags.parallaxGrids, flags.cursorTrail]);
+  }, [needsLoop, flags.starfield, flags.parallaxGrids]);
 
   return {
     baseGridRef,
-    canvasRef,
     deepGridRef,
     gridSpotlightRef,
     starfieldRef,

@@ -152,10 +152,9 @@ export interface OverlayContextValue {
 
 export interface EffectsContextValue {
   baseGridRef: RefObject<HTMLDivElement | null>;
-  canvasRef: RefObject<HTMLCanvasElement | null>;
   deepGridRef: RefObject<HTMLDivElement | null>;
   gridSpotlightRef: RefObject<HTMLDivElement | null>;
-  starfieldRef: RefObject<HTMLDivElement | null>;
+  starfieldRef: RefObject<HTMLCanvasElement | null>;
   performanceMode: PerformanceMode;
   setPerformanceMode: Setter<PerformanceMode>;
   rerollPerformance: () => void;

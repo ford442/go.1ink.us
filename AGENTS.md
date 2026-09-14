@@ -410,10 +410,36 @@ meter) and `components/HoloTerminal/AudioVisualizer.tsx` (the larger,
 always-cyan panel inside the holo-terminal). They share their drawing loop
 via `hooks/useAudioWaveform.ts` and only differ in canvas sizing/color.
 
-#### effects/Starfield.tsx
-- **Memoized**: Prevents unnecessary re-renders
-- **Random Generation**: Stars generated once on mount
-- **Animations**: Twinkle and shooting star effects
+#### Ambient visuals (`src/lib/visuals/`)
+
+`effects/Starfield.tsx`, `effects/ParticleNetwork.tsx`, `effects/MatrixRain.tsx`,
+and `effects/CursorTrail.tsx` (the trail canvas `BackgroundElements` used to
+draw inline, now split out) are thin `<canvas>` wrappers around one shared
+system rather than four independent rAF loops:
+
+| Layer | Responsibility |
+|---|---|
+| `lib/visuals/engines/*Engine.ts` | Pure simulation + draw step per effect (`starfieldEngine`, `particleNetworkEngine`, `matrixRainEngine`, `cursorTrailEngine`), framework- and canvas-implementation-free — each works against any object satisfying `engines/types.ts`'s `Canvas2D` (a structural subset both `CanvasRenderingContext2D` and `OffscreenCanvasRenderingContext2D` already implement) |
+| `lib/visuals/types.ts` | `VisualBackend` — the `init/resize/setTheme/setPointer/setDensity/setRunning/tick/dispose` protocol every backend implements |
+| `lib/visuals/backends/MainThreadCanvasBackend.ts` | Runs an engine directly against a normal `<canvas>`, ticked by the host's own rAF |
+| `lib/visuals/backends/OffscreenWorkerBackend.ts` + `VisualWorkerClient.ts` | Transfers the canvas to one shared `visualWorker` (via `transferControlToOffscreen`) and proxies every call over `postMessage`; one `Worker` backs every layer on the page, not one per effect |
+| `lib/visuals/worker/visualWorkerRuntime.ts` | The worker-side protocol handler — owns every layer's engine + canvas and runs one shared frame loop for all of them. Decoupled from `self`/`postMessage` so it's testable under Node (`scripts/test-visual-worker-protocol.mjs`, with a fake worker/canvas) |
+| `lib/visuals/ambientSignals.ts` | One shared pointer (`mousemove`/`mouseout`) + theme-accent (`getComputedStyle` on `data-theme` change) reader for every layer, instead of each effect running its own listener |
+| `hooks/useVisualLayer.ts` | The React hook every `effects/*` component calls: picks `OffscreenWorkerBackend` when `lib/visuals/support.ts`'s `supportsOffscreenCanvas()` passes, else falls back to `MainThreadCanvasBackend`; wires resize/pointer/theme/density updates and the rAF (`useAnimationLoop`) or visibility-gate (`hooks/useVisibilityGate.ts`) loop appropriately |
+
+**`prefers-reduced-motion` never spawns the worker** — `useVisualLayer` skips
+creating a backend at all when reduced motion is active, so there's nothing to
+isolate for an effect that won't animate. `performanceMode === 'lite'` never
+reaches this code either: its flags are all `false`, so no `effects/*`
+component mounts.
+
+The worker entry (`lib/visuals/worker/visualWorker.ts`) is loaded via
+`new Worker(new URL('./worker/visualWorker.ts', import.meta.url), { type: 'module' })`,
+which Vite (`worker: { format: 'es' }` in `vite.config.js`) emits as its own
+chunk (`visualWorker-*.js`) outside the `modulePreload` graph — it never counts
+against the initial JS budget (see `scripts/check-bundle-budget.mjs`'s "Lazy /
+on-demand chunks" output). It imports only this project's own engines/runtime
+— no `three`, no other `node_modules` dependency.
 
 ### Data Model
 

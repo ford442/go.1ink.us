@@ -137,7 +137,6 @@ export default function useAppProviderValues({
 
   const effectsValue = useDomainValue({
     baseGridRef: effects.baseGridRef,
-    canvasRef: effects.canvasRef,
     deepGridRef: effects.deepGridRef,
     gridSpotlightRef: effects.gridSpotlightRef,
     starfieldRef: effects.starfieldRef,

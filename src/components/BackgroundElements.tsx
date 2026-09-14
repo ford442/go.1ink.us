@@ -1,5 +1,6 @@
 import Starfield from '../effects/Starfield';
 import ParticleNetwork from '../effects/ParticleNetwork';
+import CursorTrail from '../effects/CursorTrail';
 import { lazy, Suspense } from 'react';
 
 const MatrixRain = lazy(() => import('../effects/MatrixRain'));
@@ -8,7 +9,7 @@ import { useSettingsContext } from '../app/context/SettingsContext';
 import { useOverlayContext } from '../app/context/OverlayContext';
 
 export default function BackgroundElements() {
-  const { starfieldRef, deepGridRef, baseGridRef, gridSpotlightRef, canvasRef, flags } = useEffectsContext();
+  const { starfieldRef, deepGridRef, baseGridRef, gridSpotlightRef, flags } = useEffectsContext();
   const { isMatrixMode, theme, isGodMode } = useSettingsContext();
   const { isWarping } = useOverlayContext();
 
@@ -124,14 +125,7 @@ export default function BackgroundElements() {
           </>
         )}
 
-        {flags.cursorTrail && (
-          <canvas
-            ref={canvasRef}
-            className="absolute inset-0 w-full h-full pointer-events-none"
-            aria-hidden="true"
-            style={{ mixBlendMode: 'screen', zIndex: 1 }}
-          />
-        )}
+        {flags.cursorTrail && <CursorTrail />}
 
         <div className="absolute inset-0 pointer-events-none z-10 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)]"></div>
       </div>
