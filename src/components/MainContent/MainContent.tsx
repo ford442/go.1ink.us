@@ -54,7 +54,7 @@ export default function MainContent() {
 
   // 🌌 CURATOR FEATURE: Global Holographic Command Table Perspective
   const gridRef = useGridPerspective(enableGridPerspective);
-  const [hoveredProjectId, setHoveredProjectId] = useState(null);
+  const [hoveredProjectId, setHoveredProjectId] = useState<number | null>(null);
   const isMapMode = displayMode === 'map' || displayMode === 'constellation';
   const enableConstellationOverlay = !isMapMode && flags.constellation3d && (!isDenseLayout || allowDenseHeavyFx);
 

@@ -1,4 +1,37 @@
 import Card from '../Card';
+import type { Dispatch, DragEvent, KeyboardEvent, MouseEvent, RefObject, SetStateAction } from 'react';
+import type { DisplayMode, EnhancedProject, Project, SortOption } from '../../types';
+
+interface ProjectGridViewProps {
+  gridRef: RefObject<HTMLDivElement | null>;
+  displayMode: DisplayMode;
+  isGlitching: boolean;
+  showWarpFx: boolean;
+  paginatedProjects: EnhancedProject[];
+  focusedCardIndex: number;
+  setFocusedCardIndex: Dispatch<SetStateAction<number>>;
+  hoveredProjectId: number | null;
+  setHoveredProjectId: Dispatch<SetStateAction<number | null>>;
+  handleTagClick: (tag: string) => void;
+  activeFilters: string[];
+  searchQuery: string;
+  handleProjectSelect: (project: Project) => void;
+  selectedProject: Project | null;
+  favorites: number[];
+  toggleFavorite: (project: Project) => void;
+  handleContextMenu: (event: MouseEvent, project: Project) => void;
+  handleCopyLink: (project: Project) => void;
+  isDataMode: boolean;
+  sortOption: SortOption;
+  activeFiltersSet: Set<string>;
+  draggedFavoriteId: number | null;
+  dragOverFavoriteId: number | null;
+  handleDragStart: (event: DragEvent, projectId: number) => void;
+  handleDragOver: (event: DragEvent, projectId: number) => void;
+  handleDragEnd: () => void;
+  handleDrop: (event: DragEvent, projectId: number) => void;
+  setHoveredTag: Dispatch<SetStateAction<string | null>>;
+}
 
 export default function ProjectGridView({
   gridRef,
@@ -29,8 +62,8 @@ export default function ProjectGridView({
   handleDragEnd,
   handleDrop,
   setHoveredTag,
-}) {
-  const onKeyDown = (e) => {
+}: ProjectGridViewProps) {
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     let nextIndex = focusedCardIndex;
     if (e.key === 'ArrowRight') {
       nextIndex = Math.min(paginatedProjects.length - 1, focusedCardIndex + 1);
@@ -49,7 +82,7 @@ export default function ProjectGridView({
       setFocusedCardIndex(nextIndex);
       setTimeout(() => {
         // Scope focus to the current container to avoid finding other focusable elements elsewhere
-        const cards = e.currentTarget.querySelectorAll('.card-focusable');
+        const cards = e.currentTarget.querySelectorAll<HTMLElement>('.card-focusable');
         if (cards[nextIndex]) {
           cards[nextIndex].focus();
           cards[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
