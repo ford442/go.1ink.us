@@ -8,12 +8,13 @@ function useDomainValue<T extends object>(value: T): T {
   return useMemo(() => value, Object.values(value));
 }
 
-// Memoize the six public context contracts assembled by App. The inputs are
-// grouped by domain to keep the composition root readable; each value is
+// Memoize the seven public context contracts assembled by App. The inputs
+// are grouped by domain to keep the composition root readable; each value is
 // rebuilt only when one of the fields exposed by that domain changes.
 export default function useAppProviderValues({
   settings,
   browser,
+  loadout,
   terminal,
   overlay,
   effects,
@@ -75,15 +76,18 @@ export default function useAppProviderValues({
     toggleFilter: browser.toggleFilter,
     totalPages: browser.totalPages,
     totalProjects: browser.totalProjects,
-    loadouts: browser.loadouts,
-    activeLoadoutId: browser.activeLoadoutId,
-    createLoadout: browser.createLoadout,
-    deleteLoadout: browser.deleteLoadout,
-    updateLoadoutFromFavorites: browser.updateLoadoutFromFavorites,
-    applyLoadout: browser.applyLoadout,
-    exportLoadoutFile: browser.exportLoadoutFile,
-    importLoadoutJson: browser.importLoadoutJson,
-    copyShareLink: browser.copyShareLink,
+  });
+
+  const loadoutValue = useDomainValue({
+    loadouts: loadout.loadouts,
+    activeLoadoutId: loadout.activeLoadoutId,
+    createLoadout: loadout.createLoadout,
+    deleteLoadout: loadout.deleteLoadout,
+    updateLoadoutFromFavorites: loadout.updateLoadoutFromFavorites,
+    applyLoadout: loadout.applyLoadout,
+    exportLoadoutFile: loadout.exportLoadoutFile,
+    importLoadoutJson: loadout.importLoadoutJson,
+    copyShareLink: loadout.copyShareLink,
   });
 
   const terminalValue = useDomainValue({
@@ -157,5 +161,5 @@ export default function useAppProviderValues({
     userActivityLogs: activity.userActivityLogs,
   });
 
-  return { settingsValue, browserValue, terminalValue, overlayValue, effectsValue, activityValue };
+  return { settingsValue, browserValue, loadoutValue, terminalValue, overlayValue, effectsValue, activityValue };
 }

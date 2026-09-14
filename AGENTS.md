@@ -213,7 +213,7 @@ python scripts/deploy.py
 
 `App.tsx` (254 LOC, down from 786 before this refactor) no longer owns most of its state and
 side effects directly — it calls a set of focused hooks under `src/hooks/`
-and wires their results together, then hands six memoized values to
+and wires their results together, then hands seven memoized values to
 `AppProviders`:
 
 | Hook | Owns |
@@ -228,7 +228,7 @@ and wires their results together, then hands six memoized values to
 | `useLayoutGlitchTransition(displayMode)` | the brief glitch animation played on layout switch |
 | `usePagination({ displayMode, activeFilters, searchQuery, sortOption })` | current page, items-per-page, and keyboard-focused card index |
 | `useAppFeatures(...)` | wires `useProjectBrowser`, `useTerminalController`, `useGlobalShortcuts`, and `useBackgroundEffects` together — the four hooks that derive behavior from persisted/URL state rather than owning their own |
-| `useAppProviderValues(...)` | builds the six memoized context values (see below) from everything else `App.tsx` assembled |
+| `useAppProviderValues(...)` | builds the seven memoized context values (see below) from everything else `App.tsx` assembled |
 
 `App.tsx` itself is left owning only what doesn't cleanly belong in one of
 the above: `hoveredTag`, `isMobileFiltersOpen`, `isGodMode`, `randomSeed`,
@@ -239,14 +239,15 @@ the above: `hoveredTag`, `isMobileFiltersOpen`, `isGodMode`, `randomSeed`,
 ### Context Architecture
 
 All state is still owned by `app/App.tsx` (no external store), but it is
-**not** exposed through one flat context. `app/context/` splits it into six
-domain-scoped contexts so a component only re-renders when the domain it
-actually reads changes:
+**not** exposed through one flat context. `app/context/` splits it into
+seven domain-scoped contexts so a component only re-renders when the domain
+it actually reads changes:
 
 | Context | File | Holds | Typical consumers |
 |---|---|---|---|
 | `SettingsContext` | `context/SettingsContext.ts` | theme, CRT, matrix rain, sound, display mode, god mode | `CommandHeader`, `BackgroundElements`, `MainContent` |
 | `BrowserContext` | `context/BrowserContext.ts` | filters, search, sort, pagination, favorites | `Sidebar`, `MainContent`, `SystemMap` |
+| `LoadoutContext` | `context/LoadoutContext.ts` | loadout list, active id, CRUD, import/export/share | `LoadoutPanel` |
 | `TerminalContext` | `context/TerminalContext.ts` | terminal/holo-terminal open state, history, input | `TerminalBar`, `HoloTerminal` |
 | `OverlayContext` | `context/OverlayContext.ts` | toasts, omni palette, context menu, quick-view modal, lockdown, idle, warp | `ProjectQuickView`, `ContextMenu`, `SystemOverlays` |
 | `EffectsContext` | `context/EffectsContext.ts` | background refs only (starfield/grids/cursor-trail canvas) — stable for the app's lifetime | `BackgroundElements` |
@@ -256,7 +257,32 @@ actually reads changes:
 (`ActivityContext`), even though an early proposal grouped them: typing
 in the search box calls `addActivityLog` once the query is 3+ characters,
 so bundling that with the starfield/grid refs would re-render the
-background on every few keystrokes.
+background on every few keystrokes. For the same reason, don't fold a
+future ground-station or worker-handle context into either `EffectsContext`
+or `BrowserContext` — give it its own domain.
+
+`LoadoutContext` was split out of `BrowserContext` for the same reason:
+`loadouts`/`activeLoadoutId`/CRUD were originally bolted onto
+`BrowserContextValue`, so every keystroke in search (which changes
+`BrowserContext`'s memoized value) re-rendered `LoadoutPanel` even though
+it never reads filter/search/sort state, and applying a loadout re-rendered
+every other `BrowserContext` consumer. `App.tsx` still owns the full
+`useLoadouts()` API (`renameLoadout`, `applyLoadoutByName`,
+`shareUrlForLoadout`, etc., used by the terminal's `loadout` command via
+`lib/loadoutTerminal.ts` directly against `localStorage`, not through
+context) — only the subset `LoadoutPanel` needs is exposed through
+`LoadoutContextValue`.
+
+A wide domain can optionally split further into a state context and an
+actions context (stable `useCallback` references only, so an actions-only
+consumer never re-renders when state changes) — `createDomainContext` can
+be called twice for this. `BrowserContext` was considered for this split
+but deferred: every current consumer (`Sidebar`, `MainContent`, `SystemMap`)
+reads state and calls actions together in the same JSX, so splitting them
+wouldn't reduce re-renders without also restructuring those components.
+Revisit this (or `use-context-selector`, weighed against the 130 KB gzip
+initial-JS budget) if a future `BrowserContext` consumer only needs a
+narrow slice.
 
 Each context's value is built with `useMemo` in `hooks/useAppProviderValues.ts`
 (called from `App.tsx`), and the callbacks that go into those values
@@ -270,13 +296,36 @@ Consumers import the specific hook(s) they need, e.g.
 `useSettingsContext()`, `useBrowserContext()`; a component that spans
 domains (e.g. `MainContent`, which reads filters, display mode, and the
 quick-view modal state) calls more than one. `AppProviders`
-(`app/context/AppProviders.tsx`) nests the six providers around the tree.
+(`app/context/AppProviders.tsx`) nests the seven providers around the tree.
 
 `toggleFilter`/`handleTagClick`/`handlePageChange`
 (`hooks/useProjectBrowser.ts`) and the terminal key/submit handlers
-(`hooks/useTerminalController.ts`) are `useCallback`-stabilized. The six
+(`hooks/useTerminalController.ts`) are `useCallback`-stabilized. The seven
 provider values are assembled in `useAppProviderValues`, with complete
 domain-specific dependency lists so unrelated context identities stay stable.
+
+#### The `createDomainContext` factory
+
+`context/createDomainContext.ts` builds each `[Context, useXContext]` pair
+from one call:
+
+```ts
+export const [BrowserContext, useBrowserContext] = createDomainContext<BrowserContextValue>({
+  hookName: 'useBrowserContext',   // used in the "must be used within its matching Provider" error
+  displayName: 'BrowserContext',   // shown as the Context's name in React DevTools
+});
+```
+
+`displayName` defaults to `hookName` if omitted, but every domain sets it
+explicitly so DevTools reads `BrowserContext` rather than `Context.Provider`.
+Adding a new domain (e.g. a future ground-station or share-link context)
+means: add its `*ContextValue` interface to `contextTypes.ts`, add it to
+`AppContextValues`, create `context/<Name>Context.ts` calling the factory,
+add its provider to `AppProviders.tsx`, and add its `useDomainValue(...)`
+block to `useAppProviderValues.ts`. Don't add fields to an existing
+domain's `*ContextValue` without a comment explaining why they belong
+there — the Loadout split above is what widening `BrowserContextValue`
+without that discipline eventually costs.
 
 ### Hooks (`src/hooks/`)
 
@@ -321,7 +370,7 @@ so automated screenshots skip the boot screen).
 #### app/App.tsx
 Thin composition root only — see Context Architecture above. It retains only
 composition-level state/callbacks, delegates persistence and feature behavior
-to focused hooks, wires loadout bootstrap state, builds the six context values
+to focused hooks, wires loadout bootstrap state, builds the seven context values
 through `useAppProviderValues`, and renders the layout shell.
 
 #### components/Card/
@@ -487,7 +536,7 @@ harmlessly (nothing left for them to affect) rather than being pulled to
 avoid churning the config for its own sake; a follow-up can drop them.
 `eslint.config.js` has a matching `**/*.{ts,tsx}` block (see "Linting
 converted TypeScript" below) so every file is both type-checked and linted.
-`app/context/contextTypes.ts`, the generic context factory, six domain
+`app/context/contextTypes.ts`, the generic context factory, seven domain
 contexts, `AppProviders.tsx`, and `useAppProviderValues.ts` enforce the
 provider contracts. `src/constants.ts` is the only category/tag constants
 module used by validation and runtime UI.

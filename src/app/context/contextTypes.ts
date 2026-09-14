@@ -71,6 +71,9 @@ export interface BrowserContextValue {
   toggleFilter: (filter: string) => void;
   totalPages: number;
   totalProjects: number;
+}
+
+export interface LoadoutContextValue {
   loadouts: Loadout[];
   activeLoadoutId: string | null;
   createLoadout: (name: string, ids?: number[]) => Loadout | null;
@@ -176,6 +179,7 @@ export interface ActivityContextValue {
 export interface AppContextValues {
   settings: SettingsContextValue;
   browser: BrowserContextValue;
+  loadout: LoadoutContextValue;
   terminal: TerminalContextValue;
   overlay: OverlayContextValue;
   effects: EffectsContextValue;

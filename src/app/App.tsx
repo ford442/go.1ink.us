@@ -185,11 +185,12 @@ function App() {
       displayMode: filters.displayMode, setDisplayMode: filters.setDisplayMode,
     },
     browser: {
-      ...filters, ...pagination, ...favoritesState, ...features, ...loadoutsApi,
+      ...filters, ...pagination, ...favoritesState, ...features,
       handleCopyLink, hoveredTag, isMobileFiltersOpen, randomSeed,
       setHoveredTag, setIsMobileFiltersOpen, setRandomSeed,
       totalProjects: enhancedProjects.length,
     },
+    loadout: loadoutsApi,
     terminal: features,
     overlay: {
       ...toastState, ...contextMenuState, ...quickView,
@@ -206,6 +207,7 @@ function App() {
     <AppProviders
       settings={providerValues.settingsValue}
       browser={providerValues.browserValue}
+      loadout={providerValues.loadoutValue}
       terminal={providerValues.terminalValue}
       overlay={providerValues.overlayValue}
       effects={providerValues.effectsValue}

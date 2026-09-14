@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import soundSystem from '../lib/SoundSystem';
 import { useBrowserContext } from '../app/context/BrowserContext';
+import { useLoadoutContext } from '../app/context/LoadoutContext';
 
 export default function LoadoutPanel() {
   const {
@@ -13,8 +14,8 @@ export default function LoadoutPanel() {
     exportLoadoutFile,
     importLoadoutJson,
     copyShareLink,
-    favorites,
-  } = useBrowserContext();
+  } = useLoadoutContext();
+  const { favorites } = useBrowserContext();
 
   const [isOpen, setIsOpen] = useState(false);
   const [newName, setNewName] = useState('');
