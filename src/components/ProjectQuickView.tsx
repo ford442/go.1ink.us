@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { TAG_TO_CATEGORIES } from '../constants';
 import projects from '../data/projectData';
+import type { Project } from '../types';
 import { useOverlayContext } from '../app/context/OverlayContext';
 import { useBrowserContext } from '../app/context/BrowserContext';
 import { canPreviewProject } from '../lib/projectEmbed';
@@ -13,8 +14,8 @@ import { trackProjectLaunch } from '../lib/trackEvent';
 export default function ProjectQuickView() {
   const { selectedProject, closeProjectModal, handleProjectSelect, modalRef, modalImageLoaded, setModalImageLoaded } = useOverlayContext();
   const { handleCopyLink, toggleFavorite, favorites } = useBrowserContext();
-  const [previewProjectId, setPreviewProjectId] = useState(null);
-  const closeButtonRef = useRef(null);
+  const [previewProjectId, setPreviewProjectId] = useState<number | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     if (!selectedProject) return undefined;
@@ -28,7 +29,7 @@ export default function ProjectQuickView() {
   const isPreviewMode = previewProjectId === selectedProject.id;
   const relatedProjects = selectedProject.relatedIds
     .map((relatedId) => projects.find((project) => project.id === relatedId))
-    .filter(Boolean);
+    .filter((project): project is Project => project !== undefined);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-fade-in" ref={modalRef}>

@@ -10,8 +10,11 @@ import { useOverlayContext } from '../app/context/OverlayContext';
 import { useEffectsContext } from '../app/context/EffectsContext';
 import useVoiceCommand from '../hooks/useVoiceCommand';
 import useOnlineStatus from '../hooks/useOnlineStatus';
+import type { PerformanceMode } from '../types';
 
-function formatUptime(seconds) {
+const PERFORMANCE_MODE_CYCLE: PerformanceMode[] = ['auto', 'balanced', 'lite', 'full', 'random'];
+
+function formatUptime(seconds: number) {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
@@ -197,8 +200,7 @@ export default function CommandHeader() {
         <span className="opacity-50 text-accent-200/70 mr-1">PERF:</span>
         <button
           onClick={() => {
-            const cycle = ['auto', 'balanced', 'lite', 'full', 'random'];
-            const nextMode = cycle[(cycle.indexOf(performanceMode) + 1) % cycle.length];
+            const nextMode = PERFORMANCE_MODE_CYCLE[(PERFORMANCE_MODE_CYCLE.indexOf(performanceMode) + 1) % PERFORMANCE_MODE_CYCLE.length];
             setPerformanceMode(nextMode);
             soundSystem.playClick();
           }}
