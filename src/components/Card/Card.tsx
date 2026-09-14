@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import type { DragEvent, FocusEvent, KeyboardEvent, MouseEvent } from 'react';
 import soundSystem from '../../lib/SoundSystem';
 import { resolveProjectConnectivity } from '../../lib/projectConnectivity';
 import useCardTilt from './useCardTilt';
@@ -10,6 +11,30 @@ import CardMatrix from './CardMatrix';
 import CardList from './CardList';
 import CardGrid from './CardGrid';
 import CardCompact from './CardCompact';
+import type { DisplayMode, Project } from '../../types';
+import type { CardActionProps, CardTagInteractionProps, CardSearchProps } from './cardTypes';
+
+interface CardProps extends CardActionProps, CardTagInteractionProps, CardSearchProps {
+  project: Project;
+  index?: number;
+  // Superset of DisplayMode: 'compact' is a legacy alias for 'dense' that no
+  // caller currently passes, kept for backward compatibility.
+  layout?: DisplayMode | 'compact';
+  isDataMode?: boolean;
+  isSelected?: boolean;
+  onProjectClick?: (project: Project) => void;
+  draggable?: boolean;
+  isDragged?: boolean;
+  isDragOver?: boolean;
+  onDragStart?: (e: DragEvent<HTMLDivElement>) => void;
+  onDragOver?: (e: DragEvent<HTMLDivElement>) => void;
+  onDragEnd?: (e: DragEvent<HTMLDivElement>) => void;
+  onDrop?: (e: DragEvent<HTMLDivElement>) => void;
+  onContextMenu?: (e: MouseEvent<HTMLDivElement>) => void;
+  tabIndex?: number;
+  onFocus?: (e: FocusEvent<HTMLElement>) => void;
+  onCardHover?: (projectId: number | null) => void;
+}
 
 // Shell: owns the state/behavior shared across every layout variant
 // (tilt, hover-delay, image loading, favorite burst, search-highlight
@@ -41,7 +66,7 @@ const Card = ({
   onFocus,
   onHoverTag,
   onCardHover
-}) => {
+}: CardProps) => {
   const connectivity = useMemo(() => resolveProjectConnectivity(project), [project]);
   const tilt = useCardTilt();
   const hover = useCardHover(onCardHover, {
@@ -51,7 +76,7 @@ const Card = ({
   const media = useCardMedia(tilt.cardRef, index);
   const { favoriteParticles, triggerFavoriteBurst } = useFavoriteBurst(isFavorite);
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       soundSystem.playClick();
@@ -59,7 +84,7 @@ const Card = ({
     }
   };
 
-  const handleFocus = (e) => {
+  const handleFocus = (e: FocusEvent<HTMLElement>) => {
     if (onFocus) onFocus(e);
   };
 
@@ -176,7 +201,6 @@ const Card = ({
         setImageLoaded={media.setImageLoaded}
         imageError={media.imageError}
         setImageError={media.setImageError}
-        isVisible={media.isVisible}
         isHovered={hover.isHovered}
         searchQuery={searchQuery}
         regex={regex}
@@ -188,7 +212,6 @@ const Card = ({
         favoriteParticles={favoriteParticles}
         triggerFavoriteBurst={triggerFavoriteBurst}
         onCopyLink={onCopyLink}
-        complexityScore={complexityScore}
       />
     );
   }
