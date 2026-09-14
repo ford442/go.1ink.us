@@ -1,118 +1,45 @@
-import { useEffect, useMemo, useState } from 'react';
-import AudioVisualizer from './AudioVisualizer';
-import Clock from './Clock';
-import TelemetryGraph from './TelemetryGraph';
-import soundSystem from '../lib/SoundSystem';
-import { formatNetTelemetry } from '../lib/projectConnectivity';
-import { useSettingsContext } from '../app/context/SettingsContext';
-import { useBrowserContext } from '../app/context/BrowserContext';
-import { useOverlayContext } from '../app/context/OverlayContext';
-import { useEffectsContext } from '../app/context/EffectsContext';
-import useVoiceCommand from '../hooks/useVoiceCommand';
-import useOnlineStatus from '../hooks/useOnlineStatus';
-import type { PerformanceMode } from '../types';
+import soundSystem from '../../lib/SoundSystem';
+import type { PerformanceMode, ThemeId } from '../../types';
 
 const PERFORMANCE_MODE_CYCLE: PerformanceMode[] = ['auto', 'balanced', 'lite', 'full', 'random'];
 
-function formatUptime(seconds: number) {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+interface CommandHeaderControlsProps {
+  isSupported: boolean;
+  isListening: boolean;
+  startListening: () => void;
+  stopListening: () => void;
+  isSoundEnabled: boolean;
+  setIsSoundEnabled: (enabled: boolean) => void;
+  isCrtEnabled: boolean;
+  setIsCrtEnabled: (enabled: boolean) => void;
+  theme: ThemeId;
+  changeTheme: (theme: ThemeId) => void;
+  performanceMode: PerformanceMode;
+  setPerformanceMode: (mode: PerformanceMode) => void;
+  effectiveMode: PerformanceMode;
+  isCheatsheetOpen: boolean;
+  setIsCheatsheetOpen: (updater: (prev: boolean) => boolean) => void;
 }
 
-export default function CommandHeader() {
-  const { isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, isGodMode } = useSettingsContext();
-  const { totalProjects } = useBrowserContext();
-  const { isCheatsheetOpen, setIsCheatsheetOpen } = useOverlayContext();
-  const { performanceMode, setPerformanceMode, effectiveMode } = useEffectsContext();
-  const { isSupported, isListening, startListening, stopListening } = useVoiceCommand();
-  const isOnline = useOnlineStatus();
-
-  const netTelemetry = useMemo(() => formatNetTelemetry(), []);
-
-  const [systemStats, setSystemStats] = useState(() => ({
-    uptime: 0,
-    liveNodes: netTelemetry.live,
-    totalNodes: netTelemetry.total,
-    catalogPct: netTelemetry.pct,
-  }));
-
-  useEffect(() => {
-    const start = Date.now();
-    const slowTimer = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - start) / 1000);
-      setSystemStats((prev) => ({
-        ...prev,
-        uptime: elapsed,
-      }));
-    }, 1000);
-
-    return () => clearInterval(slowTimer);
-  }, []);
-
-  const netLabel = `${systemStats.liveNodes}/${systemStats.totalNodes}`;
-
+export default function CommandHeaderControls({
+  isSupported,
+  isListening,
+  startListening,
+  stopListening,
+  isSoundEnabled,
+  setIsSoundEnabled,
+  isCrtEnabled,
+  setIsCrtEnabled,
+  theme,
+  changeTheme,
+  performanceMode,
+  setPerformanceMode,
+  effectiveMode,
+  isCheatsheetOpen,
+  setIsCheatsheetOpen,
+}: CommandHeaderControlsProps) {
   return (
     <>
-  <div className="fixed top-0 left-0 right-0 z-50 tinted-glass backdrop-blur-xl border-b border-accent-500/30 text-xs font-mono shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.15)] drop-shadow">
-    {!isOnline && (
-      <div
-        className="bg-amber-950/95 border-b border-amber-500/40 px-4 py-1 text-center text-[10px] font-mono tracking-widest text-amber-200"
-        role="status"
-        aria-live="polite"
-      >
-        OFFLINE PROTOCOL — browsing cached catalog. External project nodes unavailable until reconnect.
-      </div>
-    )}
-    <div className="py-1.5 px-4 flex justify-between items-center">
-    <div className="flex items-center gap-4">
-      <div className="flex items-center gap-2">
-        <div className={`w-2 h-2 rounded-full ${!isOnline ? 'bg-amber-400' : systemStats.liveNodes === systemStats.totalNodes ? 'bg-green-400' : systemStats.liveNodes > 0 ? 'bg-amber-400' : 'bg-gray-400'} animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]`} />
-        <span className={`${!isOnline ? 'text-amber-300' : systemStats.liveNodes === systemStats.totalNodes ? 'text-green-400' : systemStats.liveNodes > 0 ? 'text-amber-400' : 'text-gray-400'} tracking-wider font-bold`}>
-          {!isOnline ? 'SYS.OFFLINE' : systemStats.liveNodes > 0 ? 'SYS.ONLINE' : 'SYS.DEGRADED'}
-        </span>
-      </div>
-      {isGodMode && (
-        <div className="flex items-center gap-2 border-l border-accent-500/30 pl-4">
-          <span className="text-amber-400 font-bold tracking-widest animate-pulse shadow-[0_0_10px_rgba(251,191,36,0.8)]">OVERCLOCKED</span>
-        </div>
-      )}
-      <div className="hidden sm:flex items-center gap-2 text-accent-200/70 border-l border-accent-500/30 pl-4">
-        <span className="opacity-50">UPTIME:</span>
-        <span className="text-accent-100">{formatUptime(systemStats.uptime)}</span>
-      </div>
-
-      <div className="hidden md:flex items-center gap-2 border-l border-accent-500/30 pl-4">
-        <span className="opacity-50">CAT:</span>
-        <div className="w-16 h-1.5 bg-black/50 rounded-full overflow-hidden border border-accent-500/30">
-          <div
-            className="h-full transition-all duration-1000"
-            style={{
-              width: `${systemStats.catalogPct}%`,
-              backgroundColor: systemStats.catalogPct > 80 ? 'rgb(var(--rgb-accent-400))' : systemStats.catalogPct > 50 ? '#eab308' : '#ef4444',
-            }}
-          />
-        </div>
-        <span className="text-accent-100 text-[10px] w-8">{systemStats.catalogPct}%</span>
-      </div>
-
-      <div className="hidden md:flex items-center gap-2 border-l border-accent-500/30 pl-4" title="Catalog nodes reachable at last build probe">
-        <span className="opacity-50">NET:</span>
-        <span className="text-accent-100">{netLabel} LIVE</span>
-      </div>
-
-      <div className="hidden lg:flex items-center gap-2 border-l border-accent-500/30 pl-4">
-        <span className="opacity-50">PRJ:</span>
-        <span className="text-accent-100">{totalProjects}</span>
-      </div>
-
-      <div className="hidden lg:flex items-center">
-        <Clock precision="seconds" label="SYS.TIME:" />
-      </div>
-    </div>
-
-    <div className="flex items-center gap-4">
       {isSupported && (
         <div className="hidden lg:flex items-center gap-2 border-r border-accent-500/30 pr-4">
           <button
@@ -212,25 +139,6 @@ export default function CommandHeader() {
         </button>
       </div>
 
-      <div className="hidden md:flex items-center gap-2 text-accent-200/70 border-r border-accent-500/30 pr-4">
-         <span className="opacity-50">CAT:</span>
-         <span className="text-accent-100 min-w-[28px] tabular-nums">{systemStats.catalogPct}%</span>
-         <div className="ml-1 border border-accent-500/30 rounded overflow-hidden">
-            <TelemetryGraph value={systemStats.catalogPct} max={100} width={40} height={16} />
-         </div>
-      </div>
-      <div className="hidden sm:flex items-center gap-2 text-accent-200/70 border-r border-accent-500/30 pr-4" title="Reachable catalog nodes">
-         <span className="opacity-50">NET:</span>
-         <span className="text-accent-100 min-w-[52px] tabular-nums">{netLabel}</span>
-         <div className="ml-1 border border-accent-500/30 rounded overflow-hidden">
-            <TelemetryGraph value={systemStats.liveNodes} max={Math.max(systemStats.totalNodes, 1)} width={40} height={16} />
-         </div>
-      </div>
-      <div className="hidden md:flex items-center gap-2 text-accent-200/70 border-r border-accent-500/30 pr-4">
-         <span className="opacity-50">PRJ:</span>
-         <span className="text-accent-100 min-w-[28px] tabular-nums">{totalProjects}</span>
-      </div>
-
       <div className="flex items-center border-r border-accent-500/30 pr-4">
         <button
           onClick={() => {
@@ -249,14 +157,6 @@ export default function CommandHeader() {
           <span className="font-mono text-xs font-bold">?</span>
         </button>
       </div>
-
-      <div className="hidden md:flex">
-         <AudioVisualizer theme={theme} />
-      </div>
-      <Clock precision="milliseconds" />
-    </div>
-    </div>
-  </div>
     </>
   );
 }
