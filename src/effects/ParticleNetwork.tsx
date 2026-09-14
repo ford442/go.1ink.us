@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, memo } from 'react';
+import { useRef, useEffect, useCallback, memo } from 'react';
 import useAnimationLoop from '../hooks/useAnimationLoop';
 import usePrefersReducedMotion from '../hooks/usePrefersReducedMotion';
 
@@ -12,7 +12,14 @@ const DEFAULT_ACCENT = '34, 211, 238'; // cyan-400
 
 // Extract Particle class outside of the component to avoid recreating it
 class Particle {
-  constructor(canvas, isGodMode) {
+  canvas: HTMLCanvasElement;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+
+  constructor(canvas: HTMLCanvasElement, isGodMode: boolean) {
     this.canvas = canvas;
     this.x = Math.random() * canvas.width;
     this.y = Math.random() * canvas.height;
@@ -30,7 +37,7 @@ class Particle {
     if (this.y < 0 || this.y > this.canvas.height) this.vy *= -1;
   }
 
-  draw(ctx, color) {
+  draw(ctx: CanvasRenderingContext2D, color: string) {
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(${color}, 0.55)`;
@@ -45,7 +52,12 @@ class Particle {
  * neighbours, so bucketing reduces it to roughly O(n) for a uniform spread.
  */
 class SpatialGrid {
-  constructor(width, height, cellSize) {
+  cellSize: number;
+  cols: number;
+  rows: number;
+  cells: number[][];
+
+  constructor(width: number, height: number, cellSize: number) {
     this.cellSize = cellSize;
     this.cols = Math.max(1, Math.ceil(width / cellSize));
     this.rows = Math.max(1, Math.ceil(height / cellSize));
@@ -56,13 +68,13 @@ class SpatialGrid {
     for (let i = 0; i < this.cells.length; i++) this.cells[i].length = 0;
   }
 
-  cellIndex(x, y) {
+  cellIndex(x: number, y: number) {
     const col = Math.min(this.cols - 1, Math.max(0, Math.floor(x / this.cellSize)));
     const row = Math.min(this.rows - 1, Math.max(0, Math.floor(y / this.cellSize)));
     return row * this.cols + col;
   }
 
-  insert(index, x, y) {
+  insert(index: number, x: number, y: number) {
     this.cells[this.cellIndex(x, y)].push(index);
   }
 
@@ -75,7 +87,7 @@ class SpatialGrid {
    * breaks that tie on index; it must NOT filter by index across cells, or the
    * link is dropped whenever the neighbour happens to have the lower index.
    */
-  forEachNeighbor(x, y, visit) {
+  forEachNeighbor(x: number, y: number, visit: (index: number, isOwnCell: boolean) => void) {
     const col = Math.min(this.cols - 1, Math.max(0, Math.floor(x / this.cellSize)));
     const row = Math.min(this.rows - 1, Math.max(0, Math.floor(y / this.cellSize)));
 
@@ -90,12 +102,16 @@ class SpatialGrid {
   }
 }
 
-const ParticleNetwork = memo(({ isGodMode }) => {
-  const canvasRef = useRef(null);
+interface ParticleNetworkProps {
+  isGodMode: boolean;
+}
+
+const ParticleNetwork = memo(({ isGodMode }: ParticleNetworkProps) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const colorRef = useRef(DEFAULT_ACCENT);
-  const particlesRef = useRef([]);
-  const gridRef = useRef(null);
-  const mouseRef = useRef({ x: null, y: null });
+  const particlesRef = useRef<Particle[]>([]);
+  const gridRef = useRef<SpatialGrid | null>(null);
+  const mouseRef = useRef<{ x: number | null; y: number | null }>({ x: null, y: null });
   const prefersReducedMotion = usePrefersReducedMotion();
 
   // Canvas sizing, particle seeding, theme colour and pointer tracking. None of
@@ -135,7 +151,7 @@ const ParticleNetwork = memo(({ isGodMode }) => {
     };
     resizeCanvas();
 
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (e: MouseEvent) => {
       mouseRef.current.x = e.clientX;
       mouseRef.current.y = e.clientY;
     };

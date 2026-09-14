@@ -1,13 +1,21 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import type { MouseEvent } from 'react';
+import type { DisplayMode, Project } from '../types';
 
-const RadarHUD = ({ projects, favorites, displayMode }) => {
-  const radarRef = useRef(null);
+interface RadarHUDProps {
+  projects: Project[];
+  favorites: number[];
+  displayMode: DisplayMode;
+}
+
+const RadarHUD = ({ projects, favorites, displayMode }: RadarHUDProps) => {
+  const radarRef = useRef<HTMLDivElement | null>(null);
   // Scroll position drives exactly two things — the bounding box offset and the
   // "Pos" readout — so it is written straight to those nodes. Holding it in
   // React state instead re-rendered the whole radar (one blip per project) on
   // every scroll frame.
-  const viewportBoxRef = useRef(null);
-  const positionLabelRef = useRef(null);
+  const viewportBoxRef = useRef<HTMLDivElement | null>(null);
+  const positionLabelRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
     let ticking = false;
@@ -54,7 +62,7 @@ const RadarHUD = ({ projects, favorites, displayMode }) => {
     };
   }, [projects]); // Re-calculate if projects list changes height
 
-  const handleRadarClick = (e) => {
+  const handleRadarClick = (e: MouseEvent<HTMLDivElement>) => {
     if (!radarRef.current) return;
 
     const rect = radarRef.current.getBoundingClientRect();

@@ -5,10 +5,10 @@ import useA11yPreferences from '../hooks/useA11yPreferences';
 export default function CustomCursor() {
   const { flags } = useEffectsContext();
   const { allowCustomCursor } = useA11yPreferences();
-  const cursorDotRef = useRef(null);
-  const cursorRingRef = useRef(null);
-  const requestRef = useRef(null);
-  const telemetryRef = useRef(null);
+  const cursorDotRef = useRef<HTMLDivElement | null>(null);
+  const cursorRingRef = useRef<HTMLDivElement | null>(null);
+  const requestRef = useRef<number | null>(null);
+  const telemetryRef = useRef<HTMLDivElement | null>(null);
   const [isPointerDevice] = useState(() => {
     if (typeof window !== 'undefined') {
       return window.matchMedia('(pointer: fine)').matches;
@@ -37,7 +37,7 @@ export default function CustomCursor() {
       requestRef.current = requestAnimationFrame(animate);
     };
 
-    const onMouseMove = (e) => {
+    const onMouseMove = (e: MouseEvent) => {
       mouse.current.x = e.clientX;
       mouse.current.y = e.clientY;
       idleFrames = 0;
@@ -96,12 +96,12 @@ export default function CustomCursor() {
       }
     };
 
-    const onMouseOver = (e) => {
-      const target = e.target;
-      const isClickable = target.closest('a') ||
-                          target.closest('button') ||
-                          target.closest('.card-link');
-      const isInput = target.closest('input') || target.closest('textarea');
+    const onMouseOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isClickable = target?.closest('a') ||
+                          target?.closest('button') ||
+                          target?.closest('.card-link');
+      const isInput = target?.closest('input') || target?.closest('textarea');
 
       if (isClickable && !isInput) {
         isHoveringRef.current = true;

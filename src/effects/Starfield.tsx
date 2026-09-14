@@ -1,7 +1,11 @@
-import React, { useState, forwardRef, memo, useContext } from 'react';
+import { useState, forwardRef, memo, useContext } from 'react';
 import { OverlayContext } from '../app/context/OverlayContext';
 
-const Starfield = memo(forwardRef(({ starCount = 75 }, ref) => {
+interface StarfieldProps {
+  starCount?: number;
+}
+
+const Starfield = memo(forwardRef<HTMLDivElement, StarfieldProps>(({ starCount = 75 }, ref) => {
   const context = useContext(OverlayContext);
   const isWarping = context?.isWarping || false;
 

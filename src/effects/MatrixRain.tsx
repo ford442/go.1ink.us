@@ -1,13 +1,14 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import useAnimationLoop from '../hooks/useAnimationLoop';
 import usePrefersReducedMotion from '../hooks/usePrefersReducedMotion';
+import type { ThemeId } from '../types';
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+{}[]|;:,.<>?/~'.split('');
 const FONT_SIZE = 16;
 const FPS = 30;
 const FRAME_INTERVAL = 1000 / FPS;
 
-function themeColor(theme) {
+function themeColor(theme: ThemeId) {
   switch (theme) {
     case 'purple': return '#d946ef'; // fuchsia-500
     case 'emerald': return '#10b981'; // emerald-500
@@ -17,9 +18,13 @@ function themeColor(theme) {
   }
 }
 
-const MatrixRain = ({ theme }) => {
-  const canvasRef = useRef(null);
-  const dropsRef = useRef([]);
+interface MatrixRainProps {
+  theme: ThemeId;
+}
+
+const MatrixRain = ({ theme }: MatrixRainProps) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const dropsRef = useRef<number[]>([]);
   const columnsRef = useRef(0);
   const lastTimeRef = useRef(0);
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -37,7 +42,7 @@ const MatrixRain = ({ theme }) => {
     return () => window.removeEventListener('resize', resizeCanvas);
   }, []);
 
-  const draw = useCallback((time) => {
+  const draw = useCallback((time: number) => {
     if (time - lastTimeRef.current < FRAME_INTERVAL) return;
     lastTimeRef.current = time;
 

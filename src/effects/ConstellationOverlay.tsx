@@ -1,11 +1,27 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import type { Category, DisplayMode, EnhancedProject } from '../types';
 
-const ConstellationOverlay = ({ hoveredTag, visibleProjects, displayMode }) => {
-  const [lines, setLines] = useState([]);
-  const containerRef = useRef(null);
+interface ConstellationLine {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  key: string;
+  distance: number;
+}
+
+interface ConstellationOverlayProps {
+  hoveredTag: string | null;
+  visibleProjects: EnhancedProject[];
+  displayMode: DisplayMode;
+}
+
+const ConstellationOverlay = ({ hoveredTag, visibleProjects, displayMode }: ConstellationOverlayProps) => {
+  const [lines, setLines] = useState<ConstellationLine[]>([]);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    let rafId;
+    let rafId: number;
 
     // When no tag is hovered (the default, idle state) there is nothing to
     // draw. Clear any stale lines with a single deferred update instead of
@@ -19,7 +35,7 @@ const ConstellationOverlay = ({ hoveredTag, visibleProjects, displayMode }) => {
     const updateLines = () => {
       // Find all projects that share this tag or category
       const relatedProjects = visibleProjects.filter(p =>
-        p.tagSet?.has(hoveredTag) || p.categorySet?.has(hoveredTag) || (p.tags && p.tags.includes(hoveredTag))
+        p.tagSet?.has(hoveredTag) || p.categorySet?.has(hoveredTag as Category) || (p.tags && p.tags.includes(hoveredTag))
       );
 
       if (relatedProjects.length < 2) {
@@ -28,7 +44,7 @@ const ConstellationOverlay = ({ hoveredTag, visibleProjects, displayMode }) => {
       }
 
       // We need to measure the positions of the actual DOM elements
-      const points = [];
+      const points: { x: number; y: number; id: number }[] = [];
       const containerRect = containerRef.current?.getBoundingClientRect();
 
       if (!containerRect) return;
@@ -45,7 +61,7 @@ const ConstellationOverlay = ({ hoveredTag, visibleProjects, displayMode }) => {
       });
 
       // Generate lines between points (simple distance-based or just connecting all to all if few, or nearest neighbor)
-      const newLines = [];
+      const newLines: ConstellationLine[] = [];
 
       // Draw lines between closest nodes to form a constellation
       for (let i = 0; i < points.length; i++) {

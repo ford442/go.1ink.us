@@ -1,8 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import useA11yPreferences from '../hooks/useA11yPreferences';
 
 const Screensaver = () => {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const { allowMotionEffects } = useA11yPreferences();
 
   useEffect(() => {
@@ -10,6 +10,7 @@ const Screensaver = () => {
     if (!canvas || !allowMotionEffects) return;
 
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
     // Set canvas dimensions
     let width = window.innerWidth;
@@ -32,12 +33,12 @@ const Screensaver = () => {
 
     const fontSize = 16;
     let columns = Math.floor(width / fontSize);
-    let drops = new Array(columns).fill(1);
+    const drops = new Array(columns).fill(1);
 
     const draw = () => {
       // Handle resizing that might add columns
       if (Math.floor(width / fontSize) > columns) {
-        let newColumns = Math.floor(width / fontSize);
+        const newColumns = Math.floor(width / fontSize);
         drops.length = newColumns;
         drops.fill(1, columns);
         columns = newColumns;
