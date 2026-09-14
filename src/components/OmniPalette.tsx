@@ -1,25 +1,47 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import soundSystem from '../lib/SoundSystem';
 import { CATEGORY_THEMES } from '../constants';
 import { useTerminalContext } from '../app/context/TerminalContext';
+import type { OmniProtocolItem } from '../app/context/contextTypes';
 import useFocusTrap from '../hooks/useFocusTrap';
+import type { Project } from '../types';
+
+interface ProjectCommandItem {
+  id: string;
+  type: 'project';
+  label: string;
+  description: string;
+  action: () => void;
+  icon: string;
+  project: Project;
+  keywords: string[];
+}
+
+type OmniCommand = ProjectCommandItem | OmniProtocolItem;
+
+interface OmniPaletteProps {
+  isOpen: boolean;
+  onClose: () => void;
+  projects: Project[];
+  onProjectSelect: (project: Project) => void;
+}
 
 const OmniPalette = ({
   isOpen,
   onClose,
   projects,
   onProjectSelect,
-}) => {
+}: OmniPaletteProps) => {
   const { omniProtocolItems = [] } = useTerminalContext() || {};
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const inputRef = useRef(null);
-  const listRef = useRef(null);
-  const dialogRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
   useFocusTrap(dialogRef, isOpen);
 
-  const commands = useMemo(() => {
-    const projectItems = projects.map((p) => ({
+  const commands = useMemo<OmniCommand[]>(() => {
+    const projectItems: ProjectCommandItem[] = projects.map((p) => ({
       id: `proj-${p.id}`,
       type: 'project',
       label: p.title,
@@ -60,7 +82,7 @@ const OmniPalette = ({
     onClose();
   };
 
-  const handleExecute = (item) => {
+  const handleExecute = (item: OmniCommand) => {
     soundSystem.playClick();
     item.action();
     if (item.type !== 'filter') {
@@ -71,7 +93,7 @@ const OmniPalette = ({
   useEffect(() => {
     if (!isOpen) return undefined;
 
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         setSelectedIndex((prev) => (prev < filteredItems.length - 1 ? prev + 1 : 0));
@@ -95,8 +117,9 @@ const OmniPalette = ({
   }, [isOpen, filteredItems, selectedIndex]);
 
   useEffect(() => {
-    if (isOpen && inputRef.current) {
-      setTimeout(() => inputRef.current.focus(), 50);
+    const input = inputRef.current;
+    if (isOpen && input) {
+      setTimeout(() => input.focus(), 50);
       setQuery('');
       soundSystem.playSelect();
     }
@@ -168,8 +191,12 @@ const OmniPalette = ({
           ) : (
             filteredItems.map((item, index) => {
               const isSelected = index === selectedIndex;
+              // CATEGORY_THEMES maps to a swatch array (used elsewhere for tag
+              // pills), not a {bgClass, textClass} pair — this lookup always
+              // misses and falls through to the defaults below, matching the
+              // pre-existing (untyped) behavior.
               const filterTheme = item.type === 'filter'
-                ? CATEGORY_THEMES[item.label.replace('Filter: ', '')]
+                ? (CATEGORY_THEMES as Record<string, { bgClass?: string; textClass?: string } | undefined>)[item.label.replace('Filter: ', '')]
                 : null;
 
               return (

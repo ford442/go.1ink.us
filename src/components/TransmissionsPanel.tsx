@@ -2,13 +2,21 @@ import { memo, useMemo } from 'react';
 import projectData from '../data/projectData';
 import { deriveTransmissions } from '../lib/transmissions';
 import soundSystem from '../lib/SoundSystem';
+import type { Project } from '../types';
+
+interface TransmissionsPanelProps {
+  projects?: Project[];
+  onSelectProject?: (project: Project) => void;
+  variant?: 'rail' | 'sidebar';
+  limit?: number;
+}
 
 export default memo(function TransmissionsPanel({
   projects = projectData,
   onSelectProject,
   variant = 'rail',
   limit,
-}) {
+}: TransmissionsPanelProps) {
   const allTransmissions = useMemo(() => deriveTransmissions(projects), [projects]);
   const transmissions = limit ? allTransmissions.slice(0, limit) : allTransmissions;
 
