@@ -41,6 +41,7 @@ export default function useVisualLayer(
 
   const backendRef = useRef<VisualBackend | null>(null);
   const themeRef = useRef<ThemeId>(theme);
+  const densityRef = useRef(density);
   const accentRgbRef = useRef(DEFAULT_ACCENT_RGB);
   // A browser's OffscreenCanvas support can't change mid-session, so this is
   // computed once (lazy initializer) rather than re-derived inside an effect.
@@ -68,7 +69,7 @@ export default function useVisualLayer(
       height: window.innerHeight,
       accentRgb: accentRgbRef.current,
       theme: themeRef.current,
-      density,
+      density: densityRef.current,
     });
 
     const handleResize = () => backend.resize(window.innerWidth, window.innerHeight);
@@ -91,14 +92,25 @@ export default function useVisualLayer(
       backend.dispose();
       backendRef.current = null;
     };
-    // `density` is intentionally a dependency: a density change (e.g. God Mode
-    // toggling) re-seeds the layer from scratch, mirroring the pre-worker
-    // ParticleNetwork effect that recreated every particle when `isGodMode` changed.
-  }, [effect, active, canvasRef, density, loopHandle, usesWorker]);
+    // `density` is deliberately NOT a dependency here — a density change (e.g.
+    // God Mode toggling) goes through the dedicated setDensity effect below
+    // instead of tearing down and reinitializing the backend. Re-running init()
+    // means re-transferring the canvas for a worker-backed layer, which can
+    // only happen once per <canvas> element ever (see OffscreenWorkerBackend).
+  }, [effect, active, canvasRef, loopHandle, usesWorker]);
 
   useEffect(() => {
     themeRef.current = theme;
     if (!active) return;
     backendRef.current?.setTheme(accentRgbRef.current, theme);
   }, [theme, active]);
+
+  useEffect(() => {
+    densityRef.current = density;
+    if (!active) return;
+    // Mirrors the pre-worker ParticleNetwork effect that recreated every
+    // particle when `isGodMode` changed: each engine's setDensity reseeds
+    // itself, so this updates density in place instead of reinitializing.
+    backendRef.current?.setDensity(density);
+  }, [density, active]);
 }

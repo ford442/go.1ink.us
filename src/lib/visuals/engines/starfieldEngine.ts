@@ -34,6 +34,7 @@ export class StarfieldEngine implements Engine {
   private height = 0;
   private density = 1;
   private stars: Star[] = [];
+  private startTime: number | null = null;
   private readonly shootingStars: ShootingStar[] = [
     { x: 0.5, y: 0.2, delay: 5000 },
     { x: 0.3, y: 0.6, delay: 12000 },
@@ -78,6 +79,7 @@ export class StarfieldEngine implements Engine {
   tick(time: number): void {
     const ctx = this.ctx;
     if (!ctx) return;
+    if (this.startTime === null) this.startTime = time;
 
     ctx.clearRect(0, 0, this.width, this.height);
 
@@ -93,11 +95,16 @@ export class StarfieldEngine implements Engine {
     }
     ctx.globalAlpha = 1;
 
-    for (const star of this.shootingStars) this.drawShootingStar(ctx, star, time);
+    // Relative to this engine's own first tick, not the rAF/worker timestamp
+    // origin, so `delay` always means "this long after the starfield appeared" —
+    // matching CSS `animation-delay` semantics — regardless of when it mounted.
+    const elapsed = time - this.startTime;
+    for (const star of this.shootingStars) this.drawShootingStar(ctx, star, elapsed);
   }
 
-  private drawShootingStar(ctx: Canvas2D, star: ShootingStar, time: number): void {
-    const cycle = ((time + star.delay) % CYCLE_MS) / CYCLE_MS;
+  private drawShootingStar(ctx: Canvas2D, star: ShootingStar, elapsed: number): void {
+    if (elapsed < star.delay) return;
+    const cycle = ((elapsed - star.delay) % CYCLE_MS) / CYCLE_MS;
     if (cycle > TRAVEL_FRACTION) return;
 
     const progress = cycle / TRAVEL_FRACTION;

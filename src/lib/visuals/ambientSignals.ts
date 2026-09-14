@@ -27,7 +27,11 @@ class AmbientSignals {
     for (const listener of this.listeners) listener.onPointer?.(this.pointerX, this.pointerY);
   };
 
-  private handleMouseOut = (): void => {
+  private handleMouseOut = (event: MouseEvent): void => {
+    // `window` also receives `mouseout` for crossings onto a child element
+    // (relatedTarget set); only a null relatedTarget means the pointer
+    // actually left the document, so only clear on that.
+    if (event.relatedTarget !== null) return;
     this.pointerX = null;
     this.pointerY = null;
     for (const listener of this.listeners) listener.onPointer?.(null, null);

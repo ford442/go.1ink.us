@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { VisualWorkerRuntime } from '../src/lib/visuals/worker/visualWorkerRuntime.ts';
 import { VisualWorkerClient } from '../src/lib/visuals/VisualWorkerClient.ts';
+import { OffscreenWorkerBackend } from '../src/lib/visuals/backends/OffscreenWorkerBackend.ts';
 
 // --- Fakes standing in for the browser objects the real protocol crosses ---
 
@@ -150,6 +151,35 @@ describe('VisualWorkerRuntime', () => {
     assert.equal(scheduled.length, 1);
   });
 
+  it('parks the shared loop once a layer\'s tick() reports no more demand, and wakes it on setPointer', () => {
+    const frames = [];
+    const { factory, engines } = createFakeEngineFactory();
+    let demandsFrame = true;
+    const runtime = new VisualWorkerRuntime(
+      () => {},
+      (effect) => {
+        const engine = factory(effect);
+        const originalTick = engine.tick;
+        engine.tick = (time) => { originalTick(time); return demandsFrame; };
+        return engine;
+      },
+      (cb) => { frames.push(cb); return frames.length; },
+      () => {},
+    );
+
+    runtime.handleMessage({ type: 'init', payload: basePayload({ layerId: 'a', effect: 'cursorTrail' }) });
+    assert.equal(frames.length, 1);
+
+    demandsFrame = false;
+    frames[0](100);
+    assert.equal(engines.get('cursorTrail').calls.filter((c) => c[0] === 'tick').length, 1);
+    assert.equal(frames.length, 1, 'no frame scheduled once the layer reports no more demand');
+    assert.ok(!runtime.isLoopRunningForTest());
+
+    runtime.handleMessage({ type: 'setPointer', layerId: 'a', x: 5, y: 5 });
+    assert.equal(frames.length, 2, 'setPointer wakes the parked layer and reschedules a frame');
+  });
+
   it('disposes a layer, calls Engine.dispose, and stops the loop when nothing else is running', () => {
     const cancelled = [];
     const { factory, engines } = createFakeEngineFactory();
@@ -223,5 +253,81 @@ describe('VisualWorkerClient', () => {
     // No worker should exist yet, so a stray send() before any init is silently dropped.
     assert.doesNotThrow(() => client.send({ type: 'setRunning', layerId: 'x', running: true }));
     assert.equal(factoryCalls, 0);
+  });
+});
+
+describe('OffscreenWorkerBackend', () => {
+  // `HTMLCanvasElement.transferControlToOffscreen()` throws the second time it's
+  // called on the same element — this fake reproduces that to catch a regression.
+  function createFakeCanvasElement() {
+    let transferCount = 0;
+    return {
+      get transferCount() { return transferCount; },
+      transferControlToOffscreen() {
+        transferCount++;
+        if (transferCount > 1) {
+          throw new Error("Failed to execute 'transferControlToOffscreen' on 'HTMLCanvasElement': Cannot transfer control from a canvas for more than one time.");
+        }
+        return { width: 0, height: 0 };
+      },
+    };
+  }
+
+  function createFakeClient() {
+    const sent = [];
+    const initLayerCalls = [];
+    return {
+      sent,
+      initLayerCalls,
+      initLayer: (payload, transfer) => initLayerCalls.push({ payload, transfer }),
+      send: (message) => sent.push(message),
+    };
+  }
+
+  it('reuses the still-alive layer instead of re-transferring when a new backend instance inits the same canvas', () => {
+    // Mirrors what useVisualLayer's effect does on every run: create a *new*
+    // OffscreenWorkerBackend instance and call init() on the same <canvas> —
+    // this happens on React StrictMode's dev double-invoke, and on any real
+    // disable/re-enable (e.g. prefers-reduced-motion flipping) that leaves the
+    // canvas mounted throughout.
+    const canvas = createFakeCanvasElement();
+    const client = createFakeClient();
+
+    const backendA = new OffscreenWorkerBackend('starfield', client);
+    backendA.init(canvas, { width: 100, height: 100, accentRgb: 'a', theme: 'cyan', density: 1 });
+    assert.equal(client.initLayerCalls.length, 1);
+    const firstLayerId = client.initLayerCalls[0].payload.layerId;
+
+    backendA.dispose();
+    assert.deepEqual(client.sent.at(-1), { type: 'setRunning', layerId: firstLayerId, running: false });
+
+    const backendB = new OffscreenWorkerBackend('starfield', client);
+    assert.doesNotThrow(() =>
+      backendB.init(canvas, { width: 200, height: 150, accentRgb: 'b', theme: 'purple', density: 1 }),
+    );
+
+    assert.equal(canvas.transferCount, 1, 'transferControlToOffscreen is called at most once ever for this canvas');
+    assert.equal(client.initLayerCalls.length, 1, 'no second init/transfer message sent to the worker');
+
+    const resumed = client.sent.find((m) => m.type === 'setRunning' && m.running === true);
+    assert.ok(resumed, 'the reused layer is resumed');
+    assert.equal(resumed.layerId, firstLayerId);
+
+    const resized = client.sent.find((m) => m.type === 'resize');
+    assert.deepEqual(resized, { type: 'resize', layerId: firstLayerId, width: 200, height: 150 });
+  });
+
+  it('transfers each distinct canvas independently', () => {
+    const client = createFakeClient();
+
+    new OffscreenWorkerBackend('starfield', client).init(createFakeCanvasElement(), {
+      width: 10, height: 10, accentRgb: 'a', theme: 'cyan', density: 1,
+    });
+    new OffscreenWorkerBackend('starfield', client).init(createFakeCanvasElement(), {
+      width: 10, height: 10, accentRgb: 'a', theme: 'cyan', density: 1,
+    });
+
+    assert.equal(client.initLayerCalls.length, 2);
+    assert.notEqual(client.initLayerCalls[0].payload.layerId, client.initLayerCalls[1].payload.layerId);
   });
 });

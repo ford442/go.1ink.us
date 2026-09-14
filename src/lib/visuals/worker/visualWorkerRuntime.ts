@@ -6,6 +6,8 @@ interface Layer {
   canvas: TransferableCanvas;
   engine: Engine;
   running: boolean;
+  /** Whether this layer's last tick() asked to keep going (false = parked until something wakes it). */
+  demandsFrame: boolean;
 }
 
 export type PostMessageFn = (message: WorkerToHostMessage) => void;
@@ -53,20 +55,35 @@ export class VisualWorkerRuntime {
           layer.canvas.width = message.width;
           layer.canvas.height = message.height;
           layer.engine.resize(message.width, message.height);
+          layer.demandsFrame = true;
         });
+        this.ensureLoop();
         break;
       case 'setTheme':
-        this.withLayer(message.layerId, (layer) => layer.engine.setTheme(message.accentRgb, message.theme));
+        this.withLayer(message.layerId, (layer) => {
+          layer.engine.setTheme(message.accentRgb, message.theme);
+          layer.demandsFrame = true;
+        });
+        this.ensureLoop();
         break;
       case 'setPointer':
-        this.withLayer(message.layerId, (layer) => layer.engine.setPointer(message.x, message.y));
+        this.withLayer(message.layerId, (layer) => {
+          layer.engine.setPointer(message.x, message.y);
+          layer.demandsFrame = true;
+        });
+        this.ensureLoop();
         break;
       case 'setDensity':
-        this.withLayer(message.layerId, (layer) => layer.engine.setDensity(message.density));
+        this.withLayer(message.layerId, (layer) => {
+          layer.engine.setDensity(message.density);
+          layer.demandsFrame = true;
+        });
+        this.ensureLoop();
         break;
       case 'setRunning':
         this.withLayer(message.layerId, (layer) => {
           layer.running = message.running;
+          if (message.running) layer.demandsFrame = true;
         });
         this.ensureLoop();
         break;
@@ -98,24 +115,25 @@ export class VisualWorkerRuntime {
       density: payload.density,
     });
 
-    this.layers.set(payload.layerId, { canvas: payload.canvas, engine, running: true });
+    this.layers.set(payload.layerId, { canvas: payload.canvas, engine, running: true, demandsFrame: true });
     this.postMessage({ type: 'ready', layerId: payload.layerId });
     this.ensureLoop();
   }
 
+  private hasFrameDemand(): boolean {
+    return Array.from(this.layers.values()).some((layer) => layer.running && layer.demandsFrame);
+  }
+
   private ensureLoop(): void {
-    const anyRunning = Array.from(this.layers.values()).some((layer) => layer.running);
-    if (!anyRunning || this.loopHandle !== null) return;
+    if (!this.hasFrameDemand() || this.loopHandle !== null) return;
 
     const step = (time: number) => {
       this.loopHandle = null;
-      let stillRunning = false;
       for (const layer of this.layers.values()) {
-        if (!layer.running) continue;
-        stillRunning = true;
-        layer.engine.tick(time);
+        if (!layer.running || !layer.demandsFrame) continue;
+        if (layer.engine.tick(time) === false) layer.demandsFrame = false;
       }
-      if (stillRunning) this.loopHandle = this.scheduleFrame(step);
+      if (this.hasFrameDemand()) this.loopHandle = this.scheduleFrame(step);
     };
     this.loopHandle = this.scheduleFrame(step);
   }
