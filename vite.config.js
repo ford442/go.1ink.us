@@ -90,6 +90,11 @@ export default defineConfig({
       }
     }
   ],
+  // `src/lib/visuals/worker/visualWorker.ts` is loaded via `new Worker(new URL(...), { type: 'module' })`
+  // (OffscreenWorkerBackend / VisualWorkerClient) — bundle it as ES so dev and build match.
+  worker: {
+    format: 'es',
+  },
   server: {
     strictPort: true,
     host: true,
