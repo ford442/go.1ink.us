@@ -12,6 +12,10 @@ system, on top of standard search/filter/sort browsing.
 ## Features
 
 - **Project Portfolio**: Card-based grid, list, and dense "matrix" layouts, plus an interactive force-graph "Neural Map" view (`react-force-graph-2d`) that clusters projects by shared tags
+- **3D Constellation View**: A `@react-three/fiber` scene that places every project as a star clustered by category, with fly-to-select navigation; falls back to the 2D Neural Map when WebGL is unavailable or performance mode is Lite
+- **Offline-ready PWA**: Installable with an auto-updating service worker (`vite-plugin-pwa`) that precaches the app shell for offline browsing
+- **Loadouts**: Save, apply, share (via URL), export/import, and delete named snapshots of your favorites list from the sidebar
+- **Transmissions**: A live changelog feed (sidebar rail, dedicated panel, and a "Recently Updated" strip in dense view) surfacing each project's latest patch notes
 - **Search & Filter**: Real-time search with keyboard shortcuts (`/` to focus, `Cmd/Ctrl+K` for the Omni Command Palette), hierarchical category/tag filtering, and sortable results — all synced to the URL (`?filters=&q=&sort=&view=`) for deep linking
 - **Terminal**: A command-line bar (backtick to open) with autocomplete and commands like `filter`, `sort`, `view`, `theme`, `sound`, `crt`, `matrix`, `perf`, `holo`, `lockdown`, `open <id>`, and `fav <id>` — see `help` in-app for the full list
 - **Omni Command Palette**: `Cmd/Ctrl+K` opens a fuzzy-searchable command menu for themes, layout, effects, and navigation
@@ -55,11 +59,12 @@ system, on top of standard search/filter/sort browsing.
 
 ```
 src/
-  app/          # Thin App.jsx composition root + context/ domain providers
+  app/          # Thin App.tsx composition root + context/ domain providers
   components/   # UI: header, sidebar, cards, terminal, overlays, holo-terminal
   effects/      # Ambient/decorative visuals: starfield, matrix rain, particle network, radar HUD, screensaver, cursor trail
   hooks/        # Feature and utility hooks (persisted state, URL sync, idle protocol, favorites, toasts, …)
   lib/          # SoundSystem (procedural Web Audio SFX engine)
+  ground/       # Dependency-free orbital-visibility math (geodesy, ground station, TLE, passes) — not yet wired into the UI
   data/         # projects.json catalog + validated projectData.ts export
   styles/       # Tailwind entry point + theme CSS variables
 ```

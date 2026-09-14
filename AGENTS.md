@@ -19,13 +19,13 @@ This is a single-page application (SPA) built with modern React patterns, served
 | Animation | Framer Motion | ^12.40.0 |
 | Map View | react-force-graph-2d | ^1.29.1 |
 | Linting | ESLint | ^9.39.1 |
-| Types | TypeScript (partial — see TypeScript Migration) | ^7.0.2 |
+| Types | TypeScript (100% of `src/` — see TypeScript Migration) | ^7.0.2 |
 | Deployment | Python + Paramiko (SFTP) | - |
 | Deployment | Python (HTTP upload to storage.noahcohn.com) | - |
 
-TypeScript is adopted incrementally: the data/lib layer, every hook, and the
-domain-context contracts are typed, while most UI components remain JSX.
-`checkJs: false` keeps unconverted JSX out of type-checking scope.
+Every file under `src/` is TypeScript (`.ts`/`.tsx`); see "TypeScript
+Migration" below for how that happened and the conventions to keep it that
+way.
 
 ---
 
@@ -47,11 +47,11 @@ go.1ink.us/
 │   ├── go1inkus.png           # Footer logo
 │   └── vite.svg               # Favicon
 ├── src/                       # Source code
-│   ├── main.jsx               # React entry point
-│   ├── App.jsx                # Main app component (filtering, search, layout)
+│   ├── main.tsx               # React entry point
+│   ├── App.tsx                # Main app component (filtering, search, layout)
 │   ├── types.ts                # Shared domain types (Project, Category, DisplayMode, …)
 │   ├── components/Card/       # Project card: shell + layout variants (grid/list/matrix/data-mode)
-│   ├── Starfield.jsx          # Animated starfield background
+│   ├── Starfield.tsx          # Animated starfield background
 │   ├── data/
 │   │   ├── projects.json      # Project catalog (edit here)
 │   │   ├── projectData.ts     # Validates + re-exports projects.json
@@ -128,16 +128,16 @@ Production build enforces an **initial JS gzip budget of 130 KB** (entry + modul
 
 `vite.config.js` sets `manualChunks` for `vendor-react` and `vendor-motion`, `sourcemap: false` in prod, and `reportCompressedSize: true`. `react-force-graph-2d` ships inside the lazy `SystemMap` chunk (not preloaded).
 
-`framer-motion` was previously pulled into the entry bundle because `MainContent`, `Toast`, and `SystemOverlays` imported it eagerly (~41 KB gzip). `MainContent.jsx` was split into `src/components/MainContent/` (`MainContent.jsx` orchestrator, `ViewToolbar`, `ProjectGridView`, `Pagination`, `EmptyState`, `useGridPerspective`), and the card-grid entrance/hover animation and `Toast` enter/exit now use CSS keyframes in `App.css` (`animate-card-enter`, `animate-slide-in-right` / `animate-fade-out-right`) instead of `motion.div`/`AnimatePresence`. `ShortcutCheatsheet` is the only remaining `framer-motion` consumer and is already behind a lazy boundary, so `vendor-motion` no longer ships until it's opened.
+`framer-motion` was previously pulled into the entry bundle because `MainContent`, `Toast`, and `SystemOverlays` imported it eagerly (~41 KB gzip). `MainContent.tsx` was split into `src/components/MainContent/` (`MainContent.tsx` orchestrator, `ViewToolbar`, `ProjectGridView`, `Pagination`, `EmptyState`, `useGridPerspective`), and the card-grid entrance/hover animation and `Toast` enter/exit now use CSS keyframes in `App.css` (`animate-card-enter`, `animate-slide-in-right` / `animate-fade-out-right`) instead of `motion.div`/`AnimatePresence`. `ShortcutCheatsheet` is the only remaining `framer-motion` consumer and is already behind a lazy boundary, so `vendor-motion` no longer ships until it's opened.
 
 ---
 
 ## Code Style Guidelines
 
-### JavaScript/React Conventions
+### TypeScript/React Conventions
 
 1. **Module Type**: ESM (`"type": "module"` in package.json)
-2. **File Extensions**: Use `.jsx` for React components
+2. **File Extensions**: Use `.tsx` for React components, `.ts` for everything else
 3. **Imports**: Group by external deps, then internal modules
 4. **Hooks Order**: `useState`, `useMemo`, `useEffect`, `useRef`
 5. **Event Handlers**: Prefix with `handle` (e.g., `handleMouseMove`)
@@ -209,9 +209,9 @@ python scripts/deploy.py
 - **URL Sync**: Filter, search, sort, and view mode sync to URL params (`?filters=&q=&sort=&view=`) for deep linking
 - **View Transitions**: Uses `document.startViewTransition` for smooth UI updates
 
-### App.jsx as Composition Root
+### App.tsx as Composition Root
 
-`App.jsx` (254 LOC, down from 786 before this refactor) no longer owns most of its state and
+`App.tsx` (254 LOC, down from 786 before this refactor) no longer owns most of its state and
 side effects directly — it calls a set of focused hooks under `src/hooks/`
 and wires their results together, then hands six memoized values to
 `AppProviders`:
@@ -228,9 +228,9 @@ and wires their results together, then hands six memoized values to
 | `useLayoutGlitchTransition(displayMode)` | the brief glitch animation played on layout switch |
 | `usePagination({ displayMode, activeFilters, searchQuery, sortOption })` | current page, items-per-page, and keyboard-focused card index |
 | `useAppFeatures(...)` | wires `useProjectBrowser`, `useTerminalController`, `useGlobalShortcuts`, and `useBackgroundEffects` together — the four hooks that derive behavior from persisted/URL state rather than owning their own |
-| `useAppProviderValues(...)` | builds the six memoized context values (see below) from everything else `App.jsx` assembled |
+| `useAppProviderValues(...)` | builds the six memoized context values (see below) from everything else `App.tsx` assembled |
 
-`App.jsx` itself is left owning only what doesn't cleanly belong in one of
+`App.tsx` itself is left owning only what doesn't cleanly belong in one of
 the above: `hoveredTag`, `isMobileFiltersOpen`, `isGodMode`, `randomSeed`,
 `isOmniOpen`, `isLockdown`, `isWarping`, `changeTheme`, `handleCopyLink`,
 `handleDisplayModeChange`, and the scroll-velocity/sound/theme side-effect
@@ -238,7 +238,7 @@ the above: `hoveredTag`, `isMobileFiltersOpen`, `isGodMode`, `randomSeed`,
 
 ### Context Architecture
 
-All state is still owned by `app/App.jsx` (no external store), but it is
+All state is still owned by `app/App.tsx` (no external store), but it is
 **not** exposed through one flat context. `app/context/` splits it into six
 domain-scoped contexts so a component only re-renders when the domain it
 actually reads changes:
@@ -259,7 +259,7 @@ so bundling that with the starfield/grid refs would re-render the
 background on every few keystrokes.
 
 Each context's value is built with `useMemo` in `hooks/useAppProviderValues.ts`
-(called from `App.jsx`), and the callbacks that go into those values
+(called from `App.tsx`), and the callbacks that go into those values
 (`changeTheme`, `toggleFavorite`, `handleProjectSelect`, drag handlers,
 etc.) are wrapped in `useCallback` so the memoized objects don't change
 identity on unrelated renders. The 1Hz system-stats ticker (`CommandHeader`)
@@ -292,24 +292,24 @@ domain-specific dependency lists so unrelated context identities stay stable.
 
 ### Terminal, Omni Palette, and Map View
 
-- **Terminal** (`components/TerminalBar.jsx`, backtick to open): a command
+- **Terminal** (`components/TerminalBar.tsx`, backtick to open): a command
   bar over `useTerminalController`. Type `help` for the full command list.
   `components/HoloTerminal/` is a second, floating "holo-terminal" panel
   variant with the same command engine plus a live audio waveform and
-  system monitor. It is lazy-loaded and mounted from `App.jsx`; the `holo`
+  system monitor. It is lazy-loaded and mounted from `App.tsx`; the `holo`
   terminal command and its Omni Palette item toggle it.
-- **Omni Command Palette** (`components/OmniPalette.jsx`, `Cmd/Ctrl+K`): a
+- **Omni Command Palette** (`components/OmniPalette.tsx`, `Cmd/Ctrl+K`): a
   fuzzy-searchable command menu for themes, layout mode, effects toggles,
   and filter/navigation actions — the fast path for anything the terminal
   can also do.
-- **Neural Map view** (`components/SystemMap.jsx`, `view=map` / the map
+- **Neural Map view** (`components/SystemMap.tsx`, `view=map` / the map
   icon in the layout toggle): renders projects as a `react-force-graph-2d`
   graph, linking projects that share tags (Jaccard similarity), with
   click-to-open on nodes.
 
 ### Boot Sequence
 
-A full biometric-style boot screen (`components/BootScreen.jsx`) exists in
+A full biometric-style boot screen (`components/BootScreen.tsx`) exists in
 the code — animated boot logs, a hold-to-scan biometric gate — but is
 **bypassed by default** so public visitors land directly in the project
 grid. To exercise it locally, clear `sessionStorage.curator_booted` (or see
@@ -318,7 +318,7 @@ so automated screenshots skip the boot screen).
 
 ### Key Components
 
-#### app/App.jsx
+#### app/App.tsx
 Thin composition root only — see Context Architecture above. It retains only
 composition-level state/callbacks, delegates persistence and feature behavior
 to focused hooks, wires loadout bootstrap state, builds the six context values
@@ -328,18 +328,18 @@ through `useAppProviderValues`, and renders the layout shell.
 The project card was a single ~1200-line file; it's split by concern, each
 file under ~250 LOC:
 
-- `Card.jsx` — shell. Owns the shared hooks/state (tilt, hover-delay,
+- `Card.tsx` — shell. Owns the shared hooks/state (tilt, hover-delay,
   image loading, favorite burst, search-highlight regex, complexity
   score) and switches to the right layout component based on the
   `layout`/`isDataMode` props.
-- `CardGrid.jsx` / `CardGridFront.jsx` / `CardGridBack.jsx` / `CardGridEffects.jsx` — default 3D-tilt layout, split into the flip shell, front face, diagnostics back face, and the purely-decorative CSS-var-driven hover overlays.
-- `CardMatrix.jsx`, `CardList.jsx`, `CardDataMode.jsx` — the other three layout variants.
-- `useCardTilt.js` — mouse-tracking rotation (max 15deg) gated behind `hover: hover` + `prefers-reduced-motion`.
-- `useCardHover.js` — hover state + 700ms-delayed "deep focus" state + probe latency readout when build-time health data exists.
-- `useCardMedia.js` — image load/error state + the scroll-triggered decrypt IntersectionObserver.
-- `useFavoriteBurst.js` / `CardFavoriteBurst.jsx` — the favorite-toggle particle animation.
-- `CardMedia.jsx`, `CardTagList.jsx`, `CardTechBadges.jsx`, `ComplexityMeter.jsx`, `CardFavoriteButton.jsx`, `CardCopyLinkButton.jsx` — presentational pieces shared across layout variants (each takes a `variant` prop for per-layout styling differences).
-- `highlightMatch.jsx`, `cardStyles.js` — small shared helpers.
+- `CardGrid.tsx` / `CardGridFront.tsx` / `CardGridBack.tsx` / `CardGridEffects.tsx` — default 3D-tilt layout, split into the flip shell, front face, diagnostics back face, and the purely-decorative CSS-var-driven hover overlays.
+- `CardMatrix.tsx`, `CardList.tsx`, `CardDataMode.tsx` — the other three layout variants.
+- `useCardTilt.ts` — mouse-tracking rotation (max 15deg) gated behind `hover: hover` + `prefers-reduced-motion`.
+- `useCardHover.ts` — hover state + 700ms-delayed "deep focus" state + probe latency readout when build-time health data exists.
+- `useCardMedia.ts` — image load/error state + the scroll-triggered decrypt IntersectionObserver.
+- `useFavoriteBurst.ts` / `CardFavoriteBurst.tsx` — the favorite-toggle particle animation.
+- `CardMedia.tsx`, `CardTagList.tsx`, `CardTechBadges.tsx`, `ComplexityMeter.tsx`, `CardFavoriteButton.tsx`, `CardCopyLinkButton.tsx` — presentational pieces shared across layout variants (each takes a `variant` prop for per-layout styling differences).
+- `highlightMatch.tsx`, `cardStyles.ts` — small shared helpers.
 
 Note: `isVisible` (from `useCardMedia`) is only ever driven to `true` while
 the grid layout is mounted, because only `CardGrid` attaches the shared
@@ -347,7 +347,7 @@ the grid layout is mounted, because only `CardGrid` attaches the shared
 pre-existing behavior, not a bug.
 
 #### Clocks
-`components/Clock.jsx` is the single implementation behind both header
+`components/Clock.tsx` is the single implementation behind both header
 clocks: `precision="seconds"` (1Hz, labeled "SYS.TIME:") and
 `precision="milliseconds"` (50ms, the unlabeled ticker at the far right).
 The 50ms tick is intentional — a fast-ticking readout fits the dashboard's
@@ -355,13 +355,13 @@ The 50ms tick is intentional — a fast-ticking readout fits the dashboard's
 component, not the rest of the app.
 
 #### Audio Visualizers
-Two components draw a live waveform from `lib/SoundSystem.js`'s analyser
-data: `components/AudioVisualizer.jsx` (CommandHeader's compact themed
-meter) and `components/HoloTerminal/AudioVisualizer.jsx` (the larger,
+Two components draw a live waveform from `lib/SoundSystem.ts`'s analyser
+data: `components/AudioVisualizer.tsx` (CommandHeader's compact themed
+meter) and `components/HoloTerminal/AudioVisualizer.tsx` (the larger,
 always-cyan panel inside the holo-terminal). They share their drawing loop
 via `hooks/useAudioWaveform.ts` and only differ in canvas sizing/color.
 
-#### effects/Starfield.jsx
+#### effects/Starfield.tsx
 - **Memoized**: Prevents unnecessary re-renders
 - **Random Generation**: Stars generated once on mount
 - **Animations**: Twinkle and shooting star effects
@@ -475,19 +475,22 @@ npm run test:unit   # includes scripts/test-ground-station.mjs
 
 ## TypeScript Migration
 
-The stack is JS + React 19 + Vite 7; `@types/react`/`@types/react-dom` were
-already installed but no `.ts`/`.tsx` sources existed until this migration
-started. TS is being adopted gradually rather than in one pass — mixing
-`.ts`/`.tsx` and `.js`/`.jsx` is fully supported by Vite (esbuild
-transpiles both) and by `tsconfig.json`'s `allowJs: true`.
+The stack is TypeScript + React 19 + Vite 7. Migration ran gradually,
+file-by-file, rather than in one pass; `tsconfig.json`'s `allowJs: true` +
+`checkJs: false` existed to let `.ts`/`.tsx` and `.js`/`.jsx` coexist while it
+was in progress.
 
-**Current state**: 61 `.ts`/`.tsx` and 64 `.js`/`.jsx` files live under
-`src/`. `strict: true` applies to every converted file; `checkJs: false`
-keeps unconverted JSX available for module resolution without treating it as
-typed source. All 27 hooks are TypeScript. `app/context/contextTypes.ts`, the
-generic context factory, six domain contexts, `AppProviders.tsx`, and
-`useAppProviderValues.ts` enforce the provider contracts. `src/constants.ts`
-is the only category/tag constants module used by validation and runtime UI.
+**Current state**: migration complete — every file under `src/` is
+`.ts`/`.tsx` (81 `.ts`, 66 `.tsx`; zero `.js`/`.jsx`). `strict: true` applies
+across the whole tree. `allowJs`/`checkJs: false` stay in `tsconfig.json`
+harmlessly (nothing left for them to affect) rather than being pulled to
+avoid churning the config for its own sake; a follow-up can drop them.
+`eslint.config.js` has a matching `**/*.{ts,tsx}` block (see "Linting
+converted TypeScript" below) so every file is both type-checked and linted.
+`app/context/contextTypes.ts`, the generic context factory, six domain
+contexts, `AppProviders.tsx`, and `useAppProviderValues.ts` enforce the
+provider contracts. `src/constants.ts` is the only category/tag constants
+module used by validation and runtime UI.
 
 **Phased plan** (each phase should leave `npm run typecheck` and
 `npm run build` both clean):
@@ -495,7 +498,7 @@ is the only category/tag constants module used by validation and runtime UI.
 1. ~~Add `tsconfig.json` (`allowJs` + `checkJs: false`) and a `typecheck` script~~ — done
 2. ~~Type the data layer: `src/types.ts` (`Project`, `Category`, `DisplayMode`, `ThemeId`, `SortOption`, …), then convert `constants.js` → `constants.ts` and `projectData.js` → `projectData.ts`~~ — done
 3. ~~Convert every hook (`src/hooks/*.js` → `.ts`) and type the context/provider boundary~~ — done
-4. Convert components (`.jsx` → `.tsx`), leaf-first (`Tooltip`, `Clock`, `DecryptText`) before container components (`App.jsx`, `MainContent.jsx`) — next
+4. ~~Convert components (`.jsx` → `.tsx`), leaf-first (`Tooltip`, `Clock`, `DecryptText`) before container components (`App.tsx`, `MainContent.tsx`)~~ — done: leaf presentational components and Card hooks, then `SoundSystem`/`loadoutsStub`, then the remaining mid-level components (effects/, HoloTerminal/, MainContent/ sections, OmniPalette, SystemMap/SystemConstellation, ProjectQuickView, CommandHeader, …), then containers (`Card.tsx`, `MainContent.tsx`, `Sidebar.tsx`, `App.tsx`, `main.tsx`) last
 5. ~~Enable `strict: true` for converted TypeScript while retaining `checkJs: false` for JSX~~ — done
 
 **Conventions for new/converted files**:
@@ -612,9 +615,9 @@ there's no collision). Drop this split once `typescript-eslint` supports TS 7.
 
 ### Modifying Card Effects
 
-- **Tilt Sensitivity**: Edit the rotation multiplier in `components/Card/useCardTilt.js` `handleMouseMove`
-- **Hover Delay**: Modify `duration-700` and the 700ms timer in `components/Card/useCardHover.js`
-- **Parallax Depth**: Adjust `translateZ` values in `components/Card/CardGridFront.jsx`
+- **Tilt Sensitivity**: Edit the rotation multiplier in `components/Card/useCardTilt.ts` `handleMouseMove`
+- **Hover Delay**: Modify `duration-700` and the 700ms timer in `components/Card/useCardHover.ts`
+- **Parallax Depth**: Adjust `translateZ` values in `components/Card/CardGridFront.tsx`
 
 ---
 
