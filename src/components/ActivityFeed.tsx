@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { buildConnectivityActivityLogs, formatNetTelemetry } from '../lib/projectConnectivity';
 import { useActivityContext } from '../app/context/ActivityContext';
+import type { ActivityLog } from '../hooks/useBootSequence';
 
 const ActivityFeed = () => {
   const { userActivityLogs = [] } = useActivityContext() || {};
@@ -8,7 +9,7 @@ const ActivityFeed = () => {
   const healthLogs = useMemo(() => buildConnectivityActivityLogs(12), []);
   const netTelemetry = useMemo(() => formatNetTelemetry(), []);
 
-  const [logs, setLogs] = useState(() =>
+  const [logs, setLogs] = useState<ActivityLog[]>(() =>
     healthLogs.slice(0, 8).map((text, index) => ({
       id: `health-${index}`,
       text,
@@ -17,7 +18,7 @@ const ActivityFeed = () => {
   );
 
   const logCursor = useRef(healthLogs.length > 8 ? 8 : 0);
-  const bottomRef = useRef(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (healthLogs.length <= 8) return undefined;

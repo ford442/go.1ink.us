@@ -46,7 +46,7 @@ export default function BackgroundElements() {
           </Suspense>
         )}
         {showParticles && (
-          <ParticleNetwork theme={theme} isGodMode={isGodMode} />
+          <ParticleNetwork isGodMode={isGodMode} />
         )}
 
         {flags.floatingDebris && (

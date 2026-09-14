@@ -1,20 +1,25 @@
-import React, { useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import soundSystem from '../lib/SoundSystem';
 import useAudioWaveform from '../hooks/useAudioWaveform';
+import type { ThemeId } from '../types';
 
-const THEME_COLORS = {
+const THEME_COLORS: Record<ThemeId, string> = {
   purple: '#d946ef', // fuchsia-500
   emerald: '#10b981', // emerald-500
   gold: '#fbbf24', // amber-400
   cyan: '#06b6d4' // cyan-500
 };
 
+interface AudioVisualizerProps {
+  theme: ThemeId;
+}
+
 // Compact waveform meter shown in CommandHeader. See also
 // components/HoloTerminal/AudioVisualizer.jsx, the larger panel used
 // inside the floating holo-terminal — both share their drawing logic via
 // hooks/useAudioWaveform.
-const AudioVisualizer = ({ theme }) => {
-  const canvasRef = useRef(null);
+const AudioVisualizer = ({ theme }: AudioVisualizerProps) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const color = useMemo(() => THEME_COLORS[theme] || THEME_COLORS.cyan, [theme]);
 
   useAudioWaveform(canvasRef, { color });
