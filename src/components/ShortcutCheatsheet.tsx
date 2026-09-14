@@ -1,14 +1,19 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useFocusTrap from '../hooks/useFocusTrap';
 
-const ShortcutCheatsheet = ({ isOpen, onClose }) => {
-  const dialogRef = useRef(null);
+interface ShortcutCheatsheetProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const ShortcutCheatsheet = ({ isOpen, onClose }: ShortcutCheatsheetProps) => {
+  const dialogRef = useRef<HTMLDivElement | null>(null);
   useFocusTrap(dialogRef, isOpen);
 
   useEffect(() => {
     if (!isOpen) return undefined;
-    const handleKeyDown = (event) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
         onClose();

@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import soundSystem from '../lib/SoundSystem';
 import { useBrowserContext } from '../app/context/BrowserContext';
 
@@ -17,7 +18,7 @@ export default function LoadoutPanel() {
 
   const [isOpen, setIsOpen] = useState(false);
   const [newName, setNewName] = useState('');
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleSave = () => {
     if (!newName.trim()) return;
@@ -26,7 +27,7 @@ export default function LoadoutPanel() {
     setNewName('');
   };
 
-  const handleImport = (e) => {
+  const handleImport = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();

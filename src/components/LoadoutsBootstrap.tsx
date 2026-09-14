@@ -1,6 +1,10 @@
 import { useEffect } from 'react';
 import useLoadouts from '../hooks/useLoadouts';
 
+type LoadoutsBootstrapProps = Parameters<typeof useLoadouts>[0] & {
+  onReady: (api: ReturnType<typeof useLoadouts>) => void;
+};
+
 export default function LoadoutsBootstrap({
   favorites,
   isLockdown,
@@ -10,7 +14,7 @@ export default function LoadoutsBootstrap({
   addToast,
   addActivityLog,
   onReady,
-}) {
+}: LoadoutsBootstrapProps) {
   const api = useLoadouts({
     favorites,
     isLockdown,
