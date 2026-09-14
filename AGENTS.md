@@ -56,7 +56,10 @@ go.1ink.us/
 │   │   ├── projects.json      # Project catalog (edit here)
 │   │   ├── projectData.ts     # Validates + re-exports projects.json
 │   ├── constants.ts           # Single runtime + validation source for categories/tags
-│   ├── App.css                # Custom CSS animations and 3D effects
+│   ├── App.css                # Entry point: @imports the App.*.css partials below
+│   ├── App.base.css           # Root layout, glass/3D card styling, entrance + star-field animations
+│   ├── App.effects.css        # Boot sequence, theme pulse glows, card hover effects
+│   ├── App.retro.css          # CRT/retro effects, global scrollbar, a11y overrides
 │   └── index.css              # Tailwind CSS import
 └── (End of structure)              # E2E test scripts and screenshots
     └── *.png                  # Test result screenshots
@@ -142,7 +145,7 @@ Production build enforces an **initial JS gzip budget of 130 KB** (entry + modul
 ### CSS Conventions
 
 1. **Tailwind First**: Use Tailwind utilities for layout and common styles
-2. **Custom CSS**: Place complex animations and 3D effects in `app/App.css`
+2. **Custom CSS**: Place complex animations and 3D effects in the `app/App.*.css` partials (imported by `App.css`), grouped by responsibility; keep each partial well under 700 lines
 3. **CSS Variables**: Use for dynamic values (e.g., `--mouse-x`, `--mouse-y`)
 4. **Class Naming**: Use kebab-case for custom CSS classes
 
