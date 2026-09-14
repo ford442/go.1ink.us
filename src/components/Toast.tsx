@@ -1,8 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { ReactElement } from 'react';
+import type { Toast as ToastData } from '../hooks/useToasts';
 
 const EXIT_DURATION_MS = 300;
 
-export default function Toast({ toast, removeToast }) {
+interface ToastProps {
+  toast: ToastData;
+  removeToast: (id: string) => void;
+}
+
+export default function Toast({ toast, removeToast }: ToastProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
   const [progress, setProgress] = useState(100);
@@ -17,7 +24,7 @@ export default function Toast({ toast, removeToast }) {
 
   useEffect(() => {
     let startTime = Date.now();
-    let animationFrame;
+    let animationFrame: number;
 
     const animate = () => {
       if (isHovered || isLeaving) {
@@ -48,7 +55,9 @@ export default function Toast({ toast, removeToast }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHovered, isLeaving, toast.id, duration]);
 
-  let borderClass, textClass, icon;
+  let borderClass: string;
+  let textClass: string;
+  let icon: ReactElement;
   switch (toast.type) {
     case 'success':
       borderClass = 'border-pink-500/50 shadow-[0_0_15px_rgba(236,72,153,0.3)]';

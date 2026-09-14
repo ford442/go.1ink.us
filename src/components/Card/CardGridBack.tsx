@@ -1,17 +1,25 @@
 import soundSystem from '../../lib/SoundSystem';
+import type { CSSProperties } from 'react';
+import type { Project } from '../../types';
 
 const backShellClass =
   'absolute inset-0 h-full w-full flex flex-col rounded-xl border border-accent-500/50 overflow-hidden backdrop-blur-xl bg-black/95 z-20 shadow-[inset_0_0_30px_rgba(var(--rgb-accent-400),0.15),0_0_20px_rgba(var(--rgb-accent-400),0.3)]';
 
-const backFaceStyle = {
+const backFaceStyle: CSSProperties = {
   backfaceVisibility: 'hidden',
   WebkitBackfaceVisibility: 'hidden',
   transform: 'rotateY(180deg)',
 };
 
+interface CardGridBackProps {
+  project: Project;
+  isFlipped: boolean;
+  onClose: () => void;
+}
+
 // Back face of the grid card (flipped via CardGrid's isFlipped state):
 // raw JSON payload + simulated diagnostics readout.
-export default function CardGridBack({ project, isFlipped, onClose }) {
+export default function CardGridBack({ project, isFlipped, onClose }: CardGridBackProps) {
   if (!isFlipped) {
     return (
       <div

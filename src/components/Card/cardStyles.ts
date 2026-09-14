@@ -2,7 +2,20 @@
 // Each variant has a distinct base (perspective/warp/focus-ring treatment)
 // and a distinct isDragOver accent, but share the same draggable/isDragged
 // state classes — centralized here instead of duplicated per layout file.
-const VARIANTS = {
+export type CardVariant = 'dataMode' | 'matrix' | 'list' | 'grid' | 'dense' | 'compact';
+
+interface VariantClasses {
+  base: string;
+  dragOver: string;
+}
+
+interface CardWrapperState {
+  draggable?: boolean;
+  isDragged?: boolean;
+  isDragOver?: boolean;
+}
+
+const VARIANTS: Record<CardVariant, VariantClasses> = {
   dataMode: {
     base: 'perspective-container card-focusable focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400 focus-visible:ring-offset-4 focus-visible:ring-offset-black rounded-xl animate-slide-in-up transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:z-10',
     dragOver: 'ring-2 ring-pink-500 z-50 rounded-lg'
@@ -29,7 +42,7 @@ const VARIANTS = {
   }
 };
 
-export function getCardWrapperClasses(variant, { draggable, isDragged, isDragOver }) {
+export function getCardWrapperClasses(variant: CardVariant, { draggable, isDragged, isDragOver }: CardWrapperState) {
   const { base, dragOver } = VARIANTS[variant];
   return `${base} ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragged ? 'opacity-50 scale-95 shadow-none' : ''} ${isDragOver ? dragOver : ''}`;
 }

@@ -1,11 +1,22 @@
 import { flushSync } from 'react-dom';
+import type { Dispatch, SetStateAction } from 'react';
 
-function withViewTransition(fn) {
+function withViewTransition(fn: () => void) {
   if (document.startViewTransition) {
     document.startViewTransition(() => flushSync(fn));
   } else {
     fn();
   }
+}
+
+interface EmptyStateProps {
+  searchQuery: string;
+  activeFilters: string[];
+  suggestedTags: string[];
+  setSearchQuery: Dispatch<SetStateAction<string>>;
+  toggleFilter: (filter: string) => void;
+  setActiveFilters: Dispatch<SetStateAction<string[]>>;
+  setCurrentPage: Dispatch<SetStateAction<number>>;
 }
 
 export default function EmptyState({
@@ -16,7 +27,7 @@ export default function EmptyState({
   toggleFilter,
   setActiveFilters,
   setCurrentPage,
-}) {
+}: EmptyStateProps) {
   const clearSearch = () => withViewTransition(() => { setSearchQuery(''); setCurrentPage(1); });
   const clearTags = () => withViewTransition(() => { setActiveFilters([]); setCurrentPage(1); });
   const resetAll = () => withViewTransition(() => { setActiveFilters([]); setSearchQuery(''); setCurrentPage(1); });

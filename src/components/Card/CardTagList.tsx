@@ -1,7 +1,15 @@
 import highlightMatch from './highlightMatch';
 import soundSystem from '../../lib/SoundSystem';
 
-const VARIANTS = {
+type CardTagListVariant = 'grid' | 'matrix' | 'list' | 'compact' | 'dense';
+
+interface TagListVariantConfig {
+  wrapper: string;
+  slice: number | null;
+  tagClass: (isHighlighted: boolean) => string;
+}
+
+const VARIANTS: Record<CardTagListVariant, TagListVariantConfig> = {
   grid: {
     wrapper: 'flex flex-wrap gap-2 mt-auto pointer-events-auto pt-2 border-t border-white/5',
     slice: null,
@@ -44,10 +52,20 @@ const VARIANTS = {
   }
 };
 
+interface CardTagListProps {
+  variant?: CardTagListVariant;
+  tags?: string[];
+  highlightedTags?: string[];
+  onTagClick?: (tag: string) => void;
+  onHoverTag?: (tag: string | null) => void;
+  searchQuery?: string;
+  regex?: RegExp | null;
+}
+
 // Renders the clickable tag-pill list shared across grid/list/matrix
 // layouts. Each variant differs in wrapper visibility breakpoints, pill
 // styling, and how many tags are shown.
-export default function CardTagList({ variant = 'compact', tags = [], highlightedTags = [], onTagClick, onHoverTag, searchQuery, regex }) {
+export default function CardTagList({ variant = 'compact', tags = [], highlightedTags = [], onTagClick, onHoverTag, searchQuery, regex }: CardTagListProps) {
   const cfg = VARIANTS[variant] || VARIANTS.compact;
   const safeTags = Array.isArray(tags) ? tags : [];
   const visibleTags = cfg.slice ? safeTags.slice(0, cfg.slice) : safeTags;

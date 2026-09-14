@@ -7,6 +7,17 @@ import CardFavoriteButton from './CardFavoriteButton';
 import CardCopyLinkButton from './CardCopyLinkButton';
 import { ProjectConnectivityBadge } from '../ProjectMetaBadges';
 import highlightMatch from './highlightMatch';
+import type { Project } from '../../types';
+import type { CardInteractionProps, CardActionProps, CardTagInteractionProps, CardSearchProps } from './cardTypes';
+
+interface CardCompactProps extends CardInteractionProps, CardActionProps, CardTagInteractionProps, CardSearchProps {
+  project: Project;
+  imageLoaded: boolean;
+  setImageLoaded: (loaded: boolean) => void;
+  imageError: boolean;
+  setImageError: (error: boolean) => void;
+  isHovered?: boolean;
+}
 
 // Compact high-density card variant used in the dense grid catalog.
 // Keeps DOM chrome light (no 3D tilt tracking or heavy backdrop blur layers)
@@ -37,12 +48,12 @@ export default function CardCompact({
   highlightedTags,
   onTagClick,
   onHoverTag,
-  isFavorite,
+  isFavorite = false,
   onToggleFavorite,
   favoriteParticles,
   triggerFavoriteBurst,
   onCopyLink,
-}) {
+}: CardCompactProps) {
   return (
     <div
       id={`project-card-${project.id}`}

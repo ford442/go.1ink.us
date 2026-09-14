@@ -1,4 +1,18 @@
 import { ProjectImage } from '../ProjectImage';
+import type { Project } from '../../types';
+
+interface CardMediaProps {
+  variant?: 'matrix' | 'compact' | 'dense' | 'grid' | string;
+  project: Project;
+  imageLoaded: boolean;
+  setImageLoaded: (loaded: boolean) => void;
+  // Only the 'matrix' and 'compact'/'dense' variants render an error state.
+  imageError?: boolean;
+  setImageError?: (error: boolean) => void;
+  isVisible?: boolean;
+  isHoverDelayed?: boolean;
+  isSelected?: boolean;
+}
 
 // Project image area with skeleton loader and RGB-glitch hover overlay.
 // `variant="grid"` renders the full-height hero image (with hover-delayed
@@ -14,7 +28,7 @@ export default function CardMedia({
   isVisible,
   isHoverDelayed,
   isSelected
-}) {
+}: CardMediaProps) {
   if (variant === 'matrix') {
     return (
       <div className="w-20 h-14 rounded border border-white/10 tinted-glass shifting-glass overflow-hidden shrink-0 relative z-10 pointer-events-none group-hover:gold-glow transition-colors duration-300">
@@ -34,7 +48,7 @@ export default function CardMedia({
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
                 onError={() => {
-                  setImageError(true);
+                  setImageError?.(true);
                   setImageLoaded(true);
                 }}
                 className={`w-full h-full object-cover transition-all duration-700 ${imageLoaded ? 'opacity-80 blur-0 scale-100' : 'opacity-0 blur-sm scale-105'} group-hover:opacity-100`}

@@ -1,11 +1,17 @@
 import soundSystem from '../../lib/SoundSystem';
 import { getCardWrapperClasses } from './cardStyles';
+import type { Project } from '../../types';
+import type { CardInteractionProps } from './cardTypes';
+
+interface CardDataModeProps extends CardInteractionProps {
+  project: Project;
+}
 
 // X-ray / data-mode branch: renders the raw project payload instead of the
 // normal card face.
 export default function CardDataMode({
   project,
-  index,
+  index = 0,
   isSelected,
   draggable,
   isDragged,
@@ -19,7 +25,7 @@ export default function CardDataMode({
   handleKeyDown,
   handleFocus,
   onProjectClick
-}) {
+}: CardDataModeProps) {
   return (
     <div
       id={`project-card-${project.id}`}

@@ -1,7 +1,9 @@
+import type { ReactNode } from 'react';
+
 // Highlights the substring of `text` matching `regex` (built from the
 // active search query). Kept outside any component to avoid re-allocating
 // the function identity on every render.
-export default function highlightMatch(text, query, regex) {
+export default function highlightMatch(text: string, query: string | undefined, regex: RegExp | null | undefined): ReactNode {
   if (!query || !text || !regex) return text;
 
   const parts = text.split(regex);

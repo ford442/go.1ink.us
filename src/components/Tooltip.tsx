@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 
-const Tooltip = ({ text, children }) => {
+interface TooltipProps {
+  text: string;
+  children: ReactNode;
+}
+
+const Tooltip = ({ text, children }: TooltipProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [displayText, setDisplayText] = useState('');
 
   useEffect(() => {
-    let intervalId;
+    let intervalId: ReturnType<typeof setInterval> | undefined;
     if (isVisible) {
       let iteration = 0;
       const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';

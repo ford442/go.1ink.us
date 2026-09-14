@@ -1,8 +1,19 @@
 import Tooltip from '../Tooltip';
 import soundSystem from '../../lib/SoundSystem';
 import CardFavoriteBurst from './CardFavoriteBurst';
+import type { FavoriteParticle } from './CardFavoriteBurst';
+import type { Project } from '../../types';
 
-const VARIANTS = {
+type FavoriteButtonVariant = 'grid' | 'compact';
+
+interface FavoriteVariantConfig {
+  tooltipPrefix: string;
+  button: (isFavorite: boolean) => string;
+  icon: string;
+  burstSize: 'lg' | 'sm';
+}
+
+const VARIANTS: Record<FavoriteButtonVariant, FavoriteVariantConfig> = {
   grid: {
     tooltipPrefix: 'SYS: ',
     button: (isFavorite) => `p-2 rounded-full transition-all duration-300 backdrop-blur-md ${isFavorite
@@ -23,10 +34,19 @@ const VARIANTS = {
   }
 };
 
+interface CardFavoriteButtonProps {
+  variant?: FavoriteButtonVariant;
+  project: Project;
+  isFavorite: boolean;
+  onToggleFavorite?: (project: Project) => void;
+  favoriteParticles?: FavoriteParticle[];
+  triggerFavoriteBurst?: () => void;
+}
+
 // Favorite (heart) toggle button used across grid/list/matrix layouts.
 // `variant="grid"` matches the larger, opacity-gated header button; the
 // default "compact" variant matches the always-visible list/matrix button.
-export default function CardFavoriteButton({ variant = 'compact', project, isFavorite, onToggleFavorite, favoriteParticles = [], triggerFavoriteBurst }) {
+export default function CardFavoriteButton({ variant = 'compact', project, isFavorite, onToggleFavorite, favoriteParticles = [], triggerFavoriteBurst }: CardFavoriteButtonProps) {
   const cfg = VARIANTS[variant] || VARIANTS.compact;
 
   return (

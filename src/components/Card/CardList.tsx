@@ -5,11 +5,22 @@ import CardTagList from './CardTagList';
 import CardFavoriteButton from './CardFavoriteButton';
 import CardCopyLinkButton from './CardCopyLinkButton';
 import highlightMatch from './highlightMatch';
+import type { MouseEvent } from 'react';
+import type { Project } from '../../types';
+import type { CardInteractionProps, CardActionProps, CardTagInteractionProps, CardSearchProps } from './cardTypes';
+
+interface CardListProps extends CardInteractionProps, CardActionProps, CardTagInteractionProps, CardSearchProps {
+  project: Project;
+  isHovered?: boolean;
+  isVisible?: boolean;
+  onMouseEnter?: (e: MouseEvent<HTMLDivElement>) => void;
+  onMouseLeave?: (e: MouseEvent<HTMLDivElement>) => void;
+}
 
 // Terminal-style single-line list layout.
 export default function CardList({
   project,
-  index,
+  index = 0,
   isSelected,
   draggable,
   isDragged,
@@ -32,12 +43,12 @@ export default function CardList({
   highlightedTags,
   onTagClick,
   onHoverTag,
-  isFavorite,
+  isFavorite = false,
   onToggleFavorite,
   favoriteParticles,
   triggerFavoriteBurst,
   onCopyLink
-}) {
+}: CardListProps) {
   // Generate pseudo-terminal deterministic values
   const date = new Date(2025, project.id % 12, (project.id * 7) % 28 + 1).toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
   const size = (project.title.length * 14 + project.description.length * 3 + (project.tags?.length || 0) * 128).toString();

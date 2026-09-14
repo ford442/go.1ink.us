@@ -9,11 +9,24 @@ import ComplexityMeter from './ComplexityMeter';
 import CardFavoriteButton from './CardFavoriteButton';
 import CardCopyLinkButton from './CardCopyLinkButton';
 import highlightMatch from './highlightMatch';
+import type { Project } from '../../types';
+import type { CardInteractionProps, CardActionProps, CardTagInteractionProps, CardSearchProps } from './cardTypes';
+
+interface CardMatrixProps extends CardInteractionProps, CardActionProps, CardTagInteractionProps, CardSearchProps {
+  project: Project;
+  imageLoaded: boolean;
+  setImageLoaded: (loaded: boolean) => void;
+  imageError: boolean;
+  setImageError: (error: boolean) => void;
+  isVisible?: boolean;
+  isHovered?: boolean;
+  complexityScore: number;
+}
 
 // Dense single-row "matrix" layout.
 export default function CardMatrix({
   project,
-  index,
+  index = 0,
   isSelected,
   draggable,
   isDragged,
@@ -38,13 +51,13 @@ export default function CardMatrix({
   highlightedTags,
   onTagClick,
   onHoverTag,
-  isFavorite,
+  isFavorite = false,
   onToggleFavorite,
   favoriteParticles,
   triggerFavoriteBurst,
   onCopyLink,
   complexityScore
-}) {
+}: CardMatrixProps) {
   return (
     <div
       id={`project-card-${project.id}`}

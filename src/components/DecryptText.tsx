@@ -1,9 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*';
 
+interface DecryptTextProps {
+  text: string;
+  isHovered?: boolean;
+  isVisible?: boolean;
+  searchQuery?: string;
+  regex?: RegExp | null;
+}
+
 // Helper to highlight matching text
-const highlightMatch = (text, query, regex) => {
+const highlightMatch = (text: string, query: string, regex: RegExp | null | undefined): ReactNode => {
   if (!query || !text || !regex) return text;
 
   const parts = text.split(regex);
@@ -14,8 +23,8 @@ const highlightMatch = (text, query, regex) => {
   );
 };
 
-const DecryptText = ({ text, isHovered, isVisible, searchQuery, regex }) => {
-  const [scrambled, setScrambled] = useState(null);
+const DecryptText = ({ text, isHovered, isVisible, searchQuery, regex }: DecryptTextProps) => {
+  const [scrambled, setScrambled] = useState<string | null>(null);
 
   useEffect(() => {
     // If there's an active search query, skip the scramble to preserve highlight functionality seamlessly

@@ -1,10 +1,17 @@
 import Tooltip from '../Tooltip';
 import highlightMatch from './highlightMatch';
 
+interface CardTechBadgesProps {
+  variant?: 'grid' | string;
+  tech?: string[];
+  searchQuery?: string;
+  regex?: RegExp | null;
+}
+
 // Tech-stack badge pills. Grid shows every tech entry (and renders nothing
 // if there is none); matrix shows the first two behind a `sm:` breakpoint.
 // List layout has no tech badges at all.
-export default function CardTechBadges({ variant, tech, searchQuery, regex }) {
+export default function CardTechBadges({ variant, tech, searchQuery, regex }: CardTechBadgesProps) {
   if (variant === 'grid') {
     if (!tech || tech.length === 0) return null;
     return (

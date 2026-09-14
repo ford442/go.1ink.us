@@ -2,12 +2,30 @@ import { useState } from 'react';
 import { getCardWrapperClasses } from './cardStyles';
 import CardGridFront from './CardGridFront';
 import CardGridBack from './CardGridBack';
+import type { MouseEvent, Ref } from 'react';
+import type { Project } from '../../types';
+import type { CardInteractionProps, CardActionProps, CardTagInteractionProps, CardSearchProps } from './cardTypes';
+
+interface CardGridProps extends CardInteractionProps, CardActionProps, CardTagInteractionProps, CardSearchProps {
+  project: Project;
+  cardRef?: Ref<HTMLDivElement>;
+  onMouseEnter?: (e: MouseEvent<HTMLDivElement>) => void;
+  onMouseMove?: (e: MouseEvent<HTMLDivElement>) => void;
+  onMouseLeave?: (e: MouseEvent<HTMLDivElement>) => void;
+  imageLoaded: boolean;
+  setImageLoaded: (loaded: boolean) => void;
+  isVisible?: boolean;
+  isHovered?: boolean;
+  isHoverDelayed?: boolean;
+  ping?: number;
+  complexityScore: number;
+}
 
 // Default 3D-tilt "holographic" card layout, with a flip-to-diagnostics
 // back face. Owns the flip state locally since no other layout uses it.
 export default function CardGrid({
   project,
-  index,
+  index = 0,
   isSelected,
   draggable,
   isDragged,
@@ -42,7 +60,7 @@ export default function CardGrid({
   triggerFavoriteBurst,
   onCopyLink,
   complexityScore
-}) {
+}: CardGridProps) {
   const [isFlipped, setIsFlipped] = useState(false);
 
   return (

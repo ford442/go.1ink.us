@@ -1,9 +1,14 @@
 import Tooltip from '../Tooltip';
 
+interface ComplexityMeterProps {
+  variant?: 'matrix' | string;
+  score: number;
+}
+
 // Complexity dots (1-5), derived from tech+tag count. Grid shows a taller
 // variable-height bar meter with a tooltip next to the title; matrix shows
 // a compact fixed-height meter with a "CPLX" label and a native title attr.
-export default function ComplexityMeter({ variant, score }) {
+export default function ComplexityMeter({ variant, score }: ComplexityMeterProps) {
   if (variant === 'matrix') {
     return (
       <div className="hidden md:flex flex-col items-center justify-center gap-1 w-12 shrink-0 z-10 pointer-events-none border-l border-white/5 pl-2">

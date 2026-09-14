@@ -1,7 +1,16 @@
 import Tooltip from '../Tooltip';
 import soundSystem from '../../lib/SoundSystem';
+import type { Project } from '../../types';
 
-const VARIANTS = {
+type CopyLinkVariant = 'grid' | 'compact';
+
+interface CopyLinkVariantConfig {
+  tooltip: string;
+  button: string;
+  icon: string;
+}
+
+const VARIANTS: Record<CopyLinkVariant, CopyLinkVariantConfig> = {
   grid: {
     tooltip: 'SYS: COPY_LINK',
     button: 'p-2 rounded-full transition-all duration-300 backdrop-blur-md bg-black/30 text-white/50 opacity-0 group-hover:opacity-100 border border-white/10 hover:bg-accent-500/20 hover:text-accent-300 hover:border-accent-400/50 hover:scale-110',
@@ -14,8 +23,14 @@ const VARIANTS = {
   }
 };
 
+interface CardCopyLinkButtonProps {
+  variant?: CopyLinkVariant;
+  project: Project;
+  onCopyLink?: (project: Project) => void;
+}
+
 // Copy-link button used across grid/list/matrix layouts.
-export default function CardCopyLinkButton({ variant = 'compact', project, onCopyLink }) {
+export default function CardCopyLinkButton({ variant = 'compact', project, onCopyLink }: CardCopyLinkButtonProps) {
   const cfg = VARIANTS[variant] || VARIANTS.compact;
 
   return (

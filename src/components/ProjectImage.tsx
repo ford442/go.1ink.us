@@ -1,4 +1,21 @@
 import { getBrandImageSources, getProjectImageSources } from '../lib/projectImages';
+import type { CSSProperties } from 'react';
+import type { BrandImage as BrandImageId, ImageProfile, ImageSources } from '../lib/projectImages';
+
+interface SharedImageProps {
+  alt: string;
+  className?: string;
+  pictureClassName?: string;
+  style?: CSSProperties;
+  loading?: 'lazy' | 'eager';
+  fetchPriority?: 'high' | 'low' | 'auto';
+  onLoad?: () => void;
+  onError?: () => void;
+}
+
+interface PictureImageProps extends SharedImageProps {
+  sources: ImageSources;
+}
 
 function PictureImage({
   sources,
@@ -10,7 +27,7 @@ function PictureImage({
   fetchPriority,
   onLoad,
   onError,
-}) {
+}: PictureImageProps) {
   return (
     <picture className={pictureClassName}>
       <source type="image/avif" srcSet={sources.avifSrcSet} sizes={sources.sizes} />
@@ -29,6 +46,11 @@ function PictureImage({
   );
 }
 
+interface ProjectImageProps extends SharedImageProps {
+  imagePath: string;
+  profile: ImageProfile;
+}
+
 export function ProjectImage({
   imagePath,
   profile,
@@ -40,7 +62,7 @@ export function ProjectImage({
   fetchPriority,
   onLoad,
   onError,
-}) {
+}: ProjectImageProps) {
   const sources = getProjectImageSources(imagePath, profile);
   return (
     <PictureImage
@@ -57,6 +79,10 @@ export function ProjectImage({
   );
 }
 
+interface BrandImageProps extends SharedImageProps {
+  brand: BrandImageId;
+}
+
 export function BrandImage({
   brand,
   alt,
@@ -67,7 +93,7 @@ export function BrandImage({
   fetchPriority,
   onLoad,
   onError,
-}) {
+}: BrandImageProps) {
   const sources = getBrandImageSources(brand);
   return (
     <PictureImage

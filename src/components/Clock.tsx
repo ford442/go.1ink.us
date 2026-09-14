@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
-function formatSeconds(date) {
+interface ClockProps {
+  precision?: 'seconds' | 'milliseconds';
+  label?: string;
+}
+
+function formatSeconds(date: Date): string {
   const hh = String(date.getHours()).padStart(2, '0');
   const mm = String(date.getMinutes()).padStart(2, '0');
   const ss = String(date.getSeconds()).padStart(2, '0');
   return `${hh}:${mm}:${ss}`;
 }
 
-function formatMilliseconds(date) {
+function formatMilliseconds(date: Date): string {
   return `${date.toLocaleTimeString('en-US', { hour12: false })}.${date.getMilliseconds().toString().padStart(3, '0')}`;
 }
 
@@ -19,7 +24,7 @@ function formatMilliseconds(date) {
 //   always live" aesthetic (see also the 1Hz system-stats ticker elsewhere
 //   in CommandHeader). It only re-renders this leaf component, not the
 //   rest of the app, so the cost is bounded to one small DOM update 20x/sec.
-export default function Clock({ precision = 'seconds', label }) {
+export default function Clock({ precision = 'seconds', label }: ClockProps) {
   const [time, setTime] = useState(() => new Date());
 
   useEffect(() => {

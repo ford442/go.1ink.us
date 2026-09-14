@@ -9,6 +9,28 @@ import CardCopyLinkButton from './CardCopyLinkButton';
 import { CardGridEffectsTop, CardGridEffectsOverlay } from './CardGridEffects';
 import ProjectMetaBadges, { ProjectConnectivityBadge } from '../ProjectMetaBadges';
 import highlightMatch from './highlightMatch';
+import type { FocusEvent, KeyboardEvent } from 'react';
+import type { Project } from '../../types';
+import type { CardActionProps, CardTagInteractionProps, CardSearchProps } from './cardTypes';
+
+interface CardGridFrontProps extends CardActionProps, CardTagInteractionProps, CardSearchProps {
+  project: Project;
+  isFlipped: boolean;
+  isSelected?: boolean;
+  draggable?: boolean;
+  imageLoaded: boolean;
+  setImageLoaded: (loaded: boolean) => void;
+  isVisible?: boolean;
+  isHovered?: boolean;
+  isHoverDelayed?: boolean;
+  ping?: number;
+  complexityScore: number;
+  onFlip: () => void;
+  onProjectClick?: (project: Project) => void;
+  tabIndex?: number;
+  onFocus?: (e: FocusEvent<HTMLElement>) => void;
+  onCardKeyDown?: (e: KeyboardEvent<HTMLElement>) => void;
+}
 
 // Front face of the grid card: header actions, image, title/description,
 // tech badges, tags, and the decorative hover-effect layers.
@@ -22,13 +44,13 @@ export default function CardGridFront({
   isVisible,
   isHovered,
   isHoverDelayed,
-  ping,
+  ping = 0,
   searchQuery,
   regex,
   highlightedTags,
   onTagClick,
   onHoverTag,
-  isFavorite,
+  isFavorite = false,
   onToggleFavorite,
   favoriteParticles,
   triggerFavoriteBurst,
@@ -39,7 +61,7 @@ export default function CardGridFront({
   tabIndex = -1,
   onFocus,
   onCardKeyDown,
-}) {
+}: CardGridFrontProps) {
   return (
     <div className={`relative h-full flex flex-col rounded-xl overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] ${isFlipped ? 'pointer-events-none' : 'pointer-events-auto'} ${isHoverDelayed ? '-translate-y-3 shadow-[0_20px_40px_-10px_rgba(var(--rgb-accent-400),0.5)]' : ''}`} style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
 
