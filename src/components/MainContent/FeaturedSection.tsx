@@ -7,6 +7,19 @@ import CardFavoriteButton from '../Card/CardFavoriteButton';
 import CardCopyLinkButton from '../Card/CardCopyLinkButton';
 import { ProjectConnectivityBadge } from '../ProjectMetaBadges';
 import highlightMatch from '../Card/highlightMatch';
+import type { Project } from '../../types';
+import type { CardTagInteractionProps, CardSearchProps } from '../Card/cardTypes';
+
+interface FeaturedSectionProps extends CardTagInteractionProps, CardSearchProps {
+  featuredProjects: Project[];
+  activeFilters: string[];
+  onProjectClick?: (project: Project) => void;
+  favorites: number[];
+  toggleFavorite: (project: Project) => void;
+  onCopyLink?: (project: Project) => void;
+  hoveredProjectId: number | null;
+  setHoveredProjectId?: (id: number | null) => void;
+}
 
 export default memo(function FeaturedSection({
   featuredProjects,
@@ -21,7 +34,7 @@ export default memo(function FeaturedSection({
   onCopyLink,
   hoveredProjectId,
   setHoveredProjectId,
-}) {
+}: FeaturedSectionProps) {
   if (!featuredProjects || featuredProjects.length === 0) return null;
 
   // Render top 3-4 featured projects in a responsive strip

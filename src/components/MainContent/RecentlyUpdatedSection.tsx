@@ -1,11 +1,17 @@
 import { memo, useMemo } from 'react';
 import soundSystem from '../../lib/SoundSystem';
 import { deriveTransmissions } from '../../lib/transmissions';
+import type { Project } from '../../types';
+
+interface RecentlyUpdatedSectionProps {
+  recentProjects: Project[];
+  onProjectClick?: (project: Project) => void;
+}
 
 export default memo(function RecentlyUpdatedSection({
   recentProjects,
   onProjectClick,
-}) {
+}: RecentlyUpdatedSectionProps) {
   const transmissions = useMemo(
     () => deriveTransmissions(recentProjects || []),
     [recentProjects],

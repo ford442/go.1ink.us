@@ -1,6 +1,14 @@
 import { CATEGORY_ICONS } from '../../constants';
+import type { Category, DisplayMode } from '../../types';
 
-const DISPLAY_MODES = [
+interface DisplayModeOption {
+  mode: DisplayMode;
+  label: string;
+  title: string;
+  path: string;
+}
+
+const DISPLAY_MODES: DisplayModeOption[] = [
   {
     mode: 'dense',
     label: 'Dense Grid View',
@@ -29,6 +37,17 @@ const DISPLAY_MODES = [
   },
 ];
 
+interface ViewToolbarProps {
+  activeFilters: string[];
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  setActiveFilters: (filters: string[]) => void;
+  setCurrentPage: (page: number) => void;
+  toggleFilter: (filter: string) => void;
+  displayMode: DisplayMode;
+  handleDisplayModeChange: (mode: DisplayMode) => void;
+}
+
 export default function ViewToolbar({
   activeFilters,
   searchQuery,
@@ -38,7 +57,7 @@ export default function ViewToolbar({
   toggleFilter,
   displayMode,
   handleDisplayModeChange,
-}) {
+}: ViewToolbarProps) {
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -59,7 +78,7 @@ export default function ViewToolbar({
             )}
             {activeFilters.map(filter => (
               <span key={filter} className="text-white text-sm font-bold bg-accent-500/20 px-3 py-1 rounded-full border border-accent-500/30 flex items-center gap-2 animate-fade-in shadow-[0_0_10px_rgba(var(--rgb-accent-400),0.2)]">
-                {CATEGORY_ICONS[filter] || '🏷️'} {filter}
+                {CATEGORY_ICONS[filter as Category] || '🏷️'} {filter}
                 <button onClick={() => toggleFilter(filter)} className="ml-1 hover:text-red-400 transition-colors p-0.5" aria-label={`Remove ${filter} filter`}>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
