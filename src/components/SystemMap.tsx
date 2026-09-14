@@ -1,22 +1,40 @@
 import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
+import type { ForceGraphMethods, NodeObject, LinkObject } from 'react-force-graph-2d';
 import { useBrowserContext } from '../app/context/BrowserContext';
 import { useOverlayContext } from '../app/context/OverlayContext';
 import { useSettingsContext } from '../app/context/SettingsContext';
 import { CATEGORY_THEMES } from '../constants';
+import type { Project } from '../types';
+
+interface GraphNode {
+  name: string;
+  group: string;
+  val: number;
+  project: Project;
+  color: string;
+}
+
+interface GraphLink {
+  value: number;
+  color: string;
+}
 
 // Compute link similarities based on shared tags and categories
-const computeGraphData = (projects) => {
+const computeGraphData = (projects: Project[]) => {
   const nodes = projects.map(p => ({
     id: p.id,
     name: p.title,
     group: p.tags[0] || 'Misc',
     val: 1.5,
     project: p,
-    color: CATEGORY_THEMES[p.tags[0]] || '#2dd4bf' // fallback to accent cyan
+    // CATEGORY_THEMES maps categories to a swatch array, not a single color —
+    // p.tags[0] is a tag (not a Category), so this lookup always misses and
+    // falls through to the fallback, matching the pre-existing behavior.
+    color: (CATEGORY_THEMES as unknown as Record<string, string | undefined>)[p.tags[0]] || '#2dd4bf' // fallback to accent cyan
   }));
 
-  const links = [];
+  const links: { source: number; target: number; value: number; color: string }[] = [];
 
   // Calculate Jaccard similarity for all pairs
   for (let i = 0; i < nodes.length; i++) {
@@ -28,7 +46,7 @@ const computeGraphData = (projects) => {
       const tags2 = new Set(p2.tags || []);
 
       let intersection = 0;
-      for (let tag of tags1) {
+      for (const tag of tags1) {
         if (tags2.has(tag)) intersection++;
       }
 
@@ -56,13 +74,13 @@ export default function SystemMap() {
   const { paginatedProjects } = useBrowserContext();
   const { handleProjectSelect } = useOverlayContext();
   const { theme } = useSettingsContext();
-  const graphRef = useRef(null);
-  const containerRef = useRef(null);
+  const graphRef = useRef<ForceGraphMethods<NodeObject<GraphNode>, GraphLink> | undefined>(undefined);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
-  const [hoverNode, setHoverNode] = useState(null);
+  const [hoverNode, setHoverNode] = useState<NodeObject<GraphNode> | null>(null);
 
   // Derive theme colors
-  const getThemeColor = useCallback(() => {
+  const getThemeColor = useCallback((): string => {
     switch (theme) {
       case 'purple': return '#c084fc'; // purple-400
       case 'emerald': return '#34d399'; // emerald-400
@@ -98,26 +116,28 @@ export default function SystemMap() {
     if (graphRef.current) {
        // Warmup physics then fit view
        setTimeout(() => {
-           graphRef.current.zoomToFit(400, 50);
+           graphRef.current?.zoomToFit(400, 50);
        }, 500);
     }
   }, [graphData]);
 
   // Custom node rendering for sci-fi look
-  const paintNode = useCallback((node, ctx, globalScale) => {
+  const paintNode = useCallback((node: NodeObject<GraphNode>, ctx: CanvasRenderingContext2D, globalScale: number) => {
     const label = node.name;
     const fontSize = 12/globalScale;
+    const x = node.x ?? 0;
+    const y = node.y ?? 0;
     ctx.font = `${fontSize}px monospace`;
 
     // Draw pulsing halo for hovered node
     if (hoverNode === node) {
        ctx.beginPath();
-       ctx.arc(node.x, node.y, node.val * 2 + 4, 0, 2 * Math.PI, false);
+       ctx.arc(x, y, node.val * 2 + 4, 0, 2 * Math.PI, false);
        ctx.fillStyle = `${getThemeColor()}33`; // 20% opacity
        ctx.fill();
 
        ctx.beginPath();
-       ctx.arc(node.x, node.y, node.val * 2 + 8, 0, 2 * Math.PI, false);
+       ctx.arc(x, y, node.val * 2 + 8, 0, 2 * Math.PI, false);
        ctx.strokeStyle = `${getThemeColor()}66`; // 40% opacity
        ctx.lineWidth = 1/globalScale;
        ctx.stroke();
@@ -125,7 +145,7 @@ export default function SystemMap() {
 
     // Node core
     ctx.beginPath();
-    ctx.arc(node.x, node.y, node.val * 2, 0, 2 * Math.PI, false);
+    ctx.arc(x, y, node.val * 2, 0, 2 * Math.PI, false);
     ctx.fillStyle = hoverNode === node ? getThemeColor() : node.color;
     ctx.fill();
     ctx.strokeStyle = '#fff';
@@ -137,14 +157,16 @@ export default function SystemMap() {
        ctx.textAlign = 'center';
        ctx.textBaseline = 'middle';
        ctx.fillStyle = hoverNode === node ? '#fff' : 'rgba(255,255,255,0.7)';
-       ctx.fillText(label, node.x, node.y + node.val * 2 + fontSize);
+       ctx.fillText(label, x, y + node.val * 2 + fontSize);
     }
   }, [hoverNode, getThemeColor]);
 
-  const paintLink = useCallback((link, ctx, globalScale) => {
+  const paintLink = useCallback((link: LinkObject<GraphNode, GraphLink>, ctx: CanvasRenderingContext2D, globalScale: number) => {
+    const source = link.source as NodeObject<GraphNode> | undefined;
+    const target = link.target as NodeObject<GraphNode> | undefined;
     ctx.beginPath();
-    ctx.moveTo(link.source.x, link.source.y);
-    ctx.lineTo(link.target.x, link.target.y);
+    ctx.moveTo(source?.x ?? 0, source?.y ?? 0);
+    ctx.lineTo(target?.x ?? 0, target?.y ?? 0);
 
     // Highlight links connected to the hovered node
     const isHovered = hoverNode && (link.source === hoverNode || link.target === hoverNode);
@@ -170,7 +192,7 @@ export default function SystemMap() {
        </div>
 
        {dimensions.width > 0 && (
-         <ForceGraph2D
+         <ForceGraph2D<GraphNode, GraphLink>
            ref={graphRef}
            width={dimensions.width}
            height={dimensions.height}
@@ -187,7 +209,7 @@ export default function SystemMap() {
            linkDirectionalParticleWidth={1.5}
            linkDirectionalParticleColor={() => getThemeColor()}
 
-           onNodeHover={setHoverNode}
+           onNodeHover={(node) => setHoverNode(node)}
            onNodeClick={(node) => handleProjectSelect(node.project)}
            enableNodeDrag={true}
            cooldownTicks={100}

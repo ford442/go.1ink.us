@@ -1,4 +1,5 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState, lazy } from 'react';
+import type { ElementRef, RefObject } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Html, Line, OrbitControls, Stars } from '@react-three/drei';
 import * as THREE from 'three';
@@ -11,12 +12,14 @@ import {
   buildConstellationLinks,
   nodeMap,
 } from '../lib/constellationLayout';
+import type { ConstellationNode, ConstellationLink } from '../lib/constellationLayout';
 import { canUseConstellation3d } from '../lib/webglSupport';
 import soundSystem from '../lib/SoundSystem';
+import type { EnhancedProject, ThemeId } from '../types';
 
 const SystemMapFallback = lazy(() => import('./SystemMap'));
 
-const THEME_COLORS = {
+const THEME_COLORS: Record<ThemeId, string> = {
   cyan: '#2dd4bf',
   purple: '#c084fc',
   emerald: '#34d399',
@@ -26,11 +29,17 @@ const THEME_COLORS = {
 const FLY_DURATION_MS = 650;
 const FLY_DISTANCE = 10;
 
-function themeAccent(theme) {
+function themeAccent(theme: ThemeId) {
   return THEME_COLORS[theme] ?? THEME_COLORS.cyan;
 }
 
-function ConstellationLinks({ nodes, links, accent }) {
+interface ConstellationLinksProps {
+  nodes: ConstellationNode[];
+  links: ConstellationLink[];
+  accent: string;
+}
+
+function ConstellationLinks({ nodes, links, accent }: ConstellationLinksProps) {
   const positions = useMemo(() => {
     const map = nodeMap(nodes);
     return links.map((link) => {
@@ -39,10 +48,10 @@ function ConstellationLinks({ nodes, links, accent }) {
       if (!a || !b) return null;
       return {
         key: `${link.source}-${link.target}`,
-        points: [a.position, b.position],
+        points: [a.position, b.position] as [[number, number, number], [number, number, number]],
         opacity: Math.min(0.45, link.strength * 0.35),
       };
-    }).filter(Boolean);
+    }).filter((line): line is NonNullable<typeof line> => line !== null);
   }, [nodes, links]);
 
   return (
@@ -61,8 +70,16 @@ function ConstellationLinks({ nodes, links, accent }) {
   );
 }
 
-function StarNode({ node, isHovered, isSelected, onHover, onSelect }) {
-  const meshRef = useRef(null);
+interface StarNodeProps {
+  node: ConstellationNode;
+  isHovered: boolean;
+  isSelected: boolean;
+  onHover: (id: number | null) => void;
+  onSelect: (node: ConstellationNode) => void;
+}
+
+function StarNode({ node, isHovered, isSelected, onHover, onSelect }: StarNodeProps) {
+  const meshRef = useRef<THREE.Mesh | null>(null);
   const scale = isSelected ? 1.6 : isHovered ? 1.35 : 1;
 
   useFrame(({ clock }) => {
@@ -108,9 +125,15 @@ function StarNode({ node, isHovered, isSelected, onHover, onSelect }) {
   );
 }
 
-function CameraRig({ flyTarget, onFlyComplete, controlsRef }) {
+interface CameraRigProps {
+  flyTarget: ConstellationNode | null;
+  onFlyComplete: (project: EnhancedProject) => void;
+  controlsRef: RefObject<ElementRef<typeof OrbitControls> | null>;
+}
+
+function CameraRig({ flyTarget, onFlyComplete, controlsRef }: CameraRigProps) {
   const { camera } = useThree();
-  const flyStart = useRef(null);
+  const flyStart = useRef<number | null>(null);
   const startPos = useRef(new THREE.Vector3());
 
   useEffect(() => {
@@ -146,22 +169,28 @@ function CameraRig({ flyTarget, onFlyComplete, controlsRef }) {
   return null;
 }
 
-function ConstellationScene({ projects, theme, onSelectProject }) {
+interface ConstellationSceneProps {
+  projects: EnhancedProject[];
+  theme: ThemeId;
+  onSelectProject: (project: EnhancedProject) => void;
+}
+
+function ConstellationScene({ projects, theme, onSelectProject }: ConstellationSceneProps) {
   const nodes = useMemo(() => buildConstellationLayout(projects), [projects]);
   const links = useMemo(() => buildConstellationLinks(nodes), [nodes]);
   const accent = themeAccent(theme);
-  const controlsRef = useRef(null);
-  const [hoverId, setHoverId] = useState(null);
-  const [selectedId, setSelectedId] = useState(null);
-  const [flyTarget, setFlyTarget] = useState(null);
+  const controlsRef = useRef<ElementRef<typeof OrbitControls> | null>(null);
+  const [hoverId, setHoverId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [flyTarget, setFlyTarget] = useState<ConstellationNode | null>(null);
 
-  const handleSelect = useCallback((node) => {
+  const handleSelect = useCallback((node: ConstellationNode) => {
     soundSystem.playClick();
     setSelectedId(node.id);
     setFlyTarget(node);
   }, []);
 
-  const handleFlyComplete = useCallback((project) => {
+  const handleFlyComplete = useCallback((project: EnhancedProject) => {
     setFlyTarget(null);
     setSelectedId(null);
     onSelectProject(project);
@@ -207,7 +236,7 @@ function ConstellationScene({ projects, theme, onSelectProject }) {
   );
 }
 
-function ConstellationCanvas({ projects, theme, onSelectProject }) {
+function ConstellationCanvas({ projects, theme, onSelectProject }: ConstellationSceneProps) {
   const { flags } = useEffectsContext();
 
   return (
@@ -228,7 +257,12 @@ function ConstellationCanvas({ projects, theme, onSelectProject }) {
   );
 }
 
-function FallbackBanner({ reason, onOpenMap }) {
+interface FallbackBannerProps {
+  reason: string;
+  onOpenMap: () => void;
+}
+
+function FallbackBanner({ reason, onOpenMap }: FallbackBannerProps) {
   return (
     <div className="absolute top-3 left-3 right-3 z-20 flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-lg bg-black/70 border border-amber-500/40 backdrop-blur-md">
       <p className="text-[11px] font-mono text-amber-200/90 tracking-wide">
@@ -250,7 +284,7 @@ export default function SystemConstellation() {
   const { handleProjectSelect } = useOverlayContext();
   const { theme, handleDisplayModeChange } = useSettingsContext();
   const { flags } = useEffectsContext();
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Derive the capability decision instead of syncing it into state from an
   // effect (which triggers an extra render / cascading update). The WebGL
@@ -266,7 +300,7 @@ export default function SystemConstellation() {
     return { use3d: ok, fallbackReason: reason };
   }, [flags.constellation3d]);
 
-  const handleSelect = useCallback((project) => {
+  const handleSelect = useCallback((project: EnhancedProject) => {
     handleProjectSelect(project);
   }, [handleProjectSelect]);
 
