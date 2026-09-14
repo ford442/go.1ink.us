@@ -1,30 +1,45 @@
-const PRESETS = {
+type PresetId = 'tactical' | 'minimal' | 'silent';
+
+interface Preset {
+  masterGain: number;
+  sfxGain: number;
+  ambienceGain: number;
+  voiceVolume: number;
+  ambienceFreqs: number[];
+  sfxScale: number;
+}
+
+export interface AudioFrame {
+  timeDomain: Uint8Array<ArrayBuffer> | null;
+}
+
+type AudioFrameListener = (frame: AudioFrame) => void;
+
+const PRESETS: Record<PresetId, Preset> = {
   tactical: { masterGain: 0.25, sfxGain: 1, ambienceGain: 0.05, voiceVolume: 0.8, ambienceFreqs: [55, 56], sfxScale: 1 },
   minimal: { masterGain: 0.14, sfxGain: 0.55, ambienceGain: 0, voiceVolume: 0.65, ambienceFreqs: [48, 48.5], sfxScale: 0.55 },
   silent: { masterGain: 0, sfxGain: 0, ambienceGain: 0, voiceVolume: 0, ambienceFreqs: [55, 56], sfxScale: 0 },
 };
 
-function parsePreset(raw) {
-  return raw && raw in PRESETS ? raw : 'tactical';
+function parsePreset(raw: string | null): PresetId {
+  return raw && raw in PRESETS ? (raw as PresetId) : 'tactical';
 }
 
 /** Procedural UI audio: gain buses + shared analyser. Context starts on user gesture only. */
 class ProceduralSoundSystem {
-  constructor() {
-    this.audioContext = null;
-    this.masterGain = null;
-    this.sfxGain = null;
-    this.ambienceGain = null;
-    this.analyser = null;
-    this.timeDomainBuffer = null;
-    this.preset = PRESETS.tactical;
-    this.wantsEnabled = false;
-    this.unlocked = false;
-    this.isAmbienceRunning = false;
-    this.ambientOscillators = [];
-    this.subscribers = new Set();
-    this.analyserRafId = null;
-  }
+  private audioContext: AudioContext | null = null;
+  private masterGain: GainNode | null = null;
+  private sfxGain: GainNode | null = null;
+  private ambienceGain: GainNode | null = null;
+  private analyser: AnalyserNode | null = null;
+  private timeDomainBuffer: Uint8Array<ArrayBuffer> | null = null;
+  private preset: Preset = PRESETS.tactical;
+  private wantsEnabled = false;
+  private unlocked = false;
+  private isAmbienceRunning = false;
+  private ambientOscillators: OscillatorNode[] = [];
+  private subscribers = new Set<AudioFrameListener>();
+  private analyserRafId: number | null = null;
 
   get isEnabled() {
     return this.wantsEnabled;
@@ -40,24 +55,24 @@ class ProceduralSoundSystem {
     this.applyEnabled(this.wantsEnabled);
   }
 
-  setPreset(id) {
+  setPreset(id: PresetId) {
     this.preset = PRESETS[id] ?? PRESETS.tactical;
     this.applyPresetGains();
     if (this.preset === PRESETS.silent) this.stopAmbience();
     else if (this.wantsEnabled && this.unlocked) this.startAmbience();
   }
 
-  loadPresetFromStorage(raw) {
+  loadPresetFromStorage(raw: string | null) {
     this.setPreset(parsePreset(raw));
   }
 
-  setEnabled(enabled) {
+  setEnabled(enabled: boolean) {
     this.wantsEnabled = enabled;
     if (!this.unlocked) return;
     this.applyEnabled(enabled);
   }
 
-  subscribe(fn) {
+  subscribe(fn: AudioFrameListener) {
     this.subscribers.add(fn);
     this.startAnalyserLoop();
     return () => {
@@ -71,11 +86,13 @@ class ProceduralSoundSystem {
     this.isAmbienceRunning = true;
     void this.resumeContext();
     try {
+      const ctx = this.audioContext;
+      const ambienceGain = this.ambienceGain;
       this.ambientOscillators = this.preset.ambienceFreqs.map((freq) => {
-        const osc = this.audioContext.createOscillator();
+        const osc = ctx.createOscillator();
         osc.type = 'sine';
         osc.frequency.value = freq;
-        osc.connect(this.ambienceGain);
+        if (ambienceGain) osc.connect(ambienceGain);
         osc.start();
         return osc;
       });
@@ -93,7 +110,7 @@ class ProceduralSoundSystem {
     this.ambientOscillators = [];
   }
 
-  speak(text) {
+  speak(text: string) {
     if (!this.wantsEnabled || this.preset.voiceVolume <= 0 || !window.speechSynthesis) return;
     try {
       window.speechSynthesis.cancel();
@@ -105,8 +122,8 @@ class ProceduralSoundSystem {
     } catch { /* ignore */ }
   }
 
-  playTone(frequency, type = 'sine', duration = 0.1, volume = 1, sweep = 1) {
-    if (!this.canPlaySfx()) return;
+  playTone(frequency: number, type: OscillatorType = 'sine', duration = 0.1, volume = 1, sweep = 1) {
+    if (!this.canPlaySfx() || !this.audioContext || !this.sfxGain) return;
     void this.resumeContext();
     try {
       const ctx = this.audioContext;
@@ -157,13 +174,16 @@ class ProceduralSoundSystem {
   playEpicUnlock() {
     if (!this.canPlaySfx()) return;
     void this.resumeContext();
-    [[440, 0, 'triangle', 0.4], [554, 0.2, 'triangle', 0.4], [659, 0.4, 'triangle', 0.4], [880, 0.6, 'sawtooth', 1]]
-      .forEach(([f, d, t, dur]) => this.playScheduled(f, d, t, dur, 0.15));
+    const events: [number, number, OscillatorType, number][] = [
+      [440, 0, 'triangle', 0.4], [554, 0.2, 'triangle', 0.4], [659, 0.4, 'triangle', 0.4], [880, 0.6, 'sawtooth', 1]
+    ];
+    events.forEach(([f, d, t, dur]) => this.playScheduled(f, d, t, dur, 0.15));
   }
   playSuccess() {
     if (!this.canPlaySfx()) return;
     void this.resumeContext();
-    [[620, 0], [820, 0.08], [1250, 0.18]].forEach(([f, d]) => this.playScheduled(f, d, 'sine', 0.35, 0.08));
+    const events: [number, number][] = [[620, 0], [820, 0.08], [1250, 0.18]];
+    events.forEach(([f, d]) => this.playScheduled(f, d, 'sine', 0.35, 0.08));
   }
   playError() {
     this.playTone(280, 'sawtooth', 0.25, 0.09, 0.45);
@@ -172,7 +192,7 @@ class ProceduralSoundSystem {
 
   initGraph() {
     if (this.audioContext || typeof window === 'undefined') return;
-    const Ctx = window.AudioContext || window.webkitAudioContext;
+    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctx) return;
     try {
       const ctx = new Ctx();
@@ -193,7 +213,7 @@ class ProceduralSoundSystem {
     }
   }
 
-  applyEnabled(enabled) {
+  applyEnabled(enabled: boolean) {
     if (!enabled) this.stopAmbience();
     else {
       void this.resumeContext();
@@ -203,15 +223,15 @@ class ProceduralSoundSystem {
   }
 
   applyPresetGains() {
-    if (!this.masterGain || !this.audioContext) return;
+    if (!this.masterGain || !this.sfxGain || !this.ambienceGain || !this.audioContext) return;
     const now = this.audioContext.currentTime;
     this.masterGain.gain.setTargetAtTime(this.preset.masterGain, now, 0.02);
     this.sfxGain.gain.setTargetAtTime(this.preset.sfxGain, now, 0.02);
     this.ambienceGain.gain.setTargetAtTime(this.preset.ambienceGain, now, 0.02);
   }
 
-  canPlaySfx() {
-    return this.wantsEnabled && this.unlocked && this.audioContext && this.preset.sfxScale > 0;
+  canPlaySfx(): boolean {
+    return this.wantsEnabled && this.unlocked && !!this.audioContext && this.preset.sfxScale > 0;
   }
 
   async resumeContext() {
@@ -227,7 +247,7 @@ class ProceduralSoundSystem {
       if (!this.analyser || !this.timeDomainBuffer || this.subscribers.size === 0) return;
       if (this.wantsEnabled) this.analyser.getByteTimeDomainData(this.timeDomainBuffer);
       else this.timeDomainBuffer.fill(128);
-      const frame = { timeDomain: this.timeDomainBuffer };
+      const frame: AudioFrame = { timeDomain: this.timeDomainBuffer };
       this.subscribers.forEach((fn) => fn(frame));
     };
     this.analyserRafId = requestAnimationFrame(tick);
@@ -240,7 +260,8 @@ class ProceduralSoundSystem {
     }
   }
 
-  playSweep(fromHz, toHz, duration, peak) {
+  playSweep(fromHz: number, toHz: number, duration: number, peak: number) {
+    if (!this.audioContext || !this.sfxGain) return;
     void this.resumeContext();
     const ctx = this.audioContext;
     const now = ctx.currentTime;
@@ -258,7 +279,8 @@ class ProceduralSoundSystem {
     osc.stop(now + duration);
   }
 
-  playScheduled(freq, delay, type, dur, peak) {
+  playScheduled(freq: number, delay: number, type: OscillatorType, dur: number, peak: number) {
+    if (!this.audioContext || !this.sfxGain) return;
     const ctx = this.audioContext;
     const now = ctx.currentTime;
     const osc = ctx.createOscillator();

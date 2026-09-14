@@ -1,6 +1,13 @@
+import type useLoadouts from '../hooks/useLoadouts';
+
+type LoadoutsApi = ReturnType<typeof useLoadouts>;
+
 const noop = () => {};
 
-export const loadoutsStub = {
+// Placeholder App.jsx renders before useLoadouts (owned by LoadoutsBootstrap)
+// reports its real API via onReady(); matches its shape so consumers don't
+// need to null-check while waiting.
+export const loadoutsStub: LoadoutsApi = {
   loadouts: [],
   activeLoadoutId: null,
   createLoadout: () => null,

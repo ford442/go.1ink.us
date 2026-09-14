@@ -29,7 +29,7 @@ import useQuickViewModal from '../hooks/useQuickViewModal';
 import useScrollVelocity from '../hooks/useScrollVelocity';
 import useToasts from '../hooks/useToasts';
 import useUrlSyncedFilters from '../hooks/useUrlSyncedFilters';
-import { loadoutsStub } from '../lib/loadoutsStub.js';
+import { loadoutsStub } from '../lib/loadoutsStub';
 import './App.css';
 
 const HoloTerminal = lazy(() => import('../components/HoloTerminal/HoloTerminal'));

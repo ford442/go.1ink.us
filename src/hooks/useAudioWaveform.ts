@@ -1,5 +1,6 @@
 import { useEffect, type RefObject } from 'react';
 import soundSystem from '../lib/SoundSystem';
+import type { AudioFrame } from '../lib/SoundSystem';
 
 interface AudioWaveformOptions {
   color: string;
@@ -62,7 +63,7 @@ export default function useAudioWaveform(
       window.addEventListener('resize', resizeCanvas);
     }
 
-    const unsubscribe = soundSystem.subscribe(({ timeDomain }: { timeDomain: Uint8Array | null }) => {
+    const unsubscribe = soundSystem.subscribe(({ timeDomain }: AudioFrame) => {
       const width = canvas.width;
       const height = canvas.height;
       ctx.clearRect(0, 0, width, height);
