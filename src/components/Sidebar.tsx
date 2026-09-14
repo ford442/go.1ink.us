@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import RadarHUD from '../effects/RadarHUD';
 import projectData from '../data/projectData';
 import soundSystem from '../lib/SoundSystem';
@@ -10,13 +10,21 @@ import { useOverlayContext } from '../app/context/OverlayContext';
 import { useEffectsContext } from '../app/context/EffectsContext';
 import ActivityFeed from './ActivityFeed';
 import TransmissionsPanel from './TransmissionsPanel';
+import type { Category, SortOption, ThemeId } from '../types';
+
+const THEME_SWATCHES: { id: ThemeId; color: string; glow: string; border: string }[] = [
+  { id: 'cyan', color: 'bg-cyan-500', glow: 'shadow-[0_0_10px_rgba(6,182,212,0.8)]', border: 'border-cyan-400' },
+  { id: 'purple', color: 'bg-purple-500', glow: 'shadow-[0_0_10px_rgba(168,85,247,0.8)]', border: 'border-purple-400' },
+  { id: 'emerald', color: 'bg-emerald-500', glow: 'shadow-[0_0_10px_rgba(16,185,129,0.8)]', border: 'border-emerald-400' },
+  { id: 'gold', color: 'bg-amber-500', glow: 'shadow-[0_0_10px_rgba(245,158,11,0.8)]', border: 'border-amber-400' }
+];
 
 const LoadoutPanel = lazy(() => import('./LoadoutPanel'));
 const OperatorProfileCard = lazy(() => import('./OperatorProfileCard'));
 
 export default function Sidebar() {
   const { searchInputRef, searchQuery, setSearchQuery, setCurrentPage, filteredProjects, suggestedTags, toggleFilter, isMobileFiltersOpen, setIsMobileFiltersOpen, activeFilters, sortOption, setSortOption, activeFiltersSet, counts, setHoveredTag, favoriteCount, activeCategories, handleTagClick, favorites, setRandomSeed } = useBrowserContext();
-  const { addActivityLog, userActivityLogs } = useActivityContext();
+  const { addActivityLog } = useActivityContext();
   const { displayMode, theme, changeTheme } = useSettingsContext();
   const { handleProjectSelect } = useOverlayContext() || {};
   const { flags } = useEffectsContext();
@@ -63,7 +71,7 @@ export default function Sidebar() {
                   return;
                 }
                 if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                  const firstCard = document.querySelector('.card-focusable');
+                  const firstCard = document.querySelector<HTMLElement>('.card-focusable');
                   if (firstCard) {
                     e.preventDefault();
                     firstCard.focus();
@@ -170,7 +178,7 @@ export default function Sidebar() {
             if (e.target.value === 'Random') {
               setRandomSeed(Math.random());
             }
-            setSortOption(e.target.value);
+            setSortOption(e.target.value as SortOption);
             setCurrentPage(1);
             addActivityLog(`SORT_PROTOCOL_UPDATED: ${e.target.value.toUpperCase()}`);
           }}
@@ -233,7 +241,7 @@ export default function Sidebar() {
           `}
         >
           <span className="flex items-center gap-2">
-            <span className="text-xl lg:text-base">{CATEGORY_ICONS['All']}</span>
+            <span className="text-xl lg:text-base">{(CATEGORY_ICONS as Record<string, string | undefined>)['All']}</span>
             <span>All Protocols</span>
           </span>
           <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${activeFilters.length === 0 ? 'bg-white/20' : 'bg-black/30'}`}>
@@ -242,7 +250,7 @@ export default function Sidebar() {
         </button>
 
         {/* Categories */}
-        {Object.entries(CATEGORIES).map(([category]) => {
+        {(Object.keys(CATEGORIES) as Category[]).map((category) => {
           const isActive = activeFiltersSet.has(category);
           const count = counts.categoryCounts[category] || 0;
           const style = CATEGORY_BUTTON_STYLES[category] || CATEGORY_BUTTON_STYLES['default'];
@@ -349,12 +357,7 @@ export default function Sidebar() {
           System Theme
         </div>
         <div className="flex items-center gap-3">
-          {[
-            { id: 'cyan', color: 'bg-cyan-500', glow: 'shadow-[0_0_10px_rgba(6,182,212,0.8)]', border: 'border-cyan-400' },
-            { id: 'purple', color: 'bg-purple-500', glow: 'shadow-[0_0_10px_rgba(168,85,247,0.8)]', border: 'border-purple-400' },
-            { id: 'emerald', color: 'bg-emerald-500', glow: 'shadow-[0_0_10px_rgba(16,185,129,0.8)]', border: 'border-emerald-400' },
-            { id: 'gold', color: 'bg-amber-500', glow: 'shadow-[0_0_10px_rgba(245,158,11,0.8)]', border: 'border-amber-400' }
-          ].map((t) => (
+          {THEME_SWATCHES.map((t) => (
             <button
               key={t.id}
               onClick={() => changeTheme(t.id)}
@@ -372,7 +375,7 @@ export default function Sidebar() {
       </div>
 
       <div className="hidden lg:block mt-6">
-        <ActivityFeed logs={userActivityLogs} />
+        <ActivityFeed />
       </div>
       <div className="hidden lg:block xl:hidden mt-6">
         <TransmissionsPanel onSelectProject={handleProjectSelect} variant="sidebar" limit={4} />
