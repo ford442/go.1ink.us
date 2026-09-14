@@ -2,13 +2,18 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
 import './styles/index.css'
-import App from './app/App.jsx'
+import App from './app/App'
 
 if (import.meta.env.PROD) {
   registerSW({ immediate: true })
 }
 
-createRoot(document.getElementById('root')).render(
+const rootElement = document.getElementById('root')
+if (!rootElement) {
+  throw new Error('Root element #root not found')
+}
+
+createRoot(rootElement).render(
   <StrictMode>
     <App />
   </StrictMode>,

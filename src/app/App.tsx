@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { trackDisplayMode } from '../lib/trackEvent';
 import projectData from '../data/projectData';
 import { enhanceProjects } from '../lib/projectBrowser';
@@ -30,13 +30,14 @@ import useScrollVelocity from '../hooks/useScrollVelocity';
 import useToasts from '../hooks/useToasts';
 import useUrlSyncedFilters from '../hooks/useUrlSyncedFilters';
 import { loadoutsStub } from '../lib/loadoutsStub';
+import type { DisplayMode, Project, ThemeId } from '../types';
 import './App.css';
 
 const HoloTerminal = lazy(() => import('../components/HoloTerminal/HoloTerminal'));
-const LoadoutsBootstrap = lazy(() => import('../components/LoadoutsBootstrap.jsx'));
+const LoadoutsBootstrap = lazy(() => import('../components/LoadoutsBootstrap'));
 const CustomCursor = lazy(() => import('../effects/CustomCursor'));
 const ProjectQuickView = lazy(() => import('../components/ProjectQuickView'));
-const BOOLEAN_STORAGE = { fromStorage: value => value === 'true' };
+const BOOLEAN_STORAGE = { fromStorage: (value: string) => value === 'true' };
 
 // Static catalog metadata is enhanced once, rather than on every render.
 const enhancedProjects = enhanceProjects(projectData);
@@ -50,7 +51,7 @@ function App() {
 
   const [isCrtEnabled, setIsCrtEnabled] = usePersistedState('curator_crt', false, BOOLEAN_STORAGE);
   const [isMatrixMode, setIsMatrixMode] = usePersistedState('curator_matrix', false, BOOLEAN_STORAGE);
-  const [theme, setTheme] = usePersistedState('curator_theme', 'cyan');
+  const [theme, setTheme] = usePersistedState<ThemeId>('curator_theme', 'cyan');
   const filters = useUrlSyncedFilters();
   const { setDisplayMode } = filters;
   const pagination = usePagination({
@@ -60,7 +61,7 @@ function App() {
     sortOption: filters.sortOption,
   });
 
-  const [hoveredTag, setHoveredTag] = useState(null);
+  const [hoveredTag, setHoveredTag] = useState<string | null>(null);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isGodMode, setIsGodMode] = useState(false);
   const [randomSeed, setRandomSeed] = useState(() => Math.random());
@@ -87,7 +88,7 @@ function App() {
     return () => document.body.classList.remove('god-mode');
   }, [isGodMode]);
 
-  const handleDisplayModeChange = useCallback(newMode => {
+  const handleDisplayModeChange = useCallback((newMode: DisplayMode) => {
     setDisplayMode(previousMode => {
       if (newMode === previousMode) return previousMode;
       addActivityLog(`SYS.UI: LAYOUT_UPDATED_${newMode.toUpperCase()}`);
@@ -96,7 +97,7 @@ function App() {
     });
   }, [addActivityLog, setDisplayMode]);
 
-  const changeTheme = useCallback(newTheme => {
+  const changeTheme = useCallback((newTheme: ThemeId) => {
     setTheme(previousTheme => {
       if (previousTheme === newTheme) return previousTheme;
       addToast(`> SYS_UPDATE: COLOR_PROTOCOL_${newTheme.toUpperCase()}`, 'info');
@@ -117,7 +118,7 @@ function App() {
     addActivityLog,
   });
 
-  const handleCopyLink = useCallback(project => {
+  const handleCopyLink = useCallback((project: Project) => {
     if (!navigator.clipboard?.writeText) {
       addToast('> SYS_ERR: CLIPBOARD_NOT_SUPPORTED', 'error');
       return;
