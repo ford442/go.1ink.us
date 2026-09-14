@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import type { FavoriteParticle } from './CardFavoriteBurst';
 
 // Particle-burst animation state for the favorite toggle.
-export default function useFavoriteBurst(isFavorite) {
-  const [favoriteParticles, setFavoriteParticles] = useState([]);
+export default function useFavoriteBurst(isFavorite: boolean) {
+  const [favoriteParticles, setFavoriteParticles] = useState<FavoriteParticle[]>([]);
 
   const triggerFavoriteBurst = () => {
     if (!isFavorite) {

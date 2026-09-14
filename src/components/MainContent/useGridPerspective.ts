@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
  * Holographic command-table tilt: rotates #project-grid a few degrees toward
  * the pointer on devices that support hover and don't prefer reduced motion.
  */
-export default function useGridPerspective(card3dEnabled) {
-  const gridRef = useRef(null);
+export default function useGridPerspective(card3dEnabled: boolean) {
+  const gridRef = useRef<HTMLDivElement | null>(null);
   const [isInteractive, setIsInteractive] = useState(false);
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function useGridPerspective(card3dEnabled) {
   }, [card3dEnabled]);
 
   useEffect(() => {
-    let rafId = null;
+    let rafId: number | null = null;
 
     if (!isInteractive) {
       if (gridRef.current) {
@@ -36,7 +36,7 @@ export default function useGridPerspective(card3dEnabled) {
       return;
     }
 
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (e: MouseEvent) => {
       if (rafId) return;
 
       rafId = requestAnimationFrame(() => {

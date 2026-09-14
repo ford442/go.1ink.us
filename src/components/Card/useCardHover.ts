@@ -1,13 +1,19 @@
 import { useRef, useState } from 'react';
 import soundSystem from '../../lib/SoundSystem';
+import type { ConnectivityHealth } from '../../types';
+
+interface UseCardHoverOptions {
+  baselineLatencyMs?: number | null;
+  connectivityHealth?: ConnectivityHealth;
+}
 
 // Hover-delay micro-interactions: immediate hover state plus a 700ms-delayed
 // "deep focus" state (used for the image zoom/lift), and a probe latency
 // readout while hovered when build-time health data is available.
-export default function useCardHover(onCardHover, { baselineLatencyMs, connectivityHealth } = {}) {
+export default function useCardHover(onCardHover?: (projectId: number | null) => void, { baselineLatencyMs, connectivityHealth }: UseCardHoverOptions = {}) {
   const [isHovered, setIsHovered] = useState(false);
   const [isHoverDelayed, setIsHoverDelayed] = useState(false);
-  const hoverTimerRef = useRef(null);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const ping = !isHovered || connectivityHealth === 'unknown'
     ? 0
@@ -15,7 +21,7 @@ export default function useCardHover(onCardHover, { baselineLatencyMs, connectiv
       ? 999
       : baselineLatencyMs ?? 0;
 
-  const handleHoverEnter = (projectId) => {
+  const handleHoverEnter = (projectId: number) => {
     setIsHovered(true);
     if (onCardHover) onCardHover(projectId);
     soundSystem.playHover();

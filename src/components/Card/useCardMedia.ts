@@ -1,14 +1,23 @@
 import { useEffect, useState } from 'react';
+import type { RefObject } from 'react';
+
+// Timeout handles are parked directly on the card's DOM node (rather than
+// in a ref of their own) so cleanup can reach them from the same element
+// useCardTilt already tracks.
+type CardMediaElement = HTMLDivElement & {
+  initialTimeout?: ReturnType<typeof setTimeout>;
+  revertTimeout?: ReturnType<typeof setTimeout>;
+};
 
 // Image-loading state plus the scroll-triggered decryption effect.
 // Observes `cardRef.current` (owned by useCardTilt) — note this is only
 // ever attached to a DOM node in the grid layout today, so `isVisible`
 // stays false for list/matrix layouts, matching pre-existing behavior.
-export default function useCardMedia(cardRef, index) {
+export default function useCardMedia(cardRef: RefObject<CardMediaElement | null>, index: number) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [hasScrolledIntoView, setHasScrolledIntoView] = useState(false);
 
   useEffect(() => {

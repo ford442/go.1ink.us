@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useEffectsContext } from '../../app/context/EffectsContext';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 
 // Mouse-tilt "magnet" interaction (grid layout) plus the shared
 // hover:hover / prefers-reduced-motion / performance-mode gate.
 export default function useCardTilt() {
   const { flags } = useEffectsContext();
-  const cardRef = useRef(null);
-  const rafRef = useRef(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const rafRef = useRef<number | null>(null);
   const [isInteractive, setIsInteractive] = useState(false);
 
   useEffect(() => {
@@ -38,7 +39,7 @@ export default function useCardTilt() {
     cardRef.current.style.transition = 'transform 0.15s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.6s cubic-bezier(0.23, 1, 0.32, 1), background 0.3s ease, border-color 0.3s ease';
   };
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (!cardRef.current || !isInteractive) return;
 
     // Use requestAnimationFrame for smoother performance (throttling to ~60fps)
