@@ -5,7 +5,7 @@ import useOperatorStats from '../hooks/useOperatorStats';
 
 const projectById = new Map(projectData.map((p) => [p.id, p]));
 
-function formatRelativeTime(ts) {
+function formatRelativeTime(ts: number) {
   const deltaMs = Date.now() - ts;
   const minutes = Math.floor(deltaMs / 60000);
   if (minutes < 1) return 'just now';
@@ -17,7 +17,7 @@ function formatRelativeTime(ts) {
   return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-function resolveProjectTitle(projectId) {
+function resolveProjectTitle(projectId: number) {
   return projectById.get(projectId)?.title ?? `ID ${projectId}`;
 }
 

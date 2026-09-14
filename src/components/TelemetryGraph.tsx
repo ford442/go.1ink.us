@@ -1,8 +1,15 @@
-import React, { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
-const TelemetryGraph = ({ value, max = 100, width = 60, height = 20 }) => {
-  const canvasRef = useRef(null);
-  const [history, setHistory] = useState(Array(30).fill(0));
+interface TelemetryGraphProps {
+  value: number;
+  max?: number;
+  width?: number;
+  height?: number;
+}
+
+const TelemetryGraph = ({ value, max = 100, width = 60, height = 20 }: TelemetryGraphProps) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [history, setHistory] = useState<number[]>(Array(30).fill(0));
   const [lastValue, setLastValue] = useState(value);
 
   if (value !== lastValue) {
@@ -14,6 +21,7 @@ const TelemetryGraph = ({ value, max = 100, width = 60, height = 20 }) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
     // Clear canvas
     ctx.clearRect(0, 0, width, height);

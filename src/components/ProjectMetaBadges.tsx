@@ -1,7 +1,25 @@
 import { getStatusDisplay } from '../lib/projectStatus';
 import { getConnectivityDisplay, resolveProjectConnectivity } from '../lib/projectConnectivity';
+import type { Project } from '../types';
 
-const sizeStyles = {
+type BadgeVariant = 'card' | 'modal';
+
+interface BadgeSizeStyles {
+  wrap: string;
+  status: string;
+  dot: string;
+  label: string;
+  year: string;
+  featured: string;
+}
+
+interface BadgeProps {
+  project: Project;
+  variant?: BadgeVariant;
+  className?: string;
+}
+
+const sizeStyles: Record<BadgeVariant, BadgeSizeStyles> = {
   card: {
     wrap: 'flex flex-col gap-1',
     status: 'flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-1 rounded border',
@@ -20,7 +38,7 @@ const sizeStyles = {
   },
 };
 
-export function ProjectConnectivityBadge({ project, variant = 'card', className = '' }) {
+export function ProjectConnectivityBadge({ project, variant = 'card', className = '' }: BadgeProps) {
   const connectivity = resolveProjectConnectivity(project);
   const display = getConnectivityDisplay(connectivity.health);
   const styles = sizeStyles[variant] ?? sizeStyles.card;
@@ -41,7 +59,7 @@ export function ProjectConnectivityBadge({ project, variant = 'card', className 
   );
 }
 
-export function ProjectStatusBadge({ project, variant = 'card', className = '' }) {
+export function ProjectStatusBadge({ project, variant = 'card', className = '' }: BadgeProps) {
   const display = getStatusDisplay(project.status);
   const styles = sizeStyles[variant] ?? sizeStyles.card;
 
@@ -53,20 +71,27 @@ export function ProjectStatusBadge({ project, variant = 'card', className = '' }
   );
 }
 
-export function ProjectYearBadge({ project, variant = 'card', className = '' }) {
+export function ProjectYearBadge({ project, variant = 'card', className = '' }: BadgeProps) {
   const styles = sizeStyles[variant] ?? sizeStyles.card;
   return (
     <span className={`${styles.year} ${className}`}>{project.year}</span>
   );
 }
 
-export function ProjectFeaturedBadge({ variant = 'card', className = '' }) {
+export function ProjectFeaturedBadge({ variant = 'card', className = '' }: Omit<BadgeProps, 'project'>) {
   const styles = sizeStyles[variant] ?? sizeStyles.card;
   return (
     <span className={`${styles.featured} ${className}`} title="Featured project">
       ★ FEATURED
     </span>
   );
+}
+
+interface ProjectMetaBadgesProps extends BadgeProps {
+  showFeatured?: boolean;
+  showYear?: boolean;
+  showStatus?: boolean;
+  showConnectivity?: boolean;
 }
 
 /** Status, year, and optional featured badge — shared by cards and quick view. */
@@ -78,7 +103,7 @@ export default function ProjectMetaBadges({
   showStatus = true,
   showConnectivity = true,
   className = '',
-}) {
+}: ProjectMetaBadgesProps) {
   const styles = sizeStyles[variant] ?? sizeStyles.card;
 
   return (

@@ -5,10 +5,11 @@ import {
   resolveProjectEmbedUrl,
 } from '../lib/projectEmbed';
 import { trackProjectLaunch } from '../lib/trackEvent';
+import type { Project } from '../types';
 
 const IFRAME_SANDBOX = 'allow-scripts allow-same-origin';
 
-function EmbedLoadingSkeleton({ title }) {
+function EmbedLoadingSkeleton({ title }: { title: string }) {
   return (
     <div
       className="absolute inset-0 flex flex-col items-center justify-center bg-gray-950/95 backdrop-blur-md z-10 border border-accent-500/20 overflow-hidden"
@@ -42,7 +43,13 @@ function EmbedLoadingSkeleton({ title }) {
   );
 }
 
-function SandboxedEmbedFrame({ embedUrl, title, onReady }) {
+interface SandboxedEmbedFrameProps {
+  embedUrl: string;
+  title: string;
+  onReady: (iframe: HTMLIFrameElement) => void;
+}
+
+function SandboxedEmbedFrame({ embedUrl, title, onReady }: SandboxedEmbedFrameProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   return (
@@ -64,9 +71,14 @@ function SandboxedEmbedFrame({ embedUrl, title, onReady }) {
   );
 }
 
-export default function ProjectEmbedDock({ project, onClosePreview }) {
+interface ProjectEmbedDockProps {
+  project: Project;
+  onClosePreview: () => void;
+}
+
+export default function ProjectEmbedDock({ project, onClosePreview }: ProjectEmbedDockProps) {
   const { theme } = useSettingsContext();
-  const iframeRef = useRef(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   const embedUrl = resolveProjectEmbedUrl(project);
   const embedHostLabel = embedUrl
@@ -79,7 +91,7 @@ export default function ProjectEmbedDock({ project, onClosePreview }) {
       })()
     : '';
 
-  const postThemeToEmbed = useCallback((iframe = iframeRef.current) => {
+  const postThemeToEmbed = useCallback((iframe: HTMLIFrameElement | null = iframeRef.current) => {
     if (!iframe?.contentWindow || !embedUrl) return;
 
     const origin = (() => {
@@ -93,7 +105,7 @@ export default function ProjectEmbedDock({ project, onClosePreview }) {
     iframe.contentWindow.postMessage(createEmbedThemeMessage(theme), origin);
   }, [embedUrl, theme]);
 
-  const handleEmbedReady = useCallback((iframe) => {
+  const handleEmbedReady = useCallback((iframe: HTMLIFrameElement) => {
     iframeRef.current = iframe;
     postThemeToEmbed(iframe);
   }, [postThemeToEmbed]);
