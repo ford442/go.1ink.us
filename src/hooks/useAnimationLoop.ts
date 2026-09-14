@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 
 export interface AnimationLoopHandle {
   /**
@@ -37,9 +37,13 @@ export default function useAnimationLoop(
 ): AnimationLoopHandle {
   const { target, enabled = true } = options;
 
-  // Held in a ref so a re-created callback never restarts the loop.
+  // Held in a ref so a re-created callback never restarts the loop. Synced in
+  // a layout effect (not during render) so React's concurrent rendering can't
+  // observe a torn read of the ref.
   const callbackRef = useRef(callback);
-  callbackRef.current = callback;
+  useLayoutEffect(() => {
+    callbackRef.current = callback;
+  });
 
   // `wake` is handed to callers (and to the callback) before the effect runs,
   // so it has to be a stable object whose implementation the effect fills in.
@@ -78,7 +82,8 @@ export default function useAnimationLoop(
       frameId = 0;
     };
 
-    handleRef.current.wake = () => {
+    const handle = handleRef.current;
+    handle.wake = () => {
       asleep = false;
       start();
     };
@@ -110,11 +115,15 @@ export default function useAnimationLoop(
 
     return () => {
       stop();
-      handleRef.current.wake = () => {};
+      handle.wake = () => {};
       document.removeEventListener('visibilitychange', handleVisibility);
       observer?.disconnect();
     };
   }, [enabled, target]);
 
+  // The handle's identity is fixed at mount and only its `wake` method is
+  // ever mutated in place, so returning it here is safe despite the lint
+  // rule's general caution against reading ref values during render.
+  // eslint-disable-next-line react-hooks/refs
   return handleRef.current;
 }

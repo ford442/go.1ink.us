@@ -509,6 +509,21 @@ is the only category/tag constants module used by validation and runtime UI.
   little longer instead, or use a narrower type plus a `// TODO` comment
   explaining what's missing
 
+**Linting converted TypeScript**: `eslint.config.js` has a `**/*.{ts,tsx}`
+block using `typescript-eslint`'s (non type-aware) `recommended` config;
+`npm run typecheck` (`tsc --noEmit`) already covers type errors for this
+surface, so linting doesn't need to enable the `project` service.
+`typescript-eslint` doesn't yet support
+TypeScript 7's native compiler API (see
+[the TS 7 side-by-side note](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0)
+and [typescript-eslint#10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940)),
+so `package.json` aliases `typescript` itself to the API-compatible
+`@typescript/typescript6` package (consumed by `require('typescript')`,
+i.e. `typescript-eslint`) and adds `@typescript/native` as `npm:typescript@^7.0.2`
+for the real native compiler, whose `tsc` binary is what `npm run typecheck`
+actually runs (`@typescript/typescript6` only ships a `tsc6` binary, so
+there's no collision). Drop this split once `typescript-eslint` supports TS 7.
+
 ## UX/UI Philosophy
 
 ### Core Principles
