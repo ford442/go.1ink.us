@@ -6,7 +6,9 @@ import type { PerformanceFlags } from '../types';
 
 type UseAppFeaturesParams = UseProjectBrowserParams
   & Omit<UseTerminalControllerParams, 'projectsMatchingQuery' | 'toggleFilter' | 'flags'>
-  & UseGlobalShortcutsParams
+  // isTerminalOpen/setIsTerminalOpen/setIsTerminalClosing come from this
+  // hook's own useTerminalController() call below, not from the caller.
+  & Omit<UseGlobalShortcutsParams, 'isTerminalOpen' | 'setIsTerminalOpen' | 'setIsTerminalClosing'>
   & { performanceFlags: PerformanceFlags };
 
 // Wires the four feature hooks that don't own their own persisted/URL state

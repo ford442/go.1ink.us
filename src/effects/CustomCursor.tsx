@@ -1,0 +1,175 @@
+import { useEffect, useRef, useState } from 'react';
+import { useEffectsContext } from '../app/context/EffectsContext';
+import useA11yPreferences from '../hooks/useA11yPreferences';
+
+export default function CustomCursor() {
+  const { flags } = useEffectsContext();
+  const { allowCustomCursor } = useA11yPreferences();
+  const cursorDotRef = useRef<HTMLDivElement | null>(null);
+  const cursorRingRef = useRef<HTMLDivElement | null>(null);
+  const requestRef = useRef<number | null>(null);
+  const telemetryRef = useRef<HTMLDivElement | null>(null);
+  const [isPointerDevice] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(pointer: fine)').matches;
+    }
+    return false;
+  });
+
+  // Position references
+  const mouse = useRef({ x: 0, y: 0 });
+  const ring = useRef({ x: 0, y: 0 });
+
+  // State to hold scale independent of tailwind classes that get overwritten by style.transform
+  const [isHovering, setIsHovering] = useState(false);
+  const isHoveringRef = useRef(false);
+
+  useEffect(() => {
+    if (!isPointerDevice || !flags.customCursor || !allowCustomCursor) return;
+
+    // Frames the ring may keep lerping after the pointer stops before the loop
+    // parks itself. At 0.15 easing the ring is visually settled well inside this.
+    const IDLE_FRAME_BUDGET = 45;
+    let idleFrames = 0;
+
+    const schedule = () => {
+      if (requestRef.current || document.hidden) return;
+      requestRef.current = requestAnimationFrame(animate);
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      mouse.current.x = e.clientX;
+      mouse.current.y = e.clientY;
+      idleFrames = 0;
+      schedule();
+
+      if (cursorDotRef.current) {
+        cursorDotRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+      }
+    };
+
+    function animate() {
+      requestRef.current = null;
+
+      // Lerp the ring towards the mouse
+      ring.current.x += (mouse.current.x - ring.current.x) * 0.15;
+      ring.current.y += (mouse.current.y - ring.current.y) * 0.15;
+
+      if (cursorRingRef.current) {
+        // Apply the scale manually here instead of relying on tailwind classes
+        // which get overwritten by the transform style
+        const scale = isHoveringRef.current ? 1.5 : 1;
+        cursorRingRef.current.style.transform = `translate3d(${ring.current.x}px, ${ring.current.y}px, 0) translate(-50%, -50%) scale(${scale})`;
+      }
+
+      if (telemetryRef.current) {
+        telemetryRef.current.style.transform = `translate3d(${mouse.current.x + 20}px, ${mouse.current.y + 20}px, 0)`;
+        telemetryRef.current.innerText = `X:${Math.round(mouse.current.x)} Y:${Math.round(mouse.current.y)}${isHoveringRef.current ? ' LOCK' : ''}`;
+
+        if (isHoveringRef.current) {
+           telemetryRef.current.classList.add('text-accent-400');
+           telemetryRef.current.classList.remove('text-cyan-500/70');
+        } else {
+           telemetryRef.current.classList.add('text-cyan-500/70');
+           telemetryRef.current.classList.remove('text-accent-400');
+        }
+      }
+
+      // The ring is the only thing still moving once the pointer stops; when it
+      // has converged there is nothing left to paint, so park the loop.
+      const dx = mouse.current.x - ring.current.x;
+      const dy = mouse.current.y - ring.current.y;
+      if (dx * dx + dy * dy < 0.01) idleFrames++;
+      else idleFrames = 0;
+
+      if (idleFrames >= IDLE_FRAME_BUDGET) return;
+      schedule();
+    }
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        if (requestRef.current) cancelAnimationFrame(requestRef.current);
+        requestRef.current = null;
+      } else {
+        idleFrames = 0;
+        schedule();
+      }
+    };
+
+    const onMouseOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isClickable = target?.closest('a') ||
+                          target?.closest('button') ||
+                          target?.closest('.card-link');
+      const isInput = target?.closest('input') || target?.closest('textarea');
+
+      if (isClickable && !isInput) {
+        isHoveringRef.current = true;
+        setIsHovering(true); // For React state if needed elsewhere, but ref drives animation
+        idleFrames = 0;
+        schedule();
+      }
+    };
+
+    const onMouseOut = () => {
+      isHoveringRef.current = false;
+      setIsHovering(false);
+      idleFrames = 0;
+      schedule();
+    };
+
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
+    document.addEventListener('mouseover', onMouseOver);
+    document.addEventListener('mouseout', onMouseOut);
+    document.addEventListener('visibilitychange', handleVisibility);
+    schedule();
+
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseover', onMouseOver);
+      document.removeEventListener('mouseout', onMouseOut);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      requestRef.current = null;
+    };
+  }, [isPointerDevice, flags.customCursor, allowCustomCursor]);
+
+  if (!isPointerDevice || !flags.customCursor || !allowCustomCursor) return null;
+
+  return (
+    <>
+      <div
+        ref={cursorDotRef}
+        aria-hidden="true"
+        className="fixed top-0 left-0 w-1.5 h-1.5 bg-cyan-400 rounded-full pointer-events-none z-[9999] shadow-[0_0_8px_rgba(34,211,238,0.8)]"
+        style={{ willChange: 'transform' }}
+      />
+      <div
+        ref={cursorRingRef}
+        aria-hidden="true"
+        className={`fixed top-0 left-0 w-8 h-8 rounded-full border border-cyan-500/50 pointer-events-none z-[9998] transition-colors duration-200 flex items-center justify-center ${isHovering ? 'bg-cyan-500/10 border-cyan-400' : ''}`}
+        style={{ willChange: 'transform' }}
+      >
+        {/* Crosshairs */}
+        <div className={`absolute w-full h-[1px] bg-cyan-500/50 transition-transform duration-300 ${isHovering ? 'scale-x-50 opacity-100' : 'scale-x-125 opacity-50'}`}></div>
+        <div className={`absolute w-[1px] h-full bg-cyan-500/50 transition-transform duration-300 ${isHovering ? 'scale-y-50 opacity-100' : 'scale-y-125 opacity-50'}`}></div>
+
+        {/* Rotating brackets on hover */}
+        <div className={`absolute w-full h-full transition-all duration-500 ${isHovering ? 'opacity-100 rotate-90 scale-110' : 'opacity-0 rotate-0 scale-50'}`}>
+           <div className="absolute top-[-2px] left-[-2px] w-2 h-2 border-t-2 border-l-2 border-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]"></div>
+           <div className="absolute top-[-2px] right-[-2px] w-2 h-2 border-t-2 border-r-2 border-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]"></div>
+           <div className="absolute bottom-[-2px] left-[-2px] w-2 h-2 border-b-2 border-l-2 border-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]"></div>
+           <div className="absolute bottom-[-2px] right-[-2px] w-2 h-2 border-b-2 border-r-2 border-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.8)]"></div>
+        </div>
+      </div>
+      <div
+        ref={telemetryRef}
+        aria-hidden="true"
+        className="fixed top-0 left-0 pointer-events-none z-[9999] font-mono text-[10px] tracking-widest text-cyan-500/70 drop-shadow-[0_0_2px_rgba(34,211,238,0.5)] transition-colors duration-200"
+        style={{ willChange: 'transform' }}
+      >
+        X:0 Y:0
+      </div>
+    </>
+  );
+}

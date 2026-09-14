@@ -95,6 +95,7 @@ export interface OmniProtocolItem {
   id: string;
   type: 'protocol' | 'filter';
   label: string;
+  description?: string;
   action: () => void;
   icon: string;
   keywords: string[];
