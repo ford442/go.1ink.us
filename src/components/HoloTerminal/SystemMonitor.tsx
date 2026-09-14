@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const SystemMonitor = () => {
   const [stats, setStats] = useState({ cpu: 0, ram: 0, net: 0 });
@@ -15,7 +15,7 @@ const SystemMonitor = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const renderBar = (value, color) => (
+  const renderBar = (value: number, color: string) => (
     <div className="w-full bg-gray-800 rounded-full h-1.5 mt-1 overflow-hidden relative">
       <div
         className={`h-full ${color} transition-all duration-500 ease-out`}

@@ -1,9 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTerminalContext } from '../../app/context/TerminalContext';
 
 const CommandLog = () => {
   const { terminalHistory } = useTerminalContext();
-  const logEndRef = useRef(null);
+  const logEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });

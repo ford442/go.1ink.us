@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { useSettingsContext } from '../../app/context/SettingsContext';
 import useAudioWaveform from '../../hooks/useAudioWaveform';
 
@@ -6,7 +6,7 @@ import useAudioWaveform from '../../hooks/useAudioWaveform';
 // AudioVisualizer.jsx (CommandHeader's compact meter) — both share their
 // drawing logic via hooks/useAudioWaveform.
 const AudioVisualizer = () => {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const { isSoundEnabled } = useSettingsContext();
 
   useAudioWaveform(canvasRef, { color: '#22d3ee', responsive: true }); // accent-400 cyan

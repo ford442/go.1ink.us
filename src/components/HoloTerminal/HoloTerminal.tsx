@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTerminalContext } from '../../app/context/TerminalContext';
 import { useSettingsContext } from '../../app/context/SettingsContext';
 import SystemMonitor from './SystemMonitor';
@@ -28,7 +28,7 @@ const HoloTerminal = () => {
     }, 400); // match animation duration
   };
 
-  const executeQuickCommand = (cmd) => {
+  const executeQuickCommand = (cmd: string) => {
     setTerminalInput(cmd);
     // Simulate hitting enter
     const syntheticEvent = { preventDefault: () => {} };
