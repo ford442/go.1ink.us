@@ -143,6 +143,10 @@ export class ParticleNetworkEngine implements Engine {
     this.seed();
   }
 
+  setHover(): void {
+    // Particle network doesn't react to hover.
+  }
+
   tick(): void {
     const ctx = this.ctx;
     const grid = this.grid;

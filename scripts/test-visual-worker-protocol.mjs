@@ -25,6 +25,7 @@ function createFakeEngineFactory() {
       setPointer: (x, y) => calls.push(['setPointer', x, y]),
       setTheme: (accentRgb, theme) => calls.push(['setTheme', accentRgb, theme]),
       setDensity: (density) => calls.push(['setDensity', density]),
+      setHover: (hovering) => calls.push(['setHover', hovering]),
       tick: (time) => calls.push(['tick', time]),
       dispose: () => calls.push(['dispose']),
     };
@@ -80,7 +81,7 @@ describe('VisualWorkerRuntime', () => {
     assert.deepEqual(posted, [{ type: 'error', layerId: 'starfield-1', message: '2D context unavailable' }]);
   });
 
-  it('routes resize/setTheme/setPointer/setDensity to the matching layer only', () => {
+  it('routes resize/setTheme/setPointer/setDensity/setHover to the matching layer only', () => {
     const { factory, engines } = createFakeEngineFactory();
     const runtime = new VisualWorkerRuntime(() => {}, factory, () => 'noop-handle', () => {});
 
@@ -89,6 +90,7 @@ describe('VisualWorkerRuntime', () => {
 
     runtime.handleMessage({ type: 'resize', layerId: 'a', width: 1024, height: 768 });
     runtime.handleMessage({ type: 'setPointer', layerId: 'a', x: 5, y: 6 });
+    runtime.handleMessage({ type: 'setHover', layerId: 'a', hovering: true });
     runtime.handleMessage({ type: 'setTheme', layerId: 'b', accentRgb: '1,2,3', theme: 'purple' });
     runtime.handleMessage({ type: 'setDensity', layerId: 'b', density: 2 });
 
@@ -97,7 +99,7 @@ describe('VisualWorkerRuntime', () => {
 
     assert.deepEqual(
       starfield.calls.filter((c) => c[0] !== 'init'),
-      [['resize', 1024, 768], ['setPointer', 5, 6]],
+      [['resize', 1024, 768], ['setPointer', 5, 6], ['setHover', true]],
     );
     assert.deepEqual(
       matrix.calls.filter((c) => c[0] !== 'init'),

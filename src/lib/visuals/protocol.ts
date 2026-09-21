@@ -19,6 +19,7 @@ export type HostToWorkerMessage =
   | { type: 'setTheme'; layerId: string; accentRgb: string; theme: ThemeId }
   | { type: 'setPointer'; layerId: string; x: number | null; y: number | null }
   | { type: 'setDensity'; layerId: string; density: number }
+  | { type: 'setHover'; layerId: string; hovering: boolean }
   | { type: 'setRunning'; layerId: string; running: boolean }
   | { type: 'dispose'; layerId: string };
 

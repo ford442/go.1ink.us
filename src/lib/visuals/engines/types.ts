@@ -56,6 +56,8 @@ export interface Engine {
   setPointer(x: number | null, y: number | null): void;
   setTheme(accentRgb: string, theme: ThemeId): void;
   setDensity(density: number): void;
+  /** Hover-target signal (true while the pointer is over an interactive element). Only the cursor engine reacts to it; every other engine no-ops it, same as their unused setPointer/setDensity hooks. */
+  setHover(hovering: boolean): void;
   /** Return `false` to ask the (main-thread) host to park its rAF loop until the next pointer/theme change. */
   tick(time: number): boolean | void;
   dispose(): void;

@@ -1,3 +1,4 @@
+import { CursorEngine } from './cursorEngine';
 import { CursorTrailEngine } from './cursorTrailEngine';
 import { MatrixRainEngine } from './matrixRainEngine';
 import { ParticleNetworkEngine } from './particleNetworkEngine';
@@ -11,6 +12,7 @@ export function createEngine(effect: EffectKind): Engine {
     case 'particleNetwork': return new ParticleNetworkEngine();
     case 'matrixRain': return new MatrixRainEngine();
     case 'cursorTrail': return new CursorTrailEngine();
+    case 'cursor': return new CursorEngine();
     default: {
       const exhaustive: never = effect;
       throw new Error(`Unknown visual effect: ${String(exhaustive)}`);

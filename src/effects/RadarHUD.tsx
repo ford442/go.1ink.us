@@ -8,6 +8,18 @@ interface RadarHUDProps {
   displayMode: DisplayMode;
 }
 
+/**
+ * Deliberately stays on the DOM/CSS side of the `VisualBackend` split (see
+ * AGENTS.md's ambient-visuals table): this renders one real element per
+ * project (favorite/complexity color, click-to-scroll, hover states) driven
+ * by catalog data, not a particle simulation a canvas `Engine` would
+ * replace. The only per-frame work is the scroll-driven bounding-box
+ * readout below, which already writes straight to two refs instead of
+ * triggering a React re-render per project on every scroll frame — porting
+ * that alone to a canvas `Engine` would trade a handful of DOM writes for a
+ * second rendering pipeline with no simulation to share with the other
+ * layers.
+ */
 const RadarHUD = ({ projects, favorites, displayMode }: RadarHUDProps) => {
   const radarRef = useRef<HTMLDivElement | null>(null);
   // Scroll position drives exactly two things — the bounding box offset and the

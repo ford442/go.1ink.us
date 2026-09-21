@@ -80,6 +80,13 @@ export class VisualWorkerRuntime {
         });
         this.ensureLoop();
         break;
+      case 'setHover':
+        this.withLayer(message.layerId, (layer) => {
+          layer.engine.setHover(message.hovering);
+          layer.demandsFrame = true;
+        });
+        this.ensureLoop();
+        break;
       case 'setRunning':
         this.withLayer(message.layerId, (layer) => {
           layer.running = message.running;

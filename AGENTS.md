@@ -484,20 +484,47 @@ via `hooks/useAudioWaveform.ts` and only differ in canvas sizing/color.
 
 #### Ambient visuals (`src/lib/visuals/`)
 
+Every animated surface in the app falls into exactly one of these buckets.
+An effect stays out of the `Engine`/`VisualBackend` system only when this
+table gives a reason — "we haven't gotten to it yet" isn't one.
+
+| Effect | Bucket | Why |
+|---|---|---|
+| `effects/Starfield.tsx` | `Engine` (`starfieldEngine`) | Canvas particle sim |
+| `effects/ParticleNetwork.tsx` | `Engine` (`particleNetworkEngine`) | Canvas particle sim |
+| `effects/MatrixRain.tsx` | `Engine` (`matrixRainEngine`) | Canvas particle sim |
+| `effects/CursorTrail.tsx` | `Engine` (`cursorTrailEngine`) | Canvas particle sim |
+| `effects/CustomCursor.tsx` | `Engine` (`cursorEngine`) | Ported off its own main-thread rAF loop onto the same backend protocol (dot/ring/crosshair/telemetry all drawn on canvas); only the DOM `mouseover`/`mouseout` hover-target lookup stays as a plain listener, forwarded into the engine via `Engine.setHover`/`VisualBackend.setHover` |
+| `effects/RadarHUD.tsx` | DOM (documented exception) | One real element per project (favorite/complexity color, click-to-scroll) driven by catalog data, not a particle simulation — there's no simulation here for an `Engine` to share. Its one per-frame cost (the scroll-driven viewport box) already writes straight to refs instead of re-rendering |
+| `effects/ConstellationOverlay.tsx` | DOM/SVG (documented exception) | Line endpoints are `getBoundingClientRect()` of real project cards — needs DOM layout access an `Engine` (bare `Canvas2D` context only) doesn't have. Too data-coupled to the live grid layout to become a standalone simulation. Recomputes on scroll/resize (rAF-throttled) instead of every animation frame |
+| Ambient orbs / floating debris (`components/BackgroundElements.tsx`) | CSS | Pure `@keyframes`/`animate-*` utility classes, no JS driving them per-frame — nothing to port |
+| `useBackgroundEffects.ts` (starfield parallax transform, grid spotlight mask) | Main-thread rAF, not an `Engine` | Writes CSS custom properties / transforms on existing DOM nodes (the grid divs, the `<Starfield>` wrapper's transform) in response to scroll/pointer — there's no canvas simulation underneath to move into `Engine`/`VisualBackend` |
+| `components/SystemConstellation.tsx` | Three.js / WebGL, lazy chunk | Out of scope here — 3D is a separate backend track (#285), not a 2D `Canvas2D` engine |
+
 `effects/Starfield.tsx`, `effects/ParticleNetwork.tsx`, `effects/MatrixRain.tsx`,
-and `effects/CursorTrail.tsx` (the trail canvas `BackgroundElements` used to
-draw inline, now split out) are thin `<canvas>` wrappers around one shared
-system rather than four independent rAF loops:
+`effects/CursorTrail.tsx`, and `effects/CustomCursor.tsx` are thin `<canvas>`
+wrappers around one shared system rather than five independent rAF loops:
 
 | Layer | Responsibility |
 |---|---|
-| `lib/visuals/engines/*Engine.ts` | Pure simulation + draw step per effect (`starfieldEngine`, `particleNetworkEngine`, `matrixRainEngine`, `cursorTrailEngine`), framework- and canvas-implementation-free — each works against any object satisfying `engines/types.ts`'s `Canvas2D` (a structural subset both `CanvasRenderingContext2D` and `OffscreenCanvasRenderingContext2D` already implement) |
-| `lib/visuals/types.ts` | `VisualBackend` — the `init/resize/setTheme/setPointer/setDensity/setRunning/tick/dispose` protocol every backend implements |
+| `lib/visuals/engines/*Engine.ts` | Pure simulation + draw step per effect (`starfieldEngine`, `particleNetworkEngine`, `matrixRainEngine`, `cursorTrailEngine`, `cursorEngine`), framework- and canvas-implementation-free — each works against any object satisfying `engines/types.ts`'s `Canvas2D` (a structural subset both `CanvasRenderingContext2D` and `OffscreenCanvasRenderingContext2D` already implement) |
+| `lib/visuals/types.ts` | `VisualBackend` — the `init/resize/setTheme/setPointer/setDensity/setHover/setRunning/tick/dispose` protocol every backend implements |
 | `lib/visuals/backends/MainThreadCanvasBackend.ts` | Runs an engine directly against a normal `<canvas>`, ticked by the host's own rAF |
 | `lib/visuals/backends/OffscreenWorkerBackend.ts` + `VisualWorkerClient.ts` | Transfers the canvas to one shared `visualWorker` (via `transferControlToOffscreen`) and proxies every call over `postMessage`; one `Worker` backs every layer on the page, not one per effect |
 | `lib/visuals/worker/visualWorkerRuntime.ts` | The worker-side protocol handler — owns every layer's engine + canvas and runs one shared frame loop for all of them. Decoupled from `self`/`postMessage` so it's testable under Node (`scripts/test-visual-worker-protocol.mjs`, with a fake worker/canvas) |
 | `lib/visuals/ambientSignals.ts` | One shared pointer (`mousemove`/`mouseout`) + theme-accent (`getComputedStyle` on `data-theme` change) reader for every layer, instead of each effect running its own listener |
-| `hooks/useVisualLayer.ts` | The React hook every `effects/*` component calls: picks `OffscreenWorkerBackend` when `lib/visuals/support.ts`'s `supportsOffscreenCanvas()` passes, else falls back to `MainThreadCanvasBackend`; wires resize/pointer/theme/density updates and the rAF (`useAnimationLoop`) or visibility-gate (`hooks/useVisibilityGate.ts`) loop appropriately |
+| `hooks/useVisualLayer.ts` | The React hook every `effects/*` component calls: picks `OffscreenWorkerBackend` when `lib/visuals/support.ts`'s `supportsOffscreenCanvas()` passes, else falls back to `MainThreadCanvasBackend`; wires resize/pointer/theme/density updates and the rAF (`useAnimationLoop`) or visibility-gate (`hooks/useVisibilityGate.ts`) loop appropriately. Returns a `{ setHover }` handle for the one effect (the cursor) that needs a signal beyond resize/pointer/theme/density |
+
+**Fallback chain**, per layer, cheapest-capability-first: **WASM worker**
+(not implemented yet — tracked separately; would be a third `VisualBackend`
+alongside the two below, still driven through the same `Engine` protocol so
+it's a drop-in) → **JS worker** (`OffscreenWorkerBackend`, when
+`supportsOffscreenCanvas()` passes) → **main-thread canvas**
+(`MainThreadCanvasBackend`, ticked by the host's own rAF) → **CSS/off**
+(`prefers-reduced-motion` or `performanceMode === 'lite'`, below). A WASM
+backend can only be a true drop-in once every 2D effect either implements
+`Engine` or is a documented CSS/DOM exception (see the table above) — that's
+why `CustomCursor` was ported rather than left as a one-off rAF loop.
 
 **`prefers-reduced-motion` never spawns the worker** — `useVisualLayer` skips
 creating a backend at all when reduced motion is active, so there's nothing to
@@ -512,6 +539,15 @@ chunk (`visualWorker-*.js`) outside the `modulePreload` graph — it never count
 against the initial JS budget (see `scripts/check-bundle-budget.mjs`'s "Lazy /
 on-demand chunks" output). It imports only this project's own engines/runtime
 — no `three`, no other `node_modules` dependency.
+
+`scripts/test-visual-worker-protocol.mjs` covers the worker *protocol*
+(init, transfer, density, idle ticks) against a fake engine that just
+records calls. `scripts/test-visual-engines.mjs` covers the *math* inside
+each real engine — star count vs. density, particle boundary bounce, matrix
+glyph step + 30fps throttle, cursor-trail decay + particle cap — so a
+"simplification" that quietly changes wrap/decay/step behavior fails a test
+even though the protocol still shakes out fine. Both run under
+`npm run test:unit`.
 
 ### Data Model
 
