@@ -19,6 +19,7 @@ import useAudioSettings from '../hooks/useAudioSettings';
 import useBootSequence from '../hooks/useBootSequence';
 import useContextMenu from '../hooks/useContextMenu';
 import useFavorites from '../hooks/useFavorites';
+import useGroundStation from '../hooks/useGroundStation';
 import useIdleProtocol from '../hooks/useIdleProtocol';
 import useLayoutGlitchTransition from '../hooks/useLayoutGlitchTransition';
 import useLoadoutShare from '../hooks/useLoadoutShare';
@@ -76,6 +77,7 @@ function App() {
   const toastState = useToasts();
   const { addToast } = toastState;
   const contextMenuState = useContextMenu();
+  const groundStation = useGroundStation();
 
   useEffect(() => {
     document.documentElement.toggleAttribute('data-theme', theme !== 'cyan');
@@ -186,14 +188,22 @@ function App() {
     },
     browser: {
       ...filters, ...pagination, ...favoritesState, ...features,
-      handleCopyLink, hoveredTag, isMobileFiltersOpen, randomSeed,
-      setHoveredTag, setIsMobileFiltersOpen, setRandomSeed,
+      hoveredTag, isMobileFiltersOpen, randomSeed,
+    },
+    browserActions: {
+      ...filters, ...pagination, ...favoritesState, ...features,
+      handleCopyLink, setHoveredTag, setIsMobileFiltersOpen, setRandomSeed,
+    },
+    catalogCounts: {
+      totalFavorites: favoritesState.favorites.length,
       totalProjects: enhancedProjects.length,
     },
     loadout: loadoutsApi,
     terminal: features,
-    overlay: {
-      ...toastState, ...contextMenuState, ...quickView,
+    overlayToast: toastState,
+    overlayModal: quickView,
+    overlayContextMenu: contextMenuState,
+    overlayChrome: {
       clickEffects: boot.clickEffects, isDataMode: boot.isDataMode, isIdle,
       isLockdown, isOmniOpen, isCheatsheetOpen, isWarping,
       setIsDataMode: boot.setIsDataMode, setIsLockdown, setIsOmniOpen,
@@ -201,17 +211,24 @@ function App() {
     },
     effects: { ...features, ...performance },
     activity: boot,
+    groundStation,
   });
 
   return (
     <AppProviders
       settings={providerValues.settingsValue}
       browser={providerValues.browserValue}
+      browserActions={providerValues.browserActionsValue}
+      catalogCounts={providerValues.catalogCountsValue}
       loadout={providerValues.loadoutValue}
       terminal={providerValues.terminalValue}
-      overlay={providerValues.overlayValue}
+      overlayToast={providerValues.overlayToastValue}
+      overlayModal={providerValues.overlayModalValue}
+      overlayContextMenu={providerValues.overlayContextMenuValue}
+      overlayChrome={providerValues.overlayChromeValue}
       effects={providerValues.effectsValue}
       activity={providerValues.activityValue}
+      groundStation={providerValues.groundStationValue}
     >
       <Suspense fallback={null}>
         <LoadoutsBootstrap

@@ -4,11 +4,15 @@ const Screensaver = lazy(() => import('../effects/Screensaver'));
 const ShortcutCheatsheet = lazy(() => import('./ShortcutCheatsheet'));
 import projectData from '../data/projectData';
 import Toast from './Toast';
-import { useOverlayContext } from '../app/context/OverlayContext';
+import { useOverlayChromeContext } from '../app/context/OverlayChromeContext';
+import { useOverlayModalContext } from '../app/context/OverlayModalContext';
+import { useOverlayToastContext } from '../app/context/OverlayToastContext';
 import { useActivityContext } from '../app/context/ActivityContext';
 
 export default function SystemOverlays() {
-  const { isOmniOpen, setIsOmniOpen, handleProjectSelect, isLockdown, isIdle, clickEffects, toasts, removeToast, isCheatsheetOpen, setIsCheatsheetOpen } = useOverlayContext();
+  const { isOmniOpen, setIsOmniOpen, isLockdown, isIdle, clickEffects, isCheatsheetOpen, setIsCheatsheetOpen } = useOverlayChromeContext();
+  const { handleProjectSelect } = useOverlayModalContext();
+  const { toasts, removeToast } = useOverlayToastContext();
   const { isBooting } = useActivityContext();
 
   return (

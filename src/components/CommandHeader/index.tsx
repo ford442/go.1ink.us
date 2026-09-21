@@ -3,8 +3,8 @@ import AudioVisualizer from '../AudioVisualizer';
 import Clock from '../Clock';
 import { formatNetTelemetry } from '../../lib/projectConnectivity';
 import { useSettingsContext } from '../../app/context/SettingsContext';
-import { useBrowserContext } from '../../app/context/BrowserContext';
-import { useOverlayContext } from '../../app/context/OverlayContext';
+import { useCatalogCounts } from '../../app/context/CatalogCountsContext';
+import { useOverlayChromeContext } from '../../app/context/OverlayChromeContext';
 import { useEffectsContext } from '../../app/context/EffectsContext';
 import useVoiceCommand from '../../hooks/useVoiceCommand';
 import useOnlineStatus from '../../hooks/useOnlineStatus';
@@ -13,8 +13,8 @@ import CommandHeaderControls from './CommandHeaderControls';
 
 export default function CommandHeader() {
   const { isSoundEnabled, setIsSoundEnabled, isCrtEnabled, setIsCrtEnabled, theme, changeTheme, isGodMode } = useSettingsContext();
-  const { totalProjects } = useBrowserContext();
-  const { isCheatsheetOpen, setIsCheatsheetOpen } = useOverlayContext();
+  const { totalProjects } = useCatalogCounts();
+  const { isCheatsheetOpen, setIsCheatsheetOpen } = useOverlayChromeContext();
   const { performanceMode, setPerformanceMode, effectiveMode } = useEffectsContext();
   const { isSupported, isListening, startListening, stopListening } = useVoiceCommand();
   const isOnline = useOnlineStatus();

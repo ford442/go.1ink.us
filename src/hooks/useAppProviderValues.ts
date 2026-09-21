@@ -8,17 +8,23 @@ function useDomainValue<T extends object>(value: T): T {
   return useMemo(() => value, Object.values(value));
 }
 
-// Memoize the seven public context contracts assembled by App. The inputs
-// are grouped by domain to keep the composition root readable; each value is
+// Memoize the public context contracts assembled by App. The inputs are
+// grouped by domain to keep the composition root readable; each value is
 // rebuilt only when one of the fields exposed by that domain changes.
 export default function useAppProviderValues({
   settings,
   browser,
+  browserActions,
+  catalogCounts,
   loadout,
   terminal,
-  overlay,
+  overlayToast,
+  overlayModal,
+  overlayContextMenu,
+  overlayChrome,
   effects,
   activity,
+  groundStation,
 }: AppContextValues) {
   const settingsValue = useDomainValue({
     changeTheme: settings.changeTheme,
@@ -48,13 +54,6 @@ export default function useAppProviderValues({
     favorites: browser.favorites,
     filteredProjects: browser.filteredProjects,
     focusedCardIndex: browser.focusedCardIndex,
-    handleCopyLink: browser.handleCopyLink,
-    handleDragEnd: browser.handleDragEnd,
-    handleDragOver: browser.handleDragOver,
-    handleDragStart: browser.handleDragStart,
-    handleDrop: browser.handleDrop,
-    handlePageChange: browser.handlePageChange,
-    handleTagClick: browser.handleTagClick,
     hoveredTag: browser.hoveredTag,
     isMobileFiltersOpen: browser.isMobileFiltersOpen,
     paginatedProjects: browser.paginatedProjects,
@@ -62,20 +61,34 @@ export default function useAppProviderValues({
     randomSeed: browser.randomSeed,
     searchInputRef: browser.searchInputRef,
     searchQuery: browser.searchQuery,
-    setActiveFilters: browser.setActiveFilters,
-    setCurrentPage: browser.setCurrentPage,
-    setFocusedCardIndex: browser.setFocusedCardIndex,
-    setHoveredTag: browser.setHoveredTag,
-    setIsMobileFiltersOpen: browser.setIsMobileFiltersOpen,
-    setRandomSeed: browser.setRandomSeed,
-    setSearchQuery: browser.setSearchQuery,
-    setSortOption: browser.setSortOption,
     sortOption: browser.sortOption,
     suggestedTags: browser.suggestedTags,
-    toggleFavorite: browser.toggleFavorite,
-    toggleFilter: browser.toggleFilter,
     totalPages: browser.totalPages,
-    totalProjects: browser.totalProjects,
+  });
+
+  const browserActionsValue = useDomainValue({
+    handleCopyLink: browserActions.handleCopyLink,
+    handleDragEnd: browserActions.handleDragEnd,
+    handleDragOver: browserActions.handleDragOver,
+    handleDragStart: browserActions.handleDragStart,
+    handleDrop: browserActions.handleDrop,
+    handlePageChange: browserActions.handlePageChange,
+    handleTagClick: browserActions.handleTagClick,
+    setActiveFilters: browserActions.setActiveFilters,
+    setCurrentPage: browserActions.setCurrentPage,
+    setFocusedCardIndex: browserActions.setFocusedCardIndex,
+    setHoveredTag: browserActions.setHoveredTag,
+    setIsMobileFiltersOpen: browserActions.setIsMobileFiltersOpen,
+    setRandomSeed: browserActions.setRandomSeed,
+    setSearchQuery: browserActions.setSearchQuery,
+    setSortOption: browserActions.setSortOption,
+    toggleFavorite: browserActions.toggleFavorite,
+    toggleFilter: browserActions.toggleFilter,
+  });
+
+  const catalogCountsValue = useDomainValue({
+    totalFavorites: catalogCounts.totalFavorites,
+    totalProjects: catalogCounts.totalProjects,
   });
 
   const loadoutValue = useDomainValue({
@@ -108,31 +121,39 @@ export default function useAppProviderValues({
     omniProtocolItems: terminal.omniProtocolItems,
   });
 
-  const overlayValue = useDomainValue({
-    addToast: overlay.addToast,
-    clickEffects: overlay.clickEffects,
-    closeContextMenu: overlay.closeContextMenu,
-    closeProjectModal: overlay.closeProjectModal,
-    contextMenu: overlay.contextMenu,
-    handleContextMenu: overlay.handleContextMenu,
-    handleProjectSelect: overlay.handleProjectSelect,
-    isDataMode: overlay.isDataMode,
-    isIdle: overlay.isIdle,
-    isLockdown: overlay.isLockdown,
-    isOmniOpen: overlay.isOmniOpen,
-    isCheatsheetOpen: overlay.isCheatsheetOpen,
-    isWarping: overlay.isWarping,
-    modalImageLoaded: overlay.modalImageLoaded,
-    modalRef: overlay.modalRef,
-    removeToast: overlay.removeToast,
-    selectedProject: overlay.selectedProject,
-    setIsDataMode: overlay.setIsDataMode,
-    setIsLockdown: overlay.setIsLockdown,
-    setIsOmniOpen: overlay.setIsOmniOpen,
-    setIsCheatsheetOpen: overlay.setIsCheatsheetOpen,
-    setModalImageLoaded: overlay.setModalImageLoaded,
-    setSelectedProject: overlay.setSelectedProject,
-    toasts: overlay.toasts,
+  const overlayToastValue = useDomainValue({
+    addToast: overlayToast.addToast,
+    removeToast: overlayToast.removeToast,
+    toasts: overlayToast.toasts,
+  });
+
+  const overlayModalValue = useDomainValue({
+    closeProjectModal: overlayModal.closeProjectModal,
+    handleProjectSelect: overlayModal.handleProjectSelect,
+    modalImageLoaded: overlayModal.modalImageLoaded,
+    modalRef: overlayModal.modalRef,
+    selectedProject: overlayModal.selectedProject,
+    setModalImageLoaded: overlayModal.setModalImageLoaded,
+  });
+
+  const overlayContextMenuValue = useDomainValue({
+    closeContextMenu: overlayContextMenu.closeContextMenu,
+    contextMenu: overlayContextMenu.contextMenu,
+    handleContextMenu: overlayContextMenu.handleContextMenu,
+  });
+
+  const overlayChromeValue = useDomainValue({
+    clickEffects: overlayChrome.clickEffects,
+    isCheatsheetOpen: overlayChrome.isCheatsheetOpen,
+    isDataMode: overlayChrome.isDataMode,
+    isIdle: overlayChrome.isIdle,
+    isLockdown: overlayChrome.isLockdown,
+    isOmniOpen: overlayChrome.isOmniOpen,
+    isWarping: overlayChrome.isWarping,
+    setIsCheatsheetOpen: overlayChrome.setIsCheatsheetOpen,
+    setIsDataMode: overlayChrome.setIsDataMode,
+    setIsLockdown: overlayChrome.setIsLockdown,
+    setIsOmniOpen: overlayChrome.setIsOmniOpen,
   });
 
   const effectsValue = useDomainValue({
@@ -160,5 +181,27 @@ export default function useAppProviderValues({
     userActivityLogs: activity.userActivityLogs,
   });
 
-  return { settingsValue, browserValue, loadoutValue, terminalValue, overlayValue, effectsValue, activityValue };
+  const groundStationValue = useDomainValue({
+    frame: groundStation.frame,
+    geolocationStatus: groundStation.geolocationStatus,
+    requestGeolocation: groundStation.requestGeolocation,
+    setStation: groundStation.setStation,
+    station: groundStation.station,
+  });
+
+  return {
+    settingsValue,
+    browserValue,
+    browserActionsValue,
+    catalogCountsValue,
+    loadoutValue,
+    terminalValue,
+    overlayToastValue,
+    overlayModalValue,
+    overlayContextMenuValue,
+    overlayChromeValue,
+    effectsValue,
+    activityValue,
+    groundStationValue,
+  };
 }

@@ -1,8 +1,10 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
 import ConstellationOverlay from '../../effects/ConstellationOverlay';
-import { useBrowserContext } from '../../app/context/BrowserContext';
+import { useBrowserContext, useBrowserActions } from '../../app/context/BrowserContext';
 import { useSettingsContext } from '../../app/context/SettingsContext';
-import { useOverlayContext } from '../../app/context/OverlayContext';
+import { useOverlayModalContext } from '../../app/context/OverlayModalContext';
+import { useOverlayContextMenuContext } from '../../app/context/OverlayContextMenuContext';
+import { useOverlayChromeContext } from '../../app/context/OverlayChromeContext';
 import { useEffectsContext } from '../../app/context/EffectsContext';
 import { BrandImage } from '../ProjectImage';
 import ViewToolbar from './ViewToolbar';
@@ -17,9 +19,12 @@ const SystemMap = lazy(() => import('../SystemMap'));
 const SystemConstellation = lazy(() => import('../SystemConstellation'));
 
 export default function MainContent() {
-  const { filteredProjects, activeFilters, searchQuery, setSearchQuery, setActiveFilters, setCurrentPage, toggleFilter, sortOption, hoveredTag, paginatedProjects, focusedCardIndex, setFocusedCardIndex, favorites, toggleFavorite, handleCopyLink, handleTagClick, activeFiltersSet, draggedFavoriteId, dragOverFavoriteId, handleDragStart, handleDragOver, handleDragEnd, handleDrop, setHoveredTag, totalPages, currentPage, handlePageChange, suggestedTags } = useBrowserContext();
+  const { filteredProjects, activeFilters, searchQuery, sortOption, hoveredTag, paginatedProjects, focusedCardIndex, favorites, activeFiltersSet, draggedFavoriteId, dragOverFavoriteId, totalPages, currentPage, suggestedTags } = useBrowserContext();
+  const { setSearchQuery, setActiveFilters, setCurrentPage, toggleFilter, setFocusedCardIndex, toggleFavorite, handleCopyLink, handleTagClick, handleDragStart, handleDragOver, handleDragEnd, handleDrop, setHoveredTag, handlePageChange } = useBrowserActions();
   const { displayMode, isGlitching, handleDisplayModeChange } = useSettingsContext();
-  const { selectedProject, handleContextMenu, handleProjectSelect, isDataMode, isWarping } = useOverlayContext();
+  const { selectedProject, handleProjectSelect } = useOverlayModalContext();
+  const { handleContextMenu } = useOverlayContextMenuContext();
+  const { isDataMode, isWarping } = useOverlayChromeContext();
   const { flags, effectiveMode, performanceMode } = useEffectsContext();
   const showWarpFx = flags.warpTransition && isWarping;
 

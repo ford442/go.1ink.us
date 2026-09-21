@@ -1,12 +1,15 @@
 import soundSystem from '../lib/SoundSystem';
-import { useOverlayContext } from '../app/context/OverlayContext';
-import { useBrowserContext } from '../app/context/BrowserContext';
+import { useOverlayContextMenuContext } from '../app/context/OverlayContextMenuContext';
+import { useOverlayChromeContext } from '../app/context/OverlayChromeContext';
+import { useBrowserContext, useBrowserActions } from '../app/context/BrowserContext';
 import { useActivityContext } from '../app/context/ActivityContext';
 import { trackProjectLaunch } from '../lib/trackEvent';
 
 export default function ContextMenu() {
-  const { contextMenu, closeContextMenu, setIsDataMode, isDataMode } = useOverlayContext();
-  const { toggleFavorite, favorites, handleCopyLink } = useBrowserContext();
+  const { contextMenu, closeContextMenu } = useOverlayContextMenuContext();
+  const { setIsDataMode, isDataMode } = useOverlayChromeContext();
+  const { favorites } = useBrowserContext();
+  const { toggleFavorite, handleCopyLink } = useBrowserActions();
   const { addActivityLog } = useActivityContext();
   if (!contextMenu) return null;
 

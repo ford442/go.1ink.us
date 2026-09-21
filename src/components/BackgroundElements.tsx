@@ -6,12 +6,12 @@ import { lazy, Suspense } from 'react';
 const MatrixRain = lazy(() => import('../effects/MatrixRain'));
 import { useEffectsContext } from '../app/context/EffectsContext';
 import { useSettingsContext } from '../app/context/SettingsContext';
-import { useOverlayContext } from '../app/context/OverlayContext';
+import { useOverlayChromeContext } from '../app/context/OverlayChromeContext';
 
 export default function BackgroundElements() {
   const { starfieldRef, deepGridRef, baseGridRef, gridSpotlightRef, flags } = useEffectsContext();
   const { isMatrixMode, theme, isGodMode } = useSettingsContext();
-  const { isWarping } = useOverlayContext();
+  const { isWarping } = useOverlayChromeContext();
 
   const showMatrix = flags.matrixRain && isMatrixMode;
   const showParticles = flags.particleNetwork && !isMatrixMode;

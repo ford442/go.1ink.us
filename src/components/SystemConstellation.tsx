@@ -4,7 +4,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Html, Line, OrbitControls, Stars } from '@react-three/drei';
 import * as THREE from 'three';
 import { useBrowserContext } from '../app/context/BrowserContext';
-import { useOverlayContext } from '../app/context/OverlayContext';
+import { useOverlayModalContext } from '../app/context/OverlayModalContext';
 import { useSettingsContext } from '../app/context/SettingsContext';
 import { useEffectsContext } from '../app/context/EffectsContext';
 import {
@@ -281,7 +281,7 @@ function FallbackBanner({ reason, onOpenMap }: FallbackBannerProps) {
 
 export default function SystemConstellation() {
   const { filteredProjects } = useBrowserContext();
-  const { handleProjectSelect } = useOverlayContext();
+  const { handleProjectSelect } = useOverlayModalContext();
   const { theme, handleDisplayModeChange } = useSettingsContext();
   const { flags } = useEffectsContext();
   const containerRef = useRef<HTMLDivElement | null>(null);

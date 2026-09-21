@@ -7,6 +7,7 @@ import type {
   SetStateAction,
   SyntheticEvent,
 } from 'react';
+import type { GroundStation, StationFrame } from '../../ground';
 import type { ActivityLog, ClickEffect } from '../../hooks/useBootSequence';
 import type { ContextMenuState } from '../../hooks/useContextMenu';
 import type { Toast, ToastType } from '../../hooks/useToasts';
@@ -31,6 +32,10 @@ export interface SettingsContextValue {
   theme: ThemeId;
 }
 
+// Hot state: rebuilt on every search keystroke, filter toggle, sort change,
+// and page turn. Kept separate from BrowserActionsContextValue so an
+// actions-only consumer (e.g. `useVoiceCommand`, which only needs
+// `setSearchQuery`) never re-renders on state it doesn't read.
 export interface BrowserContextValue {
   activeCategories: Category[];
   activeFilters: string[];
@@ -43,13 +48,6 @@ export interface BrowserContextValue {
   favorites: number[];
   filteredProjects: EnhancedProject[];
   focusedCardIndex: number;
-  handleCopyLink: (project: Project) => void;
-  handleDragEnd: () => void;
-  handleDragOver: (event: DragEvent, projectId: number) => void;
-  handleDragStart: (event: DragEvent, projectId: number) => void;
-  handleDrop: (event: DragEvent, projectId: number) => void;
-  handlePageChange: (page: number) => void;
-  handleTagClick: (tag: string) => void;
   hoveredTag: string | null;
   isMobileFiltersOpen: boolean;
   paginatedProjects: EnhancedProject[];
@@ -57,6 +55,23 @@ export interface BrowserContextValue {
   randomSeed: number;
   searchInputRef: RefObject<HTMLInputElement | null>;
   searchQuery: string;
+  sortOption: SortOption;
+  suggestedTags: string[];
+  totalPages: number;
+}
+
+// Stable `useCallback` references only — this context's value never
+// invalidates on a BrowserContextValue state change, so a consumer that
+// reads only actions (never state) can subscribe here instead of to the
+// full, search-keystroke-hot BrowserContext.
+export interface BrowserActionsContextValue {
+  handleCopyLink: (project: Project) => void;
+  handleDragEnd: () => void;
+  handleDragOver: (event: DragEvent, projectId: number) => void;
+  handleDragStart: (event: DragEvent, projectId: number) => void;
+  handleDrop: (event: DragEvent, projectId: number) => void;
+  handlePageChange: (page: number) => void;
+  handleTagClick: (tag: string) => void;
   setActiveFilters: Setter<string[]>;
   setCurrentPage: Setter<number>;
   setFocusedCardIndex: Setter<number>;
@@ -65,11 +80,17 @@ export interface BrowserContextValue {
   setRandomSeed: Setter<number>;
   setSearchQuery: Setter<string>;
   setSortOption: Setter<SortOption>;
-  sortOption: SortOption;
-  suggestedTags: string[];
   toggleFavorite: (project: Project) => void;
   toggleFilter: (filter: string) => void;
-  totalPages: number;
+}
+
+// Catalog-wide counts that are independent of search/filter state — unlike
+// `BrowserContextValue.favoriteCount` (which counts favorites matching the
+// *current* search/filter, and is deliberately hot), these only change when
+// the catalog or the favorites list itself changes. Lets `LoadoutPanel` and
+// `CommandHeader` read a count without subscribing to BrowserContext.
+export interface CatalogCountsContextValue {
+  totalFavorites: number;
   totalProjects: number;
 }
 
@@ -123,31 +144,52 @@ export interface TerminalContextValue {
   omniProtocolItems: OmniProtocolItem[];
 }
 
-export interface OverlayContextValue {
+// Toast queue only. Split out of the old flat OverlayContextValue so a
+// modal-only or chrome-only consumer isn't invalidated by a toast firing.
+export interface OverlayToastContextValue {
   addToast: (message: string, type?: ToastType, duration?: number) => void;
-  clickEffects: ClickEffect[];
-  closeContextMenu: () => void;
+  removeToast: (id: string) => void;
+  toasts: Toast[];
+}
+
+// Project quick-view modal only. `ProjectQuickView` — the single biggest
+// consumer of the old OverlayContextValue — now subscribes to exactly this
+// and nothing else.
+export interface OverlayModalContextValue {
   closeProjectModal: () => void;
+  handleProjectSelect: (project: Project) => void;
+  modalImageLoaded: boolean;
+  modalRef: RefObject<HTMLDivElement | null>;
+  selectedProject: Project | null;
+  setModalImageLoaded: Setter<boolean>;
+}
+
+// Right-click context menu only.
+export interface OverlayContextMenuContextValue {
+  closeContextMenu: () => void;
   contextMenu: ContextMenuState | null;
   handleContextMenu: (event: ReactMouseEvent, project: Project) => void;
-  handleProjectSelect: (project: Project) => void;
+}
+
+// Small, infrequently-changing chrome flags: omni palette, lockdown, idle,
+// data mode, cheatsheet, warp transition, tactical click effects. These are
+// grouped rather than split further because every current consumer
+// (`SystemOverlays`, `CommandHeader`, `BackgroundElements`, `ContextMenu`)
+// already needs two or more of them together; split further only if
+// profiling shows one of these flags flipping often enough to matter (see
+// AGENTS.md's "when to split a domain" rule).
+export interface OverlayChromeContextValue {
+  clickEffects: ClickEffect[];
+  isCheatsheetOpen: boolean;
   isDataMode: boolean;
   isIdle: boolean;
   isLockdown: boolean;
   isOmniOpen: boolean;
-  isCheatsheetOpen: boolean;
   isWarping: boolean;
-  modalImageLoaded: boolean;
-  modalRef: RefObject<HTMLDivElement | null>;
-  removeToast: (id: string) => void;
-  selectedProject: Project | null;
+  setIsCheatsheetOpen: Setter<boolean>;
   setIsDataMode: Setter<boolean>;
   setIsLockdown: Setter<boolean>;
   setIsOmniOpen: Setter<boolean>;
-  setIsCheatsheetOpen: Setter<boolean>;
-  setModalImageLoaded: Setter<boolean>;
-  setSelectedProject: Setter<Project | null>;
-  toasts: Toast[];
 }
 
 export interface EffectsContextValue {
@@ -175,12 +217,34 @@ export interface ActivityContextValue {
   userActivityLogs: ActivityLog[];
 }
 
+export type GeolocationStatus = 'idle' | 'requesting' | 'granted' | 'denied' | 'unsupported';
+
+// Stub domain for #273 (Orbital Ops): the active ground station and its
+// derived frame, plus geolocation request status. Deliberately its own
+// domain rather than folded into BrowserContext (unrelated to the project
+// catalog) or EffectsContext (which is refs + performance flags only) — see
+// AGENTS.md's "when to split a domain" rule. The pass table / constellation
+// overlay that reads `frame` at frame-rate is #273's job, not this one's.
+export interface GroundStationContextValue {
+  frame: StationFrame;
+  geolocationStatus: GeolocationStatus;
+  requestGeolocation: () => void;
+  setStation: Setter<GroundStation>;
+  station: GroundStation;
+}
+
 export interface AppContextValues {
   settings: SettingsContextValue;
   browser: BrowserContextValue;
+  browserActions: BrowserActionsContextValue;
+  catalogCounts: CatalogCountsContextValue;
   loadout: LoadoutContextValue;
   terminal: TerminalContextValue;
-  overlay: OverlayContextValue;
+  overlayToast: OverlayToastContextValue;
+  overlayModal: OverlayModalContextValue;
+  overlayContextMenu: OverlayContextMenuContextValue;
+  overlayChrome: OverlayChromeContextValue;
   effects: EffectsContextValue;
   activity: ActivityContextValue;
+  groundStation: GroundStationContextValue;
 }

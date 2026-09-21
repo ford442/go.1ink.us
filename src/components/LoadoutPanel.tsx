@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import soundSystem from '../lib/SoundSystem';
-import { useBrowserContext } from '../app/context/BrowserContext';
+import { useCatalogCounts } from '../app/context/CatalogCountsContext';
 import { useLoadoutContext } from '../app/context/LoadoutContext';
 
 export default function LoadoutPanel() {
@@ -15,7 +15,7 @@ export default function LoadoutPanel() {
     importLoadoutJson,
     copyShareLink,
   } = useLoadoutContext();
-  const { favorites } = useBrowserContext();
+  const { totalFavorites } = useCatalogCounts();
 
   const [isOpen, setIsOpen] = useState(false);
   const [newName, setNewName] = useState('');
@@ -72,7 +72,7 @@ export default function LoadoutPanel() {
             <button
               type="button"
               onClick={handleSave}
-              disabled={!newName.trim() || favorites.length === 0}
+              disabled={!newName.trim() || totalFavorites === 0}
               className="shrink-0 px-2 py-1.5 text-[10px] font-mono uppercase bg-accent-500/20 text-accent-300 border border-accent-500/40 rounded-md hover:bg-accent-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               Save

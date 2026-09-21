@@ -1,9 +1,9 @@
 import { lazy, Suspense } from 'react';
 import RadarHUD from '../../effects/RadarHUD';
-import { useBrowserContext } from '../../app/context/BrowserContext';
+import { useBrowserContext, useBrowserActions } from '../../app/context/BrowserContext';
 import { useActivityContext } from '../../app/context/ActivityContext';
 import { useSettingsContext } from '../../app/context/SettingsContext';
-import { useOverlayContext } from '../../app/context/OverlayContext';
+import { useOverlayModalContext } from '../../app/context/OverlayModalContext';
 import { useEffectsContext } from '../../app/context/EffectsContext';
 import ActivityFeed from '../ActivityFeed';
 import TransmissionsPanel from '../TransmissionsPanel';
@@ -15,10 +15,11 @@ const LoadoutPanel = lazy(() => import('../LoadoutPanel'));
 const OperatorProfileCard = lazy(() => import('../OperatorProfileCard'));
 
 export default function Sidebar() {
-  const { searchInputRef, searchQuery, setSearchQuery, setCurrentPage, filteredProjects, suggestedTags, toggleFilter, isMobileFiltersOpen, setIsMobileFiltersOpen, activeFilters, sortOption, setSortOption, activeFiltersSet, counts, setHoveredTag, favoriteCount, activeCategories, handleTagClick, favorites, setRandomSeed } = useBrowserContext();
+  const { searchInputRef, searchQuery, filteredProjects, suggestedTags, isMobileFiltersOpen, activeFilters, sortOption, activeFiltersSet, counts, favoriteCount, activeCategories, favorites } = useBrowserContext();
+  const { setSearchQuery, setCurrentPage, toggleFilter, setIsMobileFiltersOpen, setSortOption, setHoveredTag, handleTagClick, setRandomSeed } = useBrowserActions();
   const { addActivityLog } = useActivityContext();
   const { displayMode, theme, changeTheme } = useSettingsContext();
-  const { handleProjectSelect } = useOverlayContext() || {};
+  const { handleProjectSelect } = useOverlayModalContext();
   const { flags } = useEffectsContext();
 
   return (
