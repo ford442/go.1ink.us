@@ -76,6 +76,10 @@ export class OffscreenWorkerBackend implements VisualBackend {
     this.client.send({ type: 'setDensity', layerId: this.layerId, density });
   }
 
+  setHover(hovering: boolean): void {
+    this.client.send({ type: 'setHover', layerId: this.layerId, hovering });
+  }
+
   setRunning(running: boolean): void {
     this.client.send({ type: 'setRunning', layerId: this.layerId, running });
   }

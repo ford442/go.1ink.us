@@ -49,6 +49,10 @@ export class MainThreadCanvasBackend implements VisualBackend {
     this.engine?.setDensity(density);
   }
 
+  setHover(hovering: boolean): void {
+    this.engine?.setHover(hovering);
+  }
+
   setRunning(): void {
     // The host's own rAF gate (useAnimationLoop) already stops calling tick()
     // when the tab is hidden or the target scrolls off-screen, so a main-thread

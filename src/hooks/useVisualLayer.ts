@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import useAnimationLoop from './useAnimationLoop';
 import useVisibilityGate from './useVisibilityGate';
@@ -30,11 +30,16 @@ export interface UseVisualLayerOptions {
  * reduced-motion visitor never spawns the visuals worker for something that
  * won't animate.
  */
+export interface VisualLayerHandle {
+  /** Forwards a hover-target signal to the backend (see `Engine.setHover`) and wakes a parked main-thread loop. */
+  setHover: (hovering: boolean) => void;
+}
+
 export default function useVisualLayer(
   effect: EffectKind,
   canvasRef: RefObject<HTMLCanvasElement | null>,
   options: UseVisualLayerOptions = {},
-): void {
+): VisualLayerHandle {
   const { enabled = true, density = 1, theme = 'cyan', target } = options;
   const prefersReducedMotion = usePrefersReducedMotion();
   const active = enabled && !prefersReducedMotion;
@@ -113,4 +118,14 @@ export default function useVisualLayer(
     // itself, so this updates density in place instead of reinitializing.
     backendRef.current?.setDensity(density);
   }, [density, active]);
+
+  const setHover = useCallback((hovering: boolean) => {
+    backendRef.current?.setHover(hovering);
+    // No-ops for a worker-backed layer (its loop is self-sufficient once
+    // setHover marks the layer as demanding a frame); wakes a parked
+    // main-thread loop otherwise.
+    loopHandle.wake();
+  }, [loopHandle]);
+
+  return { setHover };
 }

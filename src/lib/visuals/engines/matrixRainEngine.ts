@@ -51,6 +51,10 @@ export class MatrixRainEngine implements Engine {
     // No density concept for matrix rain — column count is derived from width alone.
   }
 
+  setHover(): void {
+    // Matrix rain doesn't react to hover.
+  }
+
   tick(time: number): void {
     if (time - this.lastTime < FRAME_INTERVAL) return;
     this.lastTime = time;

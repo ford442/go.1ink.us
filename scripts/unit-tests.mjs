@@ -9,4 +9,5 @@ import './test-performance-mode.mjs';
 import './test-project-browser.mjs';
 import './test-terminal-parser.mjs';
 import './test-transmissions.mjs';
+import './test-visual-engines.mjs';
 import './test-visual-worker-protocol.mjs';

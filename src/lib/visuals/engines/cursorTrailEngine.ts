@@ -9,6 +9,12 @@ interface TrailParticle {
   size: number;
 }
 
+// Upper bound on live trail particles. `life` decay (see tick()) already
+// retires a particle in ~50 frames, but a burst of pointer moves within that
+// window — a fast swipe, or a tick() starved by a busy main thread — can
+// spawn faster than they decay; this caps how far that can run away.
+const MAX_PARTICLES = 60;
+
 /** Fading particle trail that follows the pointer. Parks itself (via `tick` returning `false`) once it has nothing left to draw. */
 export class CursorTrailEngine implements Engine {
   private ctx: Canvas2D | null = null;
@@ -37,6 +43,7 @@ export class CursorTrailEngine implements Engine {
     this.lastSpawn.x = x;
     this.lastSpawn.y = y;
     this.particles.push({ x, y, life: 1.0, size: Math.random() * 4 + 2 });
+    if (this.particles.length > MAX_PARTICLES) this.particles.shift();
   }
 
   setTheme(accentRgb: string, _theme: ThemeId): void {
@@ -45,6 +52,10 @@ export class CursorTrailEngine implements Engine {
 
   setDensity(): void {
     // No density concept for the cursor trail.
+  }
+
+  setHover(): void {
+    // Cursor trail doesn't react to hover.
   }
 
   tick(): boolean {

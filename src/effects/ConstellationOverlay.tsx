@@ -16,6 +16,14 @@ interface ConstellationOverlayProps {
   displayMode: DisplayMode;
 }
 
+/**
+ * Kept on the DOM/SVG side of the `VisualBackend` split (see AGENTS.md's
+ * ambient-visuals table), not ported to a canvas `Engine`: every line
+ * endpoint is `getBoundingClientRect()` of a real project card, so drawing
+ * it requires DOM layout access an `Engine` (which only ever sees a bare
+ * `Canvas2D` context) doesn't have. Too data-coupled to the project grid's
+ * live layout to become a standalone simulation.
+ */
 const ConstellationOverlay = ({ hoveredTag, visibleProjects, displayMode }: ConstellationOverlayProps) => {
   const [lines, setLines] = useState<ConstellationLine[]>([]);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -89,16 +97,29 @@ const ConstellationOverlay = ({ hoveredTag, visibleProjects, displayMode }: Cons
       setLines(newLines);
     };
 
-    const loop = () => {
+    // Recompute on every layout change that can move a card — scroll and
+    // resize — instead of every animation frame regardless of whether
+    // anything moved. rAF-throttled the same way RadarHUD's scroll handler
+    // is, so a scroll burst collapses to one recompute per frame rather than
+    // one per `scroll` event.
+    let scheduled = false;
+    const scheduleUpdate = () => {
+      if (scheduled) return;
+      scheduled = true;
+      rafId = requestAnimationFrame(() => {
+        scheduled = false;
         updateLines();
-        rafId = requestAnimationFrame(loop);
+      });
     };
 
-    // Start loop
-    loop();
+    scheduleUpdate();
+    window.addEventListener('scroll', scheduleUpdate, { passive: true });
+    window.addEventListener('resize', scheduleUpdate, { passive: true });
 
     return () => {
       cancelAnimationFrame(rafId);
+      window.removeEventListener('scroll', scheduleUpdate);
+      window.removeEventListener('resize', scheduleUpdate);
       // Don't synchronously set state here, but if the component is just going to unmount or reset,
       // it handles itself naturally on the next render.
     };

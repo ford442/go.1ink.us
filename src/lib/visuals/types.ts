@@ -1,7 +1,7 @@
 import type { ThemeId } from '../../types';
 
 /** Every ambient background effect that can be driven through a `VisualBackend`. */
-export type EffectKind = 'starfield' | 'particleNetwork' | 'matrixRain' | 'cursorTrail';
+export type EffectKind = 'starfield' | 'particleNetwork' | 'matrixRain' | 'cursorTrail' | 'cursor';
 
 export interface VisualInitOptions {
   width: number;
@@ -25,6 +25,8 @@ export interface VisualBackend {
   setTheme(accentRgb: string, theme: ThemeId): void;
   setPointer(x: number | null, y: number | null): void;
   setDensity(density: number): void;
+  /** Hover-target signal; see `Engine.setHover`. No-op for every effect except the cursor. */
+  setHover(hovering: boolean): void;
   /** Play/pause signal for backends that run their own loop outside this frame's rAF (i.e. workers). */
   setRunning(running: boolean): void;
   /** Advance one frame. No-op for backends that drive their own loop (i.e. workers). */

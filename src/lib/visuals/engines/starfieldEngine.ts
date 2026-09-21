@@ -76,6 +76,10 @@ export class StarfieldEngine implements Engine {
     this.seed();
   }
 
+  setHover(): void {
+    // Starfield doesn't react to hover.
+  }
+
   tick(time: number): void {
     const ctx = this.ctx;
     if (!ctx) return;
