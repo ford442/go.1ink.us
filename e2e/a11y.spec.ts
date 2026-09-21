@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import type { AxeResults, Result } from 'axe-core';
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -7,13 +8,13 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-function blockingViolations(results) {
+function blockingViolations(results: AxeResults): Result[] {
   return results.violations.filter(
     (v) => v.impact === 'critical' || v.impact === 'serious',
   );
 }
 
-function formatViolations(violations) {
+function formatViolations(violations: Result[]): string {
   return violations.map((v) => `${v.id} (${v.nodes.length} nodes): ${v.help}`).join('\n');
 }
 

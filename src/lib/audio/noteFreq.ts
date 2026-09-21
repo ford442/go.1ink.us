@@ -23,7 +23,7 @@ export function noteToFreq(note: string): number {
   const match = /^([A-Ga-g])(#{1}|b{1})?(-?\d+)$/.exec(note.trim());
   if (!match) return Number.NaN;
 
-  const letter = match[1].toUpperCase();
+  const letter = match[1]!.toUpperCase();
   const accidental = match[2] ?? '';
   const octave = Number(match[3]);
 
@@ -37,7 +37,7 @@ export function noteToFreq(note: string): number {
     B: 11,
   };
 
-  let semitone = semitoneMap[letter];
+  let semitone = semitoneMap[letter]!;
   if (accidental === '#') semitone += 1;
   if (accidental === 'b') semitone -= 1;
 

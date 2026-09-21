@@ -14,7 +14,7 @@ export default function useFocusTrap(containerRef: RefObject<HTMLElement | null>
     const focusFirst = () => {
       const nodes = root.querySelectorAll<HTMLElement>(FOCUSABLE);
       if (nodes.length > 0) {
-        nodes[0].focus();
+        nodes[0]!.focus();
       }
     };
 
@@ -26,8 +26,8 @@ export default function useFocusTrap(containerRef: RefObject<HTMLElement | null>
       const nodes = root.querySelectorAll<HTMLElement>(FOCUSABLE);
       if (nodes.length === 0) return;
 
-      const first = nodes[0];
-      const last = nodes[nodes.length - 1];
+      const first = nodes[0]!;
+      const last = nodes[nodes.length - 1]!;
 
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();

@@ -98,7 +98,7 @@ export interface Project {
   healthOverride?: ConnectivityHealth | null;
 }
 
-/** Project as enhanced at module load in app/App.jsx for O(1) tag/category lookups. */
+/** Project as enhanced at module load in app/App.tsx for O(1) tag/category lookups. */
 export interface EnhancedProject extends Project {
   tagSet: Set<string>;
   categorySet: Set<Category>;

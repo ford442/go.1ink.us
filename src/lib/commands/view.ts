@@ -29,7 +29,7 @@ export const sortCommand: CommandDefinition = {
   })),
   run(ctx, args) {
     if (args.length === 0) return missingArg('sort <featured|newest|a-z|random|complex>');
-    const sortParam = args[0].toLowerCase();
+    const sortParam = args[0]!.toLowerCase();
     const mapped = SORT_MAP[sortParam];
     if (!mapped) {
       return { type: 'error', text: `ERR: Unknown sorting algorithm '${args[0]}'` };
@@ -61,7 +61,7 @@ export const viewCommand: CommandDefinition = {
   })),
   run(ctx, args) {
     if (args.length === 0) return missingArg('view <dense|grid|matrix|list|map|constellation>');
-    const viewParam = args[0].toLowerCase() as DisplayMode;
+    const viewParam = args[0]!.toLowerCase() as DisplayMode;
     if (!VIEWS.includes(viewParam)) {
       return { type: 'error', text: `ERR: Unknown display protocol '${args[0]}'` };
     }

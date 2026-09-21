@@ -19,7 +19,7 @@ export const themeCommand: CommandDefinition = {
   })),
   run(ctx, args) {
     if (args.length === 0) return missingArg('theme <cyan|purple|emerald|gold>');
-    const theme = args[0].toLowerCase() as ThemeId;
+    const theme = args[0]!.toLowerCase() as ThemeId;
     if (!THEMES.includes(theme)) {
       return { type: 'error', text: `ERR: Unsupported color matrix '${args[0]}'` };
     }
@@ -43,7 +43,7 @@ export const soundCommand: CommandDefinition = {
   run(ctx, args) {
     if (args.length === 0) return missingArg('sound <on|off>');
     return onOffResult(
-      args[0].toLowerCase(),
+      args[0]!.toLowerCase(),
       () => ctx.setIsSoundEnabled(true),
       () => ctx.setIsSoundEnabled(false),
       '> AUDIO_FEEDBACK_SYSTEM: ONLINE',
@@ -67,7 +67,7 @@ export const crtCommand: CommandDefinition = {
   run(ctx, args) {
     if (args.length === 0) return missingArg('crt <on|off>');
     return onOffResult(
-      args[0].toLowerCase(),
+      args[0]!.toLowerCase(),
       () => ctx.setIsCrtEnabled(true),
       () => ctx.setIsCrtEnabled(false),
       '> CRT_EFFECT_SYSTEM: ONLINE',
@@ -90,7 +90,7 @@ export const matrixCommand: CommandDefinition = {
   },
   run(ctx, args) {
     if (args.length === 0) return missingArg('matrix <on|off>');
-    const stateParam = args[0].toLowerCase();
+    const stateParam = args[0]!.toLowerCase();
     if (stateParam === 'on') {
       ctx.setIsMatrixMode(true);
       return { type: 'system', text: '> SYSTEM_VISUALS: MATRIX_PROTOCOL_ENGAGED' };

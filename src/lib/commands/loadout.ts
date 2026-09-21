@@ -17,7 +17,7 @@ export const loadoutCommand: CommandDefinition = {
   usage: 'loadout <list|save|apply|share|export|delete> [name]',
   run(ctx, args) {
     if (args.length === 0) return missingArg('loadout <list|save|apply|share|export|delete> [name]');
-    const action = args[0].toLowerCase();
+    const action = args[0]!.toLowerCase();
     const nameArg = args.slice(1).join(' ').trim();
 
     if (action === 'list') {

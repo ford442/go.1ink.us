@@ -25,7 +25,7 @@ const ActivityFeed = () => {
 
     const interval = setInterval(() => {
       setLogs((prev) => {
-        const text = healthLogs[logCursor.current % healthLogs.length];
+        const text = healthLogs[logCursor.current % healthLogs.length]!;
         logCursor.current += 1;
         const newLog = {
           id: `health-${Date.now()}-${logCursor.current}`,

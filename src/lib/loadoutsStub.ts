@@ -4,7 +4,7 @@ type LoadoutsApi = ReturnType<typeof useLoadouts>;
 
 const noop = () => {};
 
-// Placeholder App.jsx renders before useLoadouts (owned by LoadoutsBootstrap)
+// Placeholder App.tsx renders before useLoadouts (owned by LoadoutsBootstrap)
 // reports its real API via onReady(); matches its shape so consumers don't
 // need to null-check while waiting.
 export const loadoutsStub: LoadoutsApi = {

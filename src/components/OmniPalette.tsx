@@ -104,7 +104,8 @@ const OmniPalette = ({
         soundSystem.playKeystroke();
       } else if (e.key === 'Enter' && filteredItems.length > 0) {
         e.preventDefault();
-        handleExecute(filteredItems[selectedIndex]);
+        const item = filteredItems[selectedIndex];
+        if (item) handleExecute(item);
       } else if (e.key === 'Escape') {
         e.preventDefault();
         handleClose();

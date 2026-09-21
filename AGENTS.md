@@ -35,10 +35,10 @@ way.
 go.1ink.us/
 ├── index.html                 # Entry HTML file
 ├── package.json               # NPM dependencies and scripts
-├── vite.config.js             # Vite configuration with custom plugin
-├── tailwind.config.js         # Tailwind CSS theme extensions
-├── postcss.config.js          # PostCSS plugins config
-├── eslint.config.js           # ESLint flat config
+├── vite.config.ts             # Vite configuration with custom plugin
+├── tailwind.config.ts         # Tailwind CSS theme extensions
+├── postcss.config.ts          # PostCSS plugins config
+├── eslint.config.ts           # ESLint flat config
 ├── tsconfig.json               # TypeScript config (see TypeScript Migration below)
 ├── deploy.py                  # SFTP deployment script
 ├── public/                    # Static assets
@@ -94,7 +94,7 @@ npm run browserslist:update
 # Run ESLint
 npm run lint
 
-# Type-check converted .ts/.tsx files (see TypeScript Migration below)
+# Type-check the whole tree — src/ plus tooling config (see TypeScript Migration below)
 npm run typecheck
 
 # Playwright smoke tests (requires build + preview server)
@@ -126,7 +126,7 @@ Production build enforces an **initial JS gzip budget of 130 KB** (entry + modul
 | `OmniPalette` / `Screensaver` / `ShortcutCheatsheet` | First open / idle / cheatsheet |
 | `vendor-motion` (`framer-motion`) | Only with `ShortcutCheatsheet` — no longer on the critical path |
 
-`vite.config.js` sets `manualChunks` for `vendor-react` and `vendor-motion`, `sourcemap: false` in prod, and `reportCompressedSize: true`. `react-force-graph-2d` ships inside the lazy `SystemMap` chunk (not preloaded).
+`vite.config.ts` sets `manualChunks` for `vendor-react` and `vendor-motion`, `sourcemap: false` in prod, and `reportCompressedSize: true`. `react-force-graph-2d` ships inside the lazy `SystemMap` chunk (not preloaded).
 
 `framer-motion` was previously pulled into the entry bundle because `MainContent`, `Toast`, and `SystemOverlays` imported it eagerly (~41 KB gzip). `MainContent.tsx` was split into `src/components/MainContent/` (`MainContent.tsx` orchestrator, `ViewToolbar`, `ProjectGridView`, `Pagination`, `EmptyState`, `useGridPerspective`), and the card-grid entrance/hover animation and `Toast` enter/exit now use CSS keyframes in `App.css` (`animate-card-enter`, `animate-slide-in-right` / `animate-fade-out-right`) instead of `motion.div`/`AnimatePresence`. `ShortcutCheatsheet` is the only remaining `framer-motion` consumer and is already behind a lazy boundary, so `vendor-motion` no longer ships until it's opened.
 
@@ -435,7 +435,7 @@ component mounts.
 
 The worker entry (`lib/visuals/worker/visualWorker.ts`) is loaded via
 `new Worker(new URL('./worker/visualWorker.ts', import.meta.url), { type: 'module' })`,
-which Vite (`worker: { format: 'es' }` in `vite.config.js`) emits as its own
+which Vite (`worker: { format: 'es' }` in `vite.config.ts`) emits as its own
 chunk (`visualWorker-*.js`) outside the `modulePreload` graph — it never counts
 against the initial JS budget (see `scripts/check-bundle-budget.mjs`'s "Lazy /
 on-demand chunks" output). It imports only this project's own engines/runtime
@@ -555,40 +555,41 @@ file-by-file, rather than in one pass; `tsconfig.json`'s `allowJs: true` +
 `checkJs: false` existed to let `.ts`/`.tsx` and `.js`/`.jsx` coexist while it
 was in progress.
 
-**Current state**: migration complete — every file under `src/` is
-`.ts`/`.tsx` (81 `.ts`, 66 `.tsx`; zero `.js`/`.jsx`). `strict: true` applies
-across the whole tree. `allowJs`/`checkJs: false` stay in `tsconfig.json`
-harmlessly (nothing left for them to affect) rather than being pulled to
-avoid churning the config for its own sake; a follow-up can drop them.
-`eslint.config.js` has a matching `**/*.{ts,tsx}` block (see "Linting
-converted TypeScript" below) so every file is both type-checked and linted.
-`app/context/contextTypes.ts`, the generic context factory, seven domain
-contexts, `AppProviders.tsx`, and `useAppProviderValues.ts` enforce the
-provider contracts. `src/constants.ts` is the only category/tag constants
-module used by validation and runtime UI.
+**Current state**: migration complete, and the tooling has caught up with
+it. Every file under `src/` is `.ts`/`.tsx` (zero `.js`/`.jsx` anywhere in
+the repo, including tooling config). `tsconfig.json` no longer sets
+`allowJs`/`checkJs` — both default to `false`, which is now accurate since
+there's no JS left for them to allow. `strict: true` plus
+`noUncheckedIndexedAccess: true` apply across the whole tree, and
+`tsconfig.json` declares a `"@/*": ["./src/*"]` path alias mirrored by
+`resolve.alias` in `vite.config.ts` (new code may use it, but the existing
+relative-import style is not being churned to adopt it). `vite.config.ts`,
+`eslint.config.ts`, `playwright.config.ts`, `tailwind.config.ts`,
+`postcss.config.ts`, and `e2e/*.spec.ts` are all TypeScript too, so `tsc`
+covers the toolchain, not just `src/`. `eslint.config.ts` has a single
+`**/*.{ts,tsx}` block (see "Linting TypeScript" below) so every file is
+both type-checked and linted. `app/context/contextTypes.ts`, the generic
+context factory, seven domain contexts, `AppProviders.tsx`, and
+`useAppProviderValues.ts` enforce the provider contracts. `src/constants.ts`
+is the only category/tag constants module used by validation and runtime UI.
 
-**Phased plan** (each phase should leave `npm run typecheck` and
-`npm run build` both clean):
-
-1. ~~Add `tsconfig.json` (`allowJs` + `checkJs: false`) and a `typecheck` script~~ — done
-2. ~~Type the data layer: `src/types.ts` (`Project`, `Category`, `DisplayMode`, `ThemeId`, `SortOption`, …), then convert `constants.js` → `constants.ts` and `projectData.js` → `projectData.ts`~~ — done
-3. ~~Convert every hook (`src/hooks/*.js` → `.ts`) and type the context/provider boundary~~ — done
-4. ~~Convert components (`.jsx` → `.tsx`), leaf-first (`Tooltip`, `Clock`, `DecryptText`) before container components (`App.tsx`, `MainContent.tsx`)~~ — done: leaf presentational components and Card hooks, then `SoundSystem`/`loadoutsStub`, then the remaining mid-level components (effects/, HoloTerminal/, MainContent/ sections, OmniPalette, SystemMap/SystemConstellation, ProjectQuickView, CommandHeader, …), then containers (`Card.tsx`, `MainContent.tsx`, `Sidebar.tsx`, `App.tsx`, `main.tsx`) last
-5. ~~Enable `strict: true` for converted TypeScript while retaining `checkJs: false` for JSX~~ — done
-
-**Conventions for new/converted files**:
-- New files should be written in TypeScript (`.ts`/`.tsx`) rather than JS
+**Conventions for new files**:
+- Write new files in TypeScript (`.ts`/`.tsx`)
 - Reuse the shared types in `src/types.ts` (`Project`, `Category`,
   `DisplayMode`, `ThemeId`, `SortOption`, `FilterTarget`) instead of
   re-declaring equivalent unions locally
 - Prefer `interface` for object shapes that might be extended (e.g.
   props), `type` for unions/aliases
-- Don't add `any` to unblock a conversion — leave the file as `.js` a
-  little longer instead, or use a narrower type plus a `// TODO` comment
-  explaining what's missing
+- Don't add `any` to route around a type error — use a narrower type plus
+  a `// TODO` comment explaining what's missing
+- `noUncheckedIndexedAccess` is on: an array/record index access is
+  `T | undefined`. Prefer a bounds-checked guard (`if (item) …`) or
+  destructuring into a local before repeated use; a non-null assertion
+  (`arr[i]!`) is fine only where the surrounding loop/guard already proves
+  the index is in range (e.g. `for (let i = 0; i < arr.length; i++)`)
 
-**Linting converted TypeScript**: `eslint.config.js` has a `**/*.{ts,tsx}`
-block using `typescript-eslint`'s (non type-aware) `recommended` config;
+**Linting TypeScript**: `eslint.config.ts` has a `**/*.{ts,tsx}` block using
+`typescript-eslint`'s (non type-aware) `recommended` config;
 `npm run typecheck` (`tsc --noEmit`) already covers type errors for this
 surface, so linting doesn't need to enable the `project` service.
 `typescript-eslint` doesn't yet support
@@ -600,7 +601,11 @@ so `package.json` aliases `typescript` itself to the API-compatible
 i.e. `typescript-eslint`) and adds `@typescript/native` as `npm:typescript@^7.0.2`
 for the real native compiler, whose `tsc` binary is what `npm run typecheck`
 actually runs (`@typescript/typescript6` only ships a `tsc6` binary, so
-there's no collision). Drop this split once `typescript-eslint` supports TS 7.
+there's no collision). This split is a known, deliberate constraint, not an
+oversight — **drop it** (point `typescript` straight at
+`npm:typescript@^7`, delete the `@typescript/native` alias) once
+`typescript-eslint` supports TS 7's native API; tracked upstream at
+[typescript-eslint#10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940).
 
 ## UX/UI Philosophy
 
@@ -700,11 +705,11 @@ there's no collision). Drop this split once `typescript-eslint` supports TS 7.
 
 ### Build Issues
 - **Missing dist/**: Run `npm run build` before `python scripts/deploy.py`
-- **CSS not loading**: Check `postcss.config.js` has correct plugins
+- **CSS not loading**: Check `postcss.config.ts` has correct plugins
 
 ### Development Issues
-- **Hot reload not working**: Ensure `vite.config.js` plugins are correct
-- **ESLint errors**: Check `eslint.config.js` for React version compatibility
+- **Hot reload not working**: Ensure `vite.config.ts` plugins are correct
+- **ESLint errors**: Check `eslint.config.ts` for React version compatibility
 
 ### Visual Issues
 - **3D effects not working**: Check `perspective-container` has `perspective: 1000px`

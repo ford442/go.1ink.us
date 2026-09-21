@@ -55,7 +55,7 @@ export default function ProjectQuickViewMedia({ project, modalImageLoaded, setMo
       <div className="absolute top-4 left-4 tinted-glass backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-lg">
         <span className="text-xl">{project.icon}</span>
         <span className="text-xs font-mono text-accent-300 font-bold uppercase tracking-wider">
-          {TAG_TO_CATEGORIES[project.tags[0]]?.[0] || 'Project'}
+          {TAG_TO_CATEGORIES[project.tags[0] ?? '']?.[0] || 'Project'}
         </span>
       </div>
     </div>

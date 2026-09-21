@@ -14,7 +14,7 @@ export function formatTransmissionDate(dateStr: string): string {
 
   const fullDateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr.trim());
   if (fullDateMatch) {
-    const [, year, month, day] = fullDateMatch;
+    const [, year = '', month = '', day = ''] = fullDateMatch;
     const monthIndex = parseInt(month, 10) - 1;
     const monthName = MONTH_NAMES[monthIndex] || month;
     const dayNum = parseInt(day, 10);
@@ -23,7 +23,7 @@ export function formatTransmissionDate(dateStr: string): string {
 
   const yearMonthMatch = /^(\d{4})-(\d{2})$/.exec(dateStr.trim());
   if (yearMonthMatch) {
-    const [, year, month] = yearMonthMatch;
+    const [, year = '', month = ''] = yearMonthMatch;
     const monthIndex = parseInt(month, 10) - 1;
     const monthName = MONTH_NAMES[monthIndex] || month;
     return `${monthName} ${year}`;
@@ -48,8 +48,8 @@ export function parseChangelog(
   const datePrefixMatch = /^(\d{4}(?:-\d{2}(?:-\d{2})?)?)\s*[-·:•|]\s*(.+)$/s.exec(trimmed);
 
   if (datePrefixMatch) {
-    const rawDate = datePrefixMatch[1];
-    const summary = datePrefixMatch[2].trim();
+    const rawDate = datePrefixMatch[1]!;
+    const summary = datePrefixMatch[2]!.trim();
     return {
       date: rawDate,
       formattedDate: formatTransmissionDate(rawDate),

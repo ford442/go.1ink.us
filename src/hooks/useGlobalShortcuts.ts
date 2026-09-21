@@ -256,8 +256,9 @@ export default function useGlobalShortcuts({
           }
 
           if (nextIndex >= 0 && nextIndex < cardLinks.length) {
-            cardLinks[nextIndex].focus();
-            cardLinks[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const nextLink = cardLinks[nextIndex]!;
+            nextLink.focus();
+            nextLink.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
         }
       }

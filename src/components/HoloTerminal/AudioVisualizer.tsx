@@ -3,7 +3,7 @@ import { useSettingsContext } from '../../app/context/SettingsContext';
 import useAudioWaveform from '../../hooks/useAudioWaveform';
 
 // Larger waveform panel shown inside the floating holo-terminal. See also
-// AudioVisualizer.jsx (CommandHeader's compact meter) — both share their
+// AudioVisualizer.tsx (CommandHeader's compact meter) — both share their
 // drawing logic via hooks/useAudioWaveform.
 const AudioVisualizer = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);

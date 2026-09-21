@@ -127,7 +127,7 @@ export default function CommandHeaderControls({
         <span className="opacity-50 text-accent-200/70 mr-1">PERF:</span>
         <button
           onClick={() => {
-            const nextMode = PERFORMANCE_MODE_CYCLE[(PERFORMANCE_MODE_CYCLE.indexOf(performanceMode) + 1) % PERFORMANCE_MODE_CYCLE.length];
+            const nextMode = PERFORMANCE_MODE_CYCLE[(PERFORMANCE_MODE_CYCLE.indexOf(performanceMode) + 1) % PERFORMANCE_MODE_CYCLE.length]!;
             setPerformanceMode(nextMode);
             soundSystem.playClick();
           }}

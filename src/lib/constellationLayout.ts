@@ -33,7 +33,7 @@ export interface ConstellationLink {
 
 function primaryCategory(project: EnhancedProject): Category {
   const cats = project.categorySet ? [...project.categorySet] : [];
-  if (cats.length > 0) return cats[0];
+  if (cats.length > 0) return cats[0]!;
   return 'Experiments';
 }
 
@@ -88,8 +88,8 @@ export function buildConstellationLinks(nodes: ConstellationNode[]): Constellati
 
   for (let i = 0; i < nodes.length; i++) {
     for (let j = i + 1; j < nodes.length; j++) {
-      const p1 = nodes[i].project;
-      const p2 = nodes[j].project;
+      const p1 = nodes[i]!.project;
+      const p2 = nodes[j]!.project;
       const tags1 = new Set(p1.tags ?? []);
       const tags2 = new Set(p2.tags ?? []);
 

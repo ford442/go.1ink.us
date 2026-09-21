@@ -103,7 +103,7 @@ export default function useVoiceCommand() {
 
       recognition.onresult = (event) => {
         const current = event.resultIndex;
-        const result = event.results[current][0].transcript.toLowerCase();
+        const result = event.results[current]![0]!.transcript.toLowerCase();
         setTranscript(result);
         addActivityLog(`VOICE_PROTOCOL: "${result}"`);
         processCommand(result);

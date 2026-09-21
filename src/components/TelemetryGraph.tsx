@@ -42,7 +42,7 @@ const TelemetryGraph = ({ value, max = 100, width = 60, height = 20 }: Telemetry
     ctx.moveTo(0, height);
 
     for (let i = 0; i < points; i++) {
-      const val = history[i];
+      const val = history[i]!;
       const normalized = Math.min(Math.max(val / max, 0), 1);
       // Small padding so line doesn't clip top/bottom perfectly
       const paddedHeight = height - 2;
@@ -60,7 +60,7 @@ const TelemetryGraph = ({ value, max = 100, width = 60, height = 20 }: Telemetry
 
     ctx.beginPath();
     for (let i = 0; i < points; i++) {
-      const val = history[i];
+      const val = history[i]!;
       const normalized = Math.min(Math.max(val / max, 0), 1);
       const paddedHeight = height - 2;
       const y = 1 + paddedHeight - (normalized * paddedHeight);

@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -8,6 +9,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 const LAZY_VENDOR_CHUNKS = /vendor-force-graph|vendor-three|MatrixRain|SystemMap|SystemConstellation|HoloTerminal|OmniPalette|Screensaver|ShortcutCheatsheet|LoadoutsBootstrap|LoadoutPanel|loadoutCodec|loadoutIds/
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   plugins: [
     react(),
     VitePWA({

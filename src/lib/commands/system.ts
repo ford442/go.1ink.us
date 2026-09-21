@@ -92,7 +92,7 @@ export const transmissionsCommand: CommandDefinition = {
       action: (c: CommandContext) => {
         const list = deriveTransmissions(projectData);
         if (list.length > 0) {
-          c.handleProjectSelect(list[0].project);
+          c.handleProjectSelect(list[0]!.project);
         }
       },
     },
@@ -118,7 +118,7 @@ export const openCommand: CommandDefinition = {
   usage: 'open <id>',
   run(ctx, args) {
     if (args.length === 0) return missingArg('open <id>');
-    const idToOpen = parseInt(args[0], 10);
+    const idToOpen = parseInt(args[0]!, 10);
     const project = projectData.find((p) => p.id === idToOpen);
     if (!project) {
       return { type: 'error', text: `ERR: Instance ID ${args[0]} not found in database.` };
@@ -157,7 +157,7 @@ export const perfCommand: CommandDefinition = {
         text: `> PERF_MODE: ${perfLabel(ctx.performanceMode)} (active: ${perfLabel(ctx.effectiveMode)})\nUsage: perf <auto|full|balanced|lite|random>`,
       };
     }
-    const modeParam = args[0].toLowerCase() as PerformanceMode;
+    const modeParam = args[0]!.toLowerCase() as PerformanceMode;
     if (!PERF_MODES.includes(modeParam)) {
       return { type: 'error', text: `ERR: Invalid mode '${modeParam}'. Use auto, full, balanced, lite, or random.` };
     }

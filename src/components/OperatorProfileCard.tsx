@@ -29,7 +29,7 @@ export default function OperatorProfileCard() {
     const entries = Object.entries(stats.projectLaunches);
     if (entries.length === 0) return null;
     entries.sort(([, a], [, b]) => b - a);
-    const [id, count] = entries[0];
+    const [id, count] = entries[0]!;
     return { projectId: Number(id), count, title: resolveProjectTitle(Number(id)) };
   }, [stats.projectLaunches]);
 

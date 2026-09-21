@@ -15,7 +15,7 @@ interface AudioVisualizerProps {
 }
 
 // Compact waveform meter shown in CommandHeader. See also
-// components/HoloTerminal/AudioVisualizer.jsx, the larger panel used
+// components/HoloTerminal/AudioVisualizer.tsx, the larger panel used
 // inside the floating holo-terminal — both share their drawing logic via
 // hooks/useAudioWaveform.
 const AudioVisualizer = ({ theme }: AudioVisualizerProps) => {
