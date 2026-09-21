@@ -124,6 +124,7 @@ Production build enforces an **initial JS gzip budget of 130 KB** (entry + modul
 | `ProjectQuickView` | A project quick view opened |
 | `MatrixRain` | Matrix mode enabled |
 | `OmniPalette` / `Screensaver` / `ShortcutCheatsheet` | First open / idle / cheatsheet |
+| `MissionControlPanel` | Mission Control opened (Omni, `ops` terminal command, or `SystemOverlays`) |
 | `vendor-motion` (`framer-motion`) | Only with `ShortcutCheatsheet` — no longer on the critical path |
 
 `vite.config.ts` sets `manualChunks` for `vendor-react` and `vendor-motion`, `sourcemap: false` in prod, and `reportCompressedSize: true`. `react-force-graph-2d` ships inside the lazy `SystemMap` chunk (not preloaded).

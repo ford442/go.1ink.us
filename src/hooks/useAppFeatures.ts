@@ -31,6 +31,7 @@ export default function useAppFeatures({
   isGodMode,
   isOmniOpen,
   isCheatsheetOpen,
+  isMissionControlOpen,
   itemsPerPage,
   randomSeed,
   searchQuery,
@@ -46,6 +47,7 @@ export default function useAppFeatures({
   setIsMatrixMode,
   setIsOmniOpen,
   setIsCheatsheetOpen,
+  setIsMissionControlOpen,
   setRandomSeed,
   setSearchQuery,
   setSelectedProject,
@@ -103,6 +105,7 @@ export default function useAppFeatures({
     setIsCrtEnabled,
     setIsLockdown,
     setIsMatrixMode,
+    setIsMissionControlOpen,
     setRandomSeed,
     setSortOption,
     setIsSoundEnabled,
@@ -118,6 +121,7 @@ export default function useAppFeatures({
     isCrtEnabled,
     isLockdown,
     isMatrixMode,
+    isMissionControlOpen,
     isSoundEnabled,
   });
 

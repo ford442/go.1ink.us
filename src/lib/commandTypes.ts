@@ -48,6 +48,7 @@ export interface CommandContext {
   setIsCrtEnabled: (enabled: boolean) => void;
   setIsHoloTerminalOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   setIsLockdown: (locked: boolean) => void;
+  setIsMissionControlOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   setIsMatrixMode: (enabled: boolean) => void;
   setIsSoundEnabled: (enabled: boolean) => void;
   setPerformanceMode: (mode: PerformanceMode) => void;
@@ -62,6 +63,7 @@ export interface CommandContext {
   isHoloTerminalOpen: boolean;
   isLockdown: boolean;
   isMatrixMode: boolean;
+  isMissionControlOpen: boolean;
   isSoundEnabled: boolean;
   performanceMode: PerformanceMode;
   effectiveMode: PerformanceMode;

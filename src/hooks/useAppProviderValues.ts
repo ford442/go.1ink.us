@@ -148,11 +148,13 @@ export default function useAppProviderValues({
     isDataMode: overlayChrome.isDataMode,
     isIdle: overlayChrome.isIdle,
     isLockdown: overlayChrome.isLockdown,
+    isMissionControlOpen: overlayChrome.isMissionControlOpen,
     isOmniOpen: overlayChrome.isOmniOpen,
     isWarping: overlayChrome.isWarping,
     setIsCheatsheetOpen: overlayChrome.setIsCheatsheetOpen,
     setIsDataMode: overlayChrome.setIsDataMode,
     setIsLockdown: overlayChrome.setIsLockdown,
+    setIsMissionControlOpen: overlayChrome.setIsMissionControlOpen,
     setIsOmniOpen: overlayChrome.setIsOmniOpen,
   });
 

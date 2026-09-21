@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 const OmniPalette = lazy(() => import('./OmniPalette'));
 const Screensaver = lazy(() => import('../effects/Screensaver'));
 const ShortcutCheatsheet = lazy(() => import('./ShortcutCheatsheet'));
+const MissionControlPanel = lazy(() => import('./MissionControlPanel'));
 import projectData from '../data/projectData';
 import Toast from './Toast';
 import { useOverlayChromeContext } from '../app/context/OverlayChromeContext';
@@ -10,7 +11,11 @@ import { useOverlayToastContext } from '../app/context/OverlayToastContext';
 import { useActivityContext } from '../app/context/ActivityContext';
 
 export default function SystemOverlays() {
-  const { isOmniOpen, setIsOmniOpen, isLockdown, isIdle, clickEffects, isCheatsheetOpen, setIsCheatsheetOpen } = useOverlayChromeContext();
+  const {
+    isOmniOpen, setIsOmniOpen, isLockdown, isIdle, clickEffects,
+    isCheatsheetOpen, setIsCheatsheetOpen,
+    isMissionControlOpen, setIsMissionControlOpen,
+  } = useOverlayChromeContext();
   const { handleProjectSelect } = useOverlayModalContext();
   const { toasts, removeToast } = useOverlayToastContext();
   const { isBooting } = useActivityContext();
@@ -33,6 +38,15 @@ export default function SystemOverlays() {
           <ShortcutCheatsheet
             isOpen={isCheatsheetOpen}
             onClose={() => setIsCheatsheetOpen(false)}
+          />
+        </Suspense>
+      )}
+
+      {isMissionControlOpen && (
+        <Suspense fallback={null}>
+          <MissionControlPanel
+            isOpen={isMissionControlOpen}
+            onClose={() => setIsMissionControlOpen(false)}
           />
         </Suspense>
       )}
