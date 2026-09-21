@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useBrowserContext } from '../app/context/BrowserContext';
+import { useBrowserActions } from '../app/context/BrowserContext';
 import { useSettingsContext } from '../app/context/SettingsContext';
-import { useOverlayContext } from '../app/context/OverlayContext';
+import { useOverlayChromeContext } from '../app/context/OverlayChromeContext';
+import { useOverlayToastContext } from '../app/context/OverlayToastContext';
 import { useActivityContext } from '../app/context/ActivityContext';
 import soundSystem from '../lib/SoundSystem';
 
@@ -38,9 +39,10 @@ declare global {
 }
 
 export default function useVoiceCommand() {
-  const { setSearchQuery } = useBrowserContext();
+  const { setSearchQuery } = useBrowserActions();
   const { changeTheme, setDisplayMode } = useSettingsContext();
-  const { setIsLockdown, addToast } = useOverlayContext();
+  const { setIsLockdown } = useOverlayChromeContext();
+  const { addToast } = useOverlayToastContext();
   const { addActivityLog } = useActivityContext();
 
   const [isListening, setIsListening] = useState(false);

@@ -240,26 +240,36 @@ the above: `hoveredTag`, `isMobileFiltersOpen`, `isGodMode`, `randomSeed`,
 
 All state is still owned by `app/App.tsx` (no external store), but it is
 **not** exposed through one flat context. `app/context/` splits it into
-seven domain-scoped contexts so a component only re-renders when the domain
-it actually reads changes:
+thirteen domain-scoped contexts so a component only re-renders when the
+domain — or the state/actions half of a domain — it actually reads changes:
 
 | Context | File | Holds | Typical consumers |
 |---|---|---|---|
 | `SettingsContext` | `context/SettingsContext.ts` | theme, CRT, matrix rain, sound, display mode, god mode | `CommandHeader`, `BackgroundElements`, `MainContent` |
-| `BrowserContext` | `context/BrowserContext.ts` | filters, search, sort, pagination, favorites | `Sidebar`, `MainContent`, `SystemMap` |
+| `BrowserContext` | `context/BrowserContext.ts` | hot state: search, filters, sort, pagination, filtered/paginated projects, favorites list, drag ids | `Sidebar`, `MainContent`, `SystemMap`, `SystemConstellation` |
+| `BrowserActionsContext` | `context/BrowserContext.ts` | stable actions for the domain above: `toggleFilter`, `toggleFavorite`, `handlePageChange`, drag handlers, setters | `Sidebar`, `MainContent`, `ProjectQuickView`, `ContextMenu`, `useVoiceCommand` |
+| `CatalogCountsContext` | `context/CatalogCountsContext.ts` | `totalProjects`, `totalFavorites` — catalog-wide counts, independent of search/filter | `LoadoutPanel`, `CommandHeader` |
 | `LoadoutContext` | `context/LoadoutContext.ts` | loadout list, active id, CRUD, import/export/share | `LoadoutPanel` |
 | `TerminalContext` | `context/TerminalContext.ts` | terminal/holo-terminal open state, history, input | `TerminalBar`, `HoloTerminal` |
-| `OverlayContext` | `context/OverlayContext.ts` | toasts, omni palette, context menu, quick-view modal, lockdown, idle, warp | `ProjectQuickView`, `ContextMenu`, `SystemOverlays` |
-| `EffectsContext` | `context/EffectsContext.ts` | background refs only (starfield/grids/cursor-trail canvas) — stable for the app's lifetime | `BackgroundElements` |
+| `OverlayToastContext` | `context/OverlayToastContext.ts` | toast queue | `SystemOverlays`, `useVoiceCommand` |
+| `OverlayModalContext` | `context/OverlayModalContext.ts` | quick-view modal: selected project, open/close, image-loaded state | `ProjectQuickView`, `Sidebar`, `SystemMap`, `SystemConstellation`, `MainContent` |
+| `OverlayContextMenuContext` | `context/OverlayContextMenuContext.ts` | right-click context menu state | `ContextMenu`, `MainContent` |
+| `OverlayChromeContext` | `context/OverlayChromeContext.ts` | omni palette, lockdown, idle, data mode, cheatsheet, warp, click effects | `SystemOverlays`, `CommandHeader`, `BackgroundElements`, `ContextMenu` |
+| `EffectsContext` | `context/EffectsContext.ts` | background refs only (starfield/grids/cursor-trail canvas) + performance flags — stable for the app's lifetime | `BackgroundElements` |
 | `ActivityContext` | `context/ActivityContext.ts` | boot sequence + running activity log | `BootScreen`, `Sidebar`, `ActivityFeed` |
+| `GroundStationContext` | `context/GroundStationContext.ts` | active ground station, its derived frame, geolocation request status (stub for #273) | none yet — #273's pass table/constellation overlay |
 
 `EffectsContext` is deliberately split off from boot/activity-log state
 (`ActivityContext`), even though an early proposal grouped them: typing
 in the search box calls `addActivityLog` once the query is 3+ characters,
 so bundling that with the starfield/grid refs would re-render the
-background on every few keystrokes. For the same reason, don't fold a
-future ground-station or worker-handle context into either `EffectsContext`
-or `BrowserContext` — give it its own domain.
+background on every few keystrokes. For the same reason, `GroundStationContext`
+is its own domain rather than folded into `EffectsContext` or
+`BrowserContext` — its `frame` will tick at pass-table frame-rate once #273
+lands, and that must not re-render the project browser or the background
+effects layer. Don't fold a future worker-handle domain (visual worker
+clients, WASM control-plane handles) into any existing domain either — give
+it its own.
 
 `LoadoutContext` was split out of `BrowserContext` for the same reason:
 `loadouts`/`activeLoadoutId`/CRUD were originally bolted onto
@@ -273,16 +283,57 @@ every other `BrowserContext` consumer. `App.tsx` still owns the full
 context) — only the subset `LoadoutPanel` needs is exposed through
 `LoadoutContextValue`.
 
-A wide domain can optionally split further into a state context and an
-actions context (stable `useCallback` references only, so an actions-only
-consumer never re-renders when state changes) — `createDomainContext` can
-be called twice for this. `BrowserContext` was considered for this split
-but deferred: every current consumer (`Sidebar`, `MainContent`, `SystemMap`)
-reads state and calls actions together in the same JSX, so splitting them
-wouldn't reduce re-renders without also restructuring those components.
-Revisit this (or `use-context-selector`, weighed against the 130 KB gzip
-initial-JS budget) if a future `BrowserContext` consumer only needs a
-narrow slice.
+#### When to split a domain
+
+A domain is a re-render liability once it's wide (many unrelated fields)
+*and* has at least one consumer that only reads a narrow slice of it. Three
+splits are available, cheapest first:
+
+1. **Pull out a narrow, independently-stable value.** `CatalogCountsContext`
+   is the model case: `totalProjects`/`totalFavorites` are two numbers that
+   almost never change, but `LoadoutPanel` and `CommandHeader` were reading
+   them off `BrowserContext`/`BrowserContext`, which rebuilds on every
+   search keystroke. Moving them into their own context — with their own
+   `useMemo` in `useAppProviderValues.ts` — means those two components stop
+   re-rendering on search entirely, with no restructuring elsewhere. Prefer
+   this over the heavier options below whenever the narrow slice is small
+   and clearly separable (a count, a flag, a ref).
+2. **Split state from actions**, via `createDomainContext.withActions`
+   (below) — worth it only when a domain has a real actions-only or
+   state-only consumer. `BrowserContext`/`BrowserActionsContext` is the
+   current example: `useVoiceCommand` only calls `setSearchQuery`,
+   `SystemMap`/`SystemConstellation` only read `paginatedProjects`/
+   `filteredProjects`, so both now subscribe to one narrow context instead
+   of the whole domain. It's *not* worth doing for a domain where every
+   consumer reads state and calls actions together in the same JSX (e.g.
+   `MainContent` filtering by search while also wiring up drag handlers) —
+   splitting there adds a second context to wire up for zero re-render
+   reduction, which is why this domain was the only one that got the
+   treatment; `Sidebar`'s badge-count fields (`favoriteCount`, `counts`)
+   also stayed on `BrowserContext` rather than moving to
+   `CatalogCountsContext`, because they're query/filter-scoped (recomputed
+   from the current search) and `Sidebar` already re-subscribes to the rest
+   of the hot state anyway.
+3. **Split a grab-bag domain along its own sub-groupings.** The old flat
+   `OverlayContext` (toasts, omni, context menu, quick-view modal, lockdown,
+   idle, data mode, cheatsheet, warp) became four contexts —
+   `OverlayToastContext`, `OverlayModalContext`,
+   `OverlayContextMenuContext`, `OverlayChromeContext` — because
+   `ProjectQuickView` (the single biggest consumer) only ever needed the
+   modal fields, yet was invalidated by every toast and every context-menu
+   click. `OverlayChromeContext` still bundles several small, infrequently
+   -changing flags (omni/lockdown/idle/data-mode/cheatsheet/warp/click
+   effects) rather than getting a context each — every current consumer
+   needs two or more of them together, so a further split would add
+   contexts without reducing any real re-render. Split it further only once
+   profiling (or a new consumer's needs) shows one flag flipping often
+   enough on its own to matter — same bar as the drag-id note below.
+
+Fields that are legitimately hot together (e.g. `BrowserContext`'s
+`draggedFavoriteId`/`dragOverFavoriteId`, which change together during a
+drag) can stay in the same context even if a future consumer might want
+just one — split them into their own slice only once profiling shows the
+coupling actually causing jank, not preemptively.
 
 Each context's value is built with `useMemo` in `hooks/useAppProviderValues.ts`
 (called from `App.tsx`), and the callbacks that go into those values
@@ -293,14 +344,15 @@ is local `useState` inside `CommandHeader` itself — it never touches
 App-level state, so it can't force a re-render anywhere else.
 
 Consumers import the specific hook(s) they need, e.g.
-`useSettingsContext()`, `useBrowserContext()`; a component that spans
-domains (e.g. `MainContent`, which reads filters, display mode, and the
-quick-view modal state) calls more than one. `AppProviders`
-(`app/context/AppProviders.tsx`) nests the seven providers around the tree.
+`useSettingsContext()`, `useBrowserContext()`, `useBrowserActions()`; a
+component that spans domains (e.g. `MainContent`, which reads browser
+state, browser actions, display mode, and the quick-view modal state) calls
+more than one. `AppProviders` (`app/context/AppProviders.tsx`) nests all
+the domain providers around the tree.
 
 `toggleFilter`/`handleTagClick`/`handlePageChange`
 (`hooks/useProjectBrowser.ts`) and the terminal key/submit handlers
-(`hooks/useTerminalController.ts`) are `useCallback`-stabilized. The seven
+(`hooks/useTerminalController.ts`) are `useCallback`-stabilized. All the
 provider values are assembled in `useAppProviderValues`, with complete
 domain-specific dependency lists so unrelated context identities stay stable.
 
@@ -310,22 +362,42 @@ domain-specific dependency lists so unrelated context identities stay stable.
 from one call:
 
 ```ts
-export const [BrowserContext, useBrowserContext] = createDomainContext<BrowserContextValue>({
-  hookName: 'useBrowserContext',   // used in the "must be used within its matching Provider" error
-  displayName: 'BrowserContext',   // shown as the Context's name in React DevTools
+export const [SettingsContext, useSettingsContext] = createDomainContext<SettingsContextValue>({
+  hookName: 'useSettingsContext',  // used in the "must be used within its matching Provider" error
+  displayName: 'SettingsContext',  // shown as the Context's name in React DevTools
 });
 ```
 
 `displayName` defaults to `hookName` if omitted, but every domain sets it
-explicitly so DevTools reads `BrowserContext` rather than `Context.Provider`.
-Adding a new domain (e.g. a future ground-station or share-link context)
-means: add its `*ContextValue` interface to `contextTypes.ts`, add it to
-`AppContextValues`, create `context/<Name>Context.ts` calling the factory,
-add its provider to `AppProviders.tsx`, and add its `useDomainValue(...)`
-block to `useAppProviderValues.ts`. Don't add fields to an existing
-domain's `*ContextValue` without a comment explaining why they belong
-there — the Loadout split above is what widening `BrowserContextValue`
-without that discipline eventually costs.
+explicitly so DevTools reads `SettingsContext` rather than `Context.Provider`.
+
+For a domain that needs the state/actions split (see above),
+`createDomainContext.withActions<State, Actions>({ hookName, displayName })`
+returns a four-tuple instead of two — `[StateContext, ActionsContext,
+useDomainState, useDomainActions]` — and derives the actions context's
+`hookName`/`displayName` by appending `Actions`:
+
+```ts
+export const [BrowserContext, BrowserActionsContext, useBrowserContext, useBrowserActions] =
+  createDomainContext.withActions<BrowserContextValue, BrowserActionsContextValue>({
+    hookName: 'useBrowserContext',
+    displayName: 'BrowserContext',
+  });
+```
+
+Adding a new domain (e.g. a future worker-handle context) means: add its
+`*ContextValue` interface(s) to `contextTypes.ts`, add it to
+`AppContextValues`, create `context/<Name>Context.ts` calling the factory
+(`createDomainContext` or `.withActions`), add its provider(s) to
+`AppProviders.tsx`, and add its `useDomainValue(...)` block(s) to
+`useAppProviderValues.ts`. `GroundStationContext` is the reference example
+for a brand-new stub domain — `hooks/useGroundStation.ts` owns the state,
+`App.tsx` calls it once and threads the result through exactly like any
+other domain hook. Don't add fields to an existing domain's `*ContextValue`
+without a comment explaining why they belong there — the Loadout split
+above, and the "When to split a domain" rules above it, are what widening
+`BrowserContextValue`/`OverlayContextValue` without that discipline
+eventually cost.
 
 ### Hooks (`src/hooks/`)
 
@@ -569,7 +641,7 @@ relative-import style is not being churned to adopt it). `vite.config.ts`,
 covers the toolchain, not just `src/`. `eslint.config.ts` has a single
 `**/*.{ts,tsx}` block (see "Linting TypeScript" below) so every file is
 both type-checked and linted. `app/context/contextTypes.ts`, the generic
-context factory, seven domain contexts, `AppProviders.tsx`, and
+context factory, the thirteen domain contexts, `AppProviders.tsx`, and
 `useAppProviderValues.ts` enforce the provider contracts. `src/constants.ts`
 is the only category/tag constants module used by validation and runtime UI.
 

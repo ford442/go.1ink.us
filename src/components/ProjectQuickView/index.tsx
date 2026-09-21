@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import projects from '../../data/projectData';
 import type { Project } from '../../types';
-import { useOverlayContext } from '../../app/context/OverlayContext';
-import { useBrowserContext } from '../../app/context/BrowserContext';
+import { useOverlayModalContext } from '../../app/context/OverlayModalContext';
+import { useBrowserContext, useBrowserActions } from '../../app/context/BrowserContext';
 import { canPreviewProject } from '../../lib/projectEmbed';
 import ProjectQuickViewMedia from './ProjectQuickViewMedia';
 import ProjectQuickViewEmbed from './ProjectQuickViewEmbed';
@@ -12,8 +12,9 @@ import ProjectQuickViewChangelog from './ProjectQuickViewChangelog';
 import ProjectQuickViewActions from './ProjectQuickViewActions';
 
 export default function ProjectQuickView() {
-  const { selectedProject, closeProjectModal, handleProjectSelect, modalRef, modalImageLoaded, setModalImageLoaded } = useOverlayContext();
-  const { handleCopyLink, toggleFavorite, favorites } = useBrowserContext();
+  const { selectedProject, closeProjectModal, handleProjectSelect, modalRef, modalImageLoaded, setModalImageLoaded } = useOverlayModalContext();
+  const { favorites } = useBrowserContext();
+  const { handleCopyLink, toggleFavorite } = useBrowserActions();
   const [previewProjectId, setPreviewProjectId] = useState<number | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 

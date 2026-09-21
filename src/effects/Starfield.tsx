@@ -1,9 +1,9 @@
 import { forwardRef, memo, useContext, useRef } from 'react';
-import { OverlayContext } from '../app/context/OverlayContext';
+import { OverlayChromeContext } from '../app/context/OverlayChromeContext';
 import useVisualLayer from '../hooks/useVisualLayer';
 
 const Starfield = memo(forwardRef<HTMLCanvasElement>((_props, forwardedRef) => {
-  const context = useContext(OverlayContext);
+  const context = useContext(OverlayChromeContext);
   const isWarping = context?.isWarping || false;
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 

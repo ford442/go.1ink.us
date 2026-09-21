@@ -2,7 +2,7 @@ import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import type { ForceGraphMethods, NodeObject, LinkObject } from 'react-force-graph-2d';
 import { useBrowserContext } from '../app/context/BrowserContext';
-import { useOverlayContext } from '../app/context/OverlayContext';
+import { useOverlayModalContext } from '../app/context/OverlayModalContext';
 import { useSettingsContext } from '../app/context/SettingsContext';
 import { CATEGORY_THEMES } from '../constants';
 import type { Project } from '../types';
@@ -72,7 +72,7 @@ const computeGraphData = (projects: Project[]) => {
 
 export default function SystemMap() {
   const { paginatedProjects } = useBrowserContext();
-  const { handleProjectSelect } = useOverlayContext();
+  const { handleProjectSelect } = useOverlayModalContext();
   const { theme } = useSettingsContext();
   const graphRef = useRef<ForceGraphMethods<NodeObject<GraphNode>, GraphLink> | undefined>(undefined);
   const containerRef = useRef<HTMLDivElement | null>(null);
