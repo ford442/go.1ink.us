@@ -7,6 +7,7 @@ import './test-loadout-codec.mjs';
 import './test-loadout-share.mjs';
 import './test-performance-mode.mjs';
 import './test-project-browser.mjs';
+import './test-search.mjs';
 import './test-terminal-parser.mjs';
 import './test-transmissions.mjs';
 import './test-visual-engines.mjs';

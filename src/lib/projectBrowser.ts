@@ -1,4 +1,5 @@
 import { CATEGORIES, CATEGORY_SETS, TAG_TO_CATEGORIES } from '../constants';
+import { scoreCatalog } from './search';
 import type { Category, DisplayMode, EnhancedProject, Project, SortOption } from '../types';
 
 const ITEMS_PER_PAGE: Partial<Record<DisplayMode, number>> = {
@@ -32,17 +33,16 @@ export function enhanceProjects(projects: Project[]): EnhancedProject[] {
   });
 }
 
-/** Match every whitespace-delimited term against any searchable project field. */
+/**
+ * Match every whitespace-delimited term against any searchable project
+ * field, ranked by relevance (title hits outrank tag/description hits) so
+ * grid/list/map/constellation and the Omni palette agree on what a query
+ * means. Delegates to the shared scorer in `./search` — see its docs for
+ * the field weighting.
+ */
 export function matchSearchQuery<T extends Project>(projects: T[], query: string): T[] {
-  const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  if (terms.length === 0) return projects;
-
-  return projects.filter((project) => terms.every((term) =>
-    project.title.toLowerCase().includes(term)
-    || project.description.toLowerCase().includes(term)
-    || project.tags?.some((tag) => tag.toLowerCase().includes(term))
-    || project.tech?.some((tech) => tech.toLowerCase().includes(term))
-  ));
+  if (!query.trim()) return projects;
+  return scoreCatalog(query, projects).map(({ item }) => item);
 }
 
 export function deriveActiveCategories(filters: string[]): Category[] {

@@ -70,6 +70,13 @@ describe('matchSearchQuery', () => {
     assert.deepEqual(ids(matchSearchQuery(enhanced, 'gamma react data')), [3]);
     assert.deepEqual(matchSearchQuery(enhanced, 'gamma audio'), []);
   });
+  it('ranks a title match above a tag-only match for the same term', () => {
+    const withTagHit = enhanceProjects([
+      ...fixtures,
+      project({ id: 5, title: 'Nova Quest', description: 'Puzzle adventure', tags: ['Game'] }),
+    ]);
+    assert.deepEqual(ids(matchSearchQuery(withTagHit, 'game')), [1, 5]);
+  });
 });
 
 describe('applyFilters', () => {

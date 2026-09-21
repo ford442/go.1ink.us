@@ -4,6 +4,8 @@ import { CATEGORY_THEMES } from '../constants';
 import { useTerminalContext } from '../app/context/TerminalContext';
 import type { OmniProtocolItem } from '../app/context/contextTypes';
 import useFocusTrap from '../hooks/useFocusTrap';
+import { scoreCommands, type MatchRange } from '../lib/search';
+import { highlightRanges } from './Card/highlightMatch';
 import type { Project } from '../types';
 
 interface ProjectCommandItem {
@@ -55,23 +57,23 @@ const OmniPalette = ({
     return [...projectItems, ...omniProtocolItems];
   }, [projects, onProjectSelect, omniProtocolItems]);
 
-  const filteredItems = useMemo(() => {
+  // Ranked via the shared scorer (src/lib/search.ts) so the Omni palette and
+  // the header search box agree on what a query means. On an empty query,
+  // fall back to the curated default slice (protocols, then filters, then
+  // projects) rather than a relevance ranking that has nothing to rank.
+  const scoredItems = useMemo(() => {
     if (!query.trim()) {
       return [
         ...commands.filter((c) => c.type === 'protocol').slice(0, 3),
         ...commands.filter((c) => c.type === 'filter').slice(0, 4),
         ...commands.filter((c) => c.type === 'project').slice(0, 5),
-      ];
+      ].map((item) => ({ item, score: 0, ranges: [] as MatchRange[] }));
     }
 
-    const q = query.toLowerCase();
-    return commands.filter((item) => {
-      if (item.label.toLowerCase().includes(q)) return true;
-      if (item.keywords?.some((kw) => kw.toLowerCase().includes(q))) return true;
-      if (item.type === 'project' && item.description?.toLowerCase().includes(q)) return true;
-      return false;
-    });
+    return scoreCommands(query, commands);
   }, [query, commands]);
+
+  const filteredItems = useMemo(() => scoredItems.map((s) => s.item), [scoredItems]);
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -190,7 +192,7 @@ const OmniPalette = ({
               NO_MATCHING_RECORDS_FOUND
             </div>
           ) : (
-            filteredItems.map((item, index) => {
+            scoredItems.map(({ item, ranges }, index) => {
               const isSelected = index === selectedIndex;
               // CATEGORY_THEMES maps to a swatch array (used elsewhere for tag
               // pills), not a {bgClass, textClass} pair — this lookup always
@@ -228,7 +230,7 @@ const OmniPalette = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className={`font-medium truncate ${isSelected ? 'text-accent-300' : 'text-gray-200'}`}>
-                        {item.label}
+                        {highlightRanges(item.label, ranges)}
                       </span>
                       {item.type === 'filter' && item.isActive && (
                         <span className="w-1.5 h-1.5 rounded-full bg-accent-400 animate-pulse shadow-[0_0_5px_rgba(var(--rgb-accent-400),0.8)]" />
