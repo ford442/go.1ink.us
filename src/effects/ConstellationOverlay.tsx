@@ -65,20 +65,22 @@ const ConstellationOverlay = ({ hoveredTag, visibleProjects, displayMode }: Cons
 
       // Draw lines between closest nodes to form a constellation
       for (let i = 0; i < points.length; i++) {
+        const p1 = points[i]!;
         for (let j = i + 1; j < points.length; j++) {
+            const p2 = points[j]!;
             // Calculate distance
-            const dx = points[i].x - points[j].x;
-            const dy = points[i].y - points[j].y;
+            const dx = p1.x - p2.x;
+            const dy = p1.y - p2.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
 
             // Only connect if within a reasonable distance or if we want all connected
             // For a cool effect, connect all but change opacity based on distance
             newLines.push({
-                x1: points[i].x,
-                y1: points[i].y,
-                x2: points[j].x,
-                y2: points[j].y,
-                key: `${points[i].id}-${points[j].id}`,
+                x1: p1.x,
+                y1: p1.y,
+                x2: p2.x,
+                y2: p2.y,
+                key: `${p1.id}-${p2.id}`,
                 distance
             });
         }

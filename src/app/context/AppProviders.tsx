@@ -12,7 +12,7 @@ interface AppProvidersProps extends AppContextValues {
   children: ReactNode;
 }
 
-// Nests the seven domain providers. App.jsx owns all state and passes in
+// Nests the seven domain providers. App.tsx owns all state and passes in
 // one already-memoized value per domain; this component only wires them
 // to their Context so a change in one domain's value can't force a
 // re-render of components subscribed to a different domain.

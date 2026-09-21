@@ -60,7 +60,7 @@ class SpatialGrid {
   }
 
   clear(): void {
-    for (let i = 0; i < this.cells.length; i++) this.cells[i].length = 0;
+    for (let i = 0; i < this.cells.length; i++) this.cells[i]!.length = 0;
   }
 
   cellIndex(x: number, y: number): number {
@@ -70,7 +70,7 @@ class SpatialGrid {
   }
 
   insert(index: number, x: number, y: number): void {
-    this.cells[this.cellIndex(x, y)].push(index);
+    this.cells[this.cellIndex(x, y)]!.push(index);
   }
 
   /**
@@ -90,8 +90,8 @@ class SpatialGrid {
       const startCol = r === row ? col : Math.max(0, col - 1);
       for (let c = startCol; c <= Math.min(this.cols - 1, col + 1); c++) {
         const isOwnCell = r === row && c === col;
-        const cell = this.cells[r * this.cols + c];
-        for (let k = 0; k < cell.length; k++) visit(cell[k], isOwnCell);
+        const cell = this.cells[r * this.cols + c]!;
+        for (let k = 0; k < cell.length; k++) visit(cell[k]!, isOwnCell);
       }
     }
   }
@@ -155,17 +155,18 @@ export class ParticleNetworkEngine implements Engine {
 
     grid.clear();
     for (let i = 0; i < particles.length; i++) {
-      particles[i].update(this.width, this.height);
-      grid.insert(i, particles[i].x, particles[i].y);
+      const particle = particles[i]!;
+      particle.update(this.width, this.height);
+      grid.insert(i, particle.x, particle.y);
     }
 
     for (let i = 0; i < particles.length; i++) {
-      const a = particles[i];
+      const a = particles[i]!;
       a.draw(ctx, accent);
 
       grid.forEachNeighbor(a.x, a.y, (j, isOwnCell) => {
         if (isOwnCell ? j <= i : j === i) return;
-        const b = particles[j];
+        const b = particles[j]!;
         const dx = a.x - b.x;
         const dy = a.y - b.y;
         const dsq = dx * dx + dy * dy;

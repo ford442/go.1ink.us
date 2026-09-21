@@ -14,8 +14,8 @@ export interface ParsedCommandLine {
 export function parseCommandLine(input: string): ParsedCommandLine | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
-  const [command, ...args] = trimmed.split(/\s+/);
-  return { command, args };
+  const words = trimmed.split(/\s+/);
+  return { command: words[0]!, args: words.slice(1) };
 }
 
 export function executeCommandLine(
@@ -42,7 +42,7 @@ export function executeCommandLine(
     if (args.length === 0) {
       return { type: 'system', text: formatRegistryHelp(registry) };
     }
-    return { type: 'system', text: formatCommandHelp(args[0], registry) };
+    return { type: 'system', text: formatCommandHelp(args[0]!, registry) };
   }
 
   const result = cmd.run(ctx, args);
@@ -66,14 +66,14 @@ export function getAutocompleteSuffix(
   if (!trimmed) return '';
 
   const words = trimmed.split(' ');
-  const cmdWord = words[0].toLowerCase();
+  const cmdWord = words[0]!.toLowerCase();
   const cmd = resolveCommand(cmdWord, registry);
 
   if (words.length === 1) {
     const names = listCommandNames(registry);
     const matches = names.filter((name) => name.startsWith(cmdWord));
     if (matches.length === 1 && matches[0] !== cmdWord) {
-      return matches[0].slice(cmdWord.length);
+      return matches[0]!.slice(cmdWord.length);
     }
     return '';
   }
@@ -83,14 +83,15 @@ export function getAutocompleteSuffix(
   const argSpec = cmd.args?.[0];
   if (!argSpec) return '';
 
-  const arg = words[1].toLowerCase();
+  const secondWord = words[1]!;
+  const arg = secondWord.toLowerCase();
 
   if (cmd.name === 'sort') {
     const fullValues = argValues(argSpec, ctx);
     const normalizedArg = arg.replace('-', '');
     const matches = fullValues.filter((v) => v.replace('-', '').startsWith(normalizedArg));
-    if (matches.length === 1 && matches[0].replace('-', '') !== normalizedArg) {
-      return matches[0].slice(words[1].length);
+    if (matches.length === 1 && matches[0]!.replace('-', '') !== normalizedArg) {
+      return matches[0]!.slice(secondWord.length);
     }
     return '';
   }
@@ -99,15 +100,15 @@ export function getAutocompleteSuffix(
 
   if (cmd.name === 'filter') {
     const matches = values.filter((v) => v.toLowerCase().startsWith(arg));
-    if (matches.length === 1 && matches[0].toLowerCase() !== arg) {
-      return matches[0].slice(words[1].length);
+    if (matches.length === 1 && matches[0]!.toLowerCase() !== arg) {
+      return matches[0]!.slice(secondWord.length);
     }
     return '';
   }
 
   const matches = values.filter((v) => v.toLowerCase().startsWith(arg));
-  if (matches.length === 1 && matches[0].toLowerCase() !== arg) {
-    return matches[0].slice(words[1].length);
+  if (matches.length === 1 && matches[0]!.toLowerCase() !== arg) {
+    return matches[0]!.slice(secondWord.length);
   }
 
   return '';
@@ -122,7 +123,7 @@ export function applyTabCompletion(
   if (!trimmed) return null;
 
   const words = trimmed.split(' ');
-  const cmdWord = words[0].toLowerCase();
+  const cmdWord = words[0]!.toLowerCase();
 
   if (words.length === 1) {
     const names = listCommandNames(registry);

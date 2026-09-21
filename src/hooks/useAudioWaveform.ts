@@ -23,7 +23,7 @@ function drawWaveform(ctx: CanvasRenderingContext2D, dataArray: Uint8Array, widt
 
   ctx.beginPath();
   for (let i = 0; i < bufferLength; i++) {
-    const v = dataArray[i] / 128.0;
+    const v = dataArray[i]! / 128.0;
     const y = (v * height) / 2;
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);

@@ -65,9 +65,11 @@ export function computeCounts(projects: EnhancedProject[]): ProjectCounts {
 
   for (const project of projects) {
     for (const tag of project.tagSet) {
-      if (tag in tagCounts) tagCounts[tag] += 1;
+      if (tag in tagCounts) tagCounts[tag] = (tagCounts[tag] ?? 0) + 1;
     }
-    for (const category of project.categorySet) categoryCounts[category] += 1;
+    for (const category of project.categorySet) {
+      categoryCounts[category] = (categoryCounts[category] ?? 0) + 1;
+    }
   }
 
   return { categoryCounts, tagCounts };

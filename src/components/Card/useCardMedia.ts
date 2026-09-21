@@ -23,7 +23,7 @@ export default function useCardMedia(cardRef: RefObject<CardMediaElement | null>
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           setIsVisible(true);
 
           // 🌌 CURATOR FEATURE: Scroll-triggered Decryption

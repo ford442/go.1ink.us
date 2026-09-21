@@ -83,9 +83,10 @@ export default function ProjectGridView({
       setTimeout(() => {
         // Scope focus to the current container to avoid finding other focusable elements elsewhere
         const cards = e.currentTarget.querySelectorAll<HTMLElement>('.card-focusable');
-        if (cards[nextIndex]) {
-          cards[nextIndex].focus();
-          cards[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const card = cards[nextIndex];
+        if (card) {
+          card.focus();
+          card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
       }, 0);
     }

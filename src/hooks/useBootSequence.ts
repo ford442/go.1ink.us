@@ -135,7 +135,7 @@ export default function useBootSequence({ isSoundEnabled }: UseBootSequenceParam
       let currentLog = 0;
       const logInterval = setInterval(() => {
         if (currentLog < logsPhase1.length) {
-          setBootLogs(prev => [...prev, logsPhase1[currentLog]]);
+          setBootLogs(prev => [...prev, logsPhase1[currentLog]!]);
           currentLog++;
           if (currentLog === logsPhase1.length) {
             clearInterval(logInterval);
@@ -150,7 +150,7 @@ export default function useBootSequence({ isSoundEnabled }: UseBootSequenceParam
       let currentLog = 0;
       const logInterval = setInterval(() => {
         if (currentLog < logsPhase2.length) {
-          setBootLogs(prev => [...prev, logsPhase2[currentLog]]);
+          setBootLogs(prev => [...prev, logsPhase2[currentLog]!]);
           currentLog++;
         } else {
           clearInterval(logInterval);

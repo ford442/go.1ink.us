@@ -144,7 +144,7 @@ export default function useTerminalController({
         ? commandHistory.length - 1
         : Math.max(0, historyIndex - 1);
       setHistoryIndex(newIndex);
-      setTerminalInput(commandHistory[newIndex]);
+      setTerminalInput(commandHistory[newIndex]!);
       return;
     }
 
@@ -158,7 +158,7 @@ export default function useTerminalController({
         setTerminalInput(draftInput);
       } else {
         setHistoryIndex(newIndex);
-        setTerminalInput(commandHistory[newIndex]);
+        setTerminalInput(commandHistory[newIndex]!);
       }
       return;
     }

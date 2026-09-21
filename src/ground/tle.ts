@@ -89,12 +89,13 @@ export function parseTleCatalog(text: string): TleRecord[] {
 
   const records: TleRecord[] = [];
   for (let i = 0; i < lines.length; i += 1) {
-    if (!lines[i].trim().startsWith('1 ')) continue;
+    const line1 = lines[i]!;
+    if (!line1.trim().startsWith('1 ')) continue;
     const line2 = lines[i + 1];
     if (!line2?.trim().startsWith('2 ')) continue;
-    const nameLine = i > 0 && !lines[i - 1].trim().startsWith('2 ') ? lines[i - 1] : undefined;
+    const nameLine = i > 0 && !lines[i - 1]!.trim().startsWith('2 ') ? lines[i - 1] : undefined;
     try {
-      records.push(parseTle(lines[i], line2, nameLine));
+      records.push(parseTle(line1, line2, nameLine));
     } catch {
       // Skip the malformed set; a bad line shouldn't drop the rest of the file.
     }

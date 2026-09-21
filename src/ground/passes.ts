@@ -261,5 +261,5 @@ const COMPASS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', '
 
 export function compassPoint(azimuthDeg: number): string {
   const index = Math.round((((azimuthDeg % 360) + 360) % 360) / 22.5) % 16;
-  return COMPASS[index];
+  return COMPASS[index]!;
 }

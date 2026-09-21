@@ -54,7 +54,7 @@ export class CursorTrailEngine implements Engine {
     ctx.clearRect(0, 0, this.width, this.height);
 
     for (let i = this.particles.length - 1; i >= 0; i--) {
-      const p = this.particles[i];
+      const p = this.particles[i]!;
       p.life -= 0.02;
       p.y -= 0.5;
 

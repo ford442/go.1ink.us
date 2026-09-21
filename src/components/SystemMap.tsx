@@ -31,7 +31,7 @@ const computeGraphData = (projects: Project[]) => {
     // CATEGORY_THEMES maps categories to a swatch array, not a single color —
     // p.tags[0] is a tag (not a Category), so this lookup always misses and
     // falls through to the fallback, matching the pre-existing behavior.
-    color: (CATEGORY_THEMES as unknown as Record<string, string | undefined>)[p.tags[0]] || '#2dd4bf' // fallback to accent cyan
+    color: (CATEGORY_THEMES as unknown as Record<string, string | undefined>)[p.tags[0] ?? ''] || '#2dd4bf' // fallback to accent cyan
   }));
 
   const links: { source: number; target: number; value: number; color: string }[] = [];
@@ -39,8 +39,8 @@ const computeGraphData = (projects: Project[]) => {
   // Calculate Jaccard similarity for all pairs
   for (let i = 0; i < nodes.length; i++) {
     for (let j = i + 1; j < nodes.length; j++) {
-      const p1 = nodes[i].project;
-      const p2 = nodes[j].project;
+      const p1 = nodes[i]!.project;
+      const p2 = nodes[j]!.project;
 
       const tags1 = new Set(p1.tags || []);
       const tags2 = new Set(p2.tags || []);

@@ -65,7 +65,7 @@ export const favCommand: CommandDefinition = {
   usage: 'fav <id>',
   run(ctx, args) {
     if (args.length === 0) return missingArg('fav <id>');
-    const idToFav = parseInt(args[0], 10);
+    const idToFav = parseInt(args[0]!, 10);
     const project = projectData.find((p) => p.id === idToFav);
     if (!project) {
       return { type: 'error', text: `ERR: Instance ID ${args[0]} not found in database.` };

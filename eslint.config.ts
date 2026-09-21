@@ -8,31 +8,12 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 export default defineConfig([
   globalIgnores(['dist']),
   {
-    files: ['**/*.{js,jsx}'],
-    extends: [
-      js.configs.recommended,
-      reactHooks.configs.flat.recommended,
-      reactRefresh.configs.vite,
-    ],
-    languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        ecmaFeatures: { jsx: true },
-        sourceType: 'module',
-      },
-    },
-    rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]|motion' }],
-    },
-  },
-  {
-    // Converted TypeScript surface (see AGENTS.md "TypeScript Migration").
+    // `src/` is 100% TypeScript (see AGENTS.md "TypeScript Migration").
     // Not type-aware (no `project` service) to stay fast; `tsc --noEmit`
     // already covers type errors for this surface via `npm run typecheck`.
     files: ['**/*.{ts,tsx}'],
     extends: [
+      js.configs.recommended,
       ...tseslint.configs.recommended,
       reactHooks.configs.flat.recommended,
       reactRefresh.configs.vite,
@@ -50,7 +31,7 @@ export default defineConfig([
   },
   {
     // Config files run under Node, not the browser.
-    files: ['**/*.config.{js,jsx,ts,tsx}'],
+    files: ['**/*.config.ts'],
     languageOptions: {
       globals: globals.node,
     },

@@ -74,13 +74,14 @@ export class MatrixRainEngine implements Engine {
     ctx.font = `${FONT_SIZE}px monospace`;
 
     for (let i = 0; i < drops.length; i++) {
-      const text = CHARS[Math.floor(Math.random() * CHARS.length)];
-      ctx.fillText(text, i * FONT_SIZE, drops[i] * FONT_SIZE);
+      const text = CHARS[Math.floor(Math.random() * CHARS.length)]!;
+      let drop = drops[i]!;
+      ctx.fillText(text, i * FONT_SIZE, drop * FONT_SIZE);
 
-      if (drops[i] * FONT_SIZE > this.height && Math.random() > 0.975) {
-        drops[i] = 0;
+      if (drop * FONT_SIZE > this.height && Math.random() > 0.975) {
+        drop = 0;
       }
-      drops[i]++;
+      drops[i] = drop + 1;
     }
   }
 

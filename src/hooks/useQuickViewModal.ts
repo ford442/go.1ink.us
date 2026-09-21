@@ -95,8 +95,8 @@ export default function useQuickViewModal({
         if (e.key === 'Tab' && modalRef.current) {
           const focusableElements = modalRef.current.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
           if (focusableElements.length > 0) {
-            const firstElement = focusableElements[0];
-            const lastElement = focusableElements[focusableElements.length - 1];
+            const firstElement = focusableElements[0]!;
+            const lastElement = focusableElements[focusableElements.length - 1]!;
 
             if (e.shiftKey) {
               if (document.activeElement === firstElement || document.activeElement === document.body) {
@@ -120,7 +120,7 @@ export default function useQuickViewModal({
         if (modalRef.current) {
           const focusableElements = modalRef.current.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
           if (focusableElements.length > 0) {
-            focusableElements[0].focus();
+            focusableElements[0]!.focus();
           }
         }
       }, 100);

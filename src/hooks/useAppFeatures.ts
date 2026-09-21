@@ -14,7 +14,7 @@ type UseAppFeaturesParams = UseProjectBrowserParams
 // Wires the four feature hooks that don't own their own persisted/URL state
 // but instead derive behavior from it: the project browser (filter/sort/
 // paginate), the terminal command processor, global keyboard shortcuts, and
-// the background parallax/cursor-trail refs. Kept as one call in App.jsx so
+// the background parallax/cursor-trail refs. Kept as one call in App.tsx so
 // the composition root isn't the one holding all of their cross-wiring.
 export default function useAppFeatures({
   activeFilters,
