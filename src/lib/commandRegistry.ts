@@ -20,6 +20,7 @@ import { filterCommand, favCommand, filterValues } from './commands/filter';
 import { sortCommand, viewCommand, denseCommand, mapCommand, constellationCommand, SORT_MAP, VIEWS } from './commands/view';
 import { themeCommand, soundCommand, crtCommand, matrixCommand, THEMES, ON_OFF } from './commands/theme';
 import { loadoutCommand } from './commands/loadout';
+import { missionControlCommand } from './commands/missionControl';
 import {
   helpCommand,
   lsCommand,
@@ -59,6 +60,7 @@ export function createCommandRegistry(_ctx: CommandContext): CommandDefinition[]
     rerollCommand,
     holoCommand,
     statsCommand,
+    missionControlCommand,
     clearCommand,
     lockdownCommand,
     unlockCommand,

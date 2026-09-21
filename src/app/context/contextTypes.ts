@@ -184,11 +184,13 @@ export interface OverlayChromeContextValue {
   isDataMode: boolean;
   isIdle: boolean;
   isLockdown: boolean;
+  isMissionControlOpen: boolean;
   isOmniOpen: boolean;
   isWarping: boolean;
   setIsCheatsheetOpen: Setter<boolean>;
   setIsDataMode: Setter<boolean>;
   setIsLockdown: Setter<boolean>;
+  setIsMissionControlOpen: Setter<boolean>;
   setIsOmniOpen: Setter<boolean>;
 }
 

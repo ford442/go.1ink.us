@@ -68,6 +68,7 @@ function App() {
   const [randomSeed, setRandomSeed] = useState(() => Math.random());
   const [isOmniOpen, setIsOmniOpen] = useState(false);
   const [isCheatsheetOpen, setIsCheatsheetOpen] = useState(false);
+  const [isMissionControlOpen, setIsMissionControlOpen] = useState(false);
   const [isLockdown, setIsLockdown] = useState(false);
   const [isWarping, setIsWarping] = useState(false);
   const [loadoutsApi, setLoadoutsApi] = useState(loadoutsStub);
@@ -155,6 +156,7 @@ function App() {
     isGodMode,
     isOmniOpen,
     isCheatsheetOpen,
+    isMissionControlOpen,
     randomSeed,
     selectedProjectRef: quickView.selectedProjectRef,
     setIsCrtEnabled,
@@ -164,6 +166,7 @@ function App() {
     setIsMatrixMode,
     setIsOmniOpen,
     setIsCheatsheetOpen,
+    setIsMissionControlOpen,
     setIsSoundEnabled,
     setPerformanceMode: performance.setPerformanceMode,
     rerollPerformance: performance.rerollPerformance,
@@ -205,8 +208,8 @@ function App() {
     overlayContextMenu: contextMenuState,
     overlayChrome: {
       clickEffects: boot.clickEffects, isDataMode: boot.isDataMode, isIdle,
-      isLockdown, isOmniOpen, isCheatsheetOpen, isWarping,
-      setIsDataMode: boot.setIsDataMode, setIsLockdown, setIsOmniOpen,
+      isLockdown, isMissionControlOpen, isOmniOpen, isCheatsheetOpen, isWarping,
+      setIsDataMode: boot.setIsDataMode, setIsLockdown, setIsMissionControlOpen, setIsOmniOpen,
       setIsCheatsheetOpen,
     },
     effects: { ...features, ...performance },
