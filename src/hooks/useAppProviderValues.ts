@@ -150,12 +150,14 @@ export default function useAppProviderValues({
     isLockdown: overlayChrome.isLockdown,
     isMissionControlOpen: overlayChrome.isMissionControlOpen,
     isOmniOpen: overlayChrome.isOmniOpen,
+    isOrbitalOpsOpen: overlayChrome.isOrbitalOpsOpen,
     isWarping: overlayChrome.isWarping,
     setIsCheatsheetOpen: overlayChrome.setIsCheatsheetOpen,
     setIsDataMode: overlayChrome.setIsDataMode,
     setIsLockdown: overlayChrome.setIsLockdown,
     setIsMissionControlOpen: overlayChrome.setIsMissionControlOpen,
     setIsOmniOpen: overlayChrome.setIsOmniOpen,
+    setIsOrbitalOpsOpen: overlayChrome.setIsOrbitalOpsOpen,
   });
 
   const effectsValue = useDomainValue({

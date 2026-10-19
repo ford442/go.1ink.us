@@ -1,3 +1,4 @@
+import type { GroundStation } from '../ground/GroundStation';
 import type { DisplayMode, PerformanceFlags, PerformanceMode, Project, SortOption, ThemeId } from '../types';
 
 export type TerminalResponseType = 'system' | 'error' | 'success' | 'warning';
@@ -38,6 +39,8 @@ export interface CommandDefinition {
 
 export interface CommandContext {
   addActivityLog: (text: string) => void;
+  /** Print a result after the command returned — for commands that lazy-load their work (e.g. `passes`). */
+  appendTerminalOutput: (result: TerminalResult) => void;
   changeTheme: (theme: ThemeId) => void;
   favorites: number[];
   activeFilters: string[];
@@ -49,6 +52,11 @@ export interface CommandContext {
   setIsHoloTerminalOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   setIsLockdown: (locked: boolean) => void;
   setIsMissionControlOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
+  setIsOrbitalOpsOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
+  groundStation: GroundStation;
+  setGroundStation: (station: GroundStation) => void;
+  /** Opt-in geolocation; resolves null (station unchanged) on refusal/unsupported. */
+  requestGeolocation: () => Promise<GroundStation | null>;
   setIsMatrixMode: (enabled: boolean) => void;
   setIsSoundEnabled: (enabled: boolean) => void;
   setPerformanceMode: (mode: PerformanceMode) => void;
@@ -64,6 +72,7 @@ export interface CommandContext {
   isLockdown: boolean;
   isMatrixMode: boolean;
   isMissionControlOpen: boolean;
+  isOrbitalOpsOpen: boolean;
   isSoundEnabled: boolean;
   performanceMode: PerformanceMode;
   effectiveMode: PerformanceMode;

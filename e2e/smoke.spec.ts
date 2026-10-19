@@ -158,3 +158,22 @@ test('transmissions panel displays dispatches and opens quick view on click', as
 });
 
 
+
+test('orbital ops panel and terminal pass table work from a preset station', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: '`' })));
+  const terminalInput = page.getByRole('textbox', { name: 'Terminal command input' });
+  await terminalInput.fill('passes');
+  await terminalInput.press('Enter');
+  await expect(page.getByText(/PASS TABLE · GREENWICH, UK/)).toBeVisible();
+
+  await terminalInput.fill('orbital');
+  await terminalInput.press('Enter');
+  const panel = page.getByRole('dialog', { name: 'Orbital Ops' });
+  await expect(panel).toBeVisible();
+  await expect(panel.getByRole('table')).toBeVisible();
+  await panel.getByLabel('Ground Station').selectOption('reykjavik');
+  await expect(panel.getByText(/REYKJAVÍK, ICELAND/)).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(panel).not.toBeVisible();
+});

@@ -57,7 +57,18 @@
       6,
       13
     ],
-    "changelog": "2026-08-05 · Synthesizer rack rewrite, 303 overdrive filter, and live MIDI keyboard mapping."
+    "changelog": "2026-08-05 · Synthesizer rack rewrite, 303 overdrive filter, and live MIDI keyboard mapping.",
+    "orbit": {
+      "elements": {
+        "epoch": "2026-10-01T00:00:00Z",
+        "meanMotionRevPerDay": 15.5,
+        "eccentricity": 0.0005,
+        "inclinationDeg": 51.6,
+        "raanDeg": 120.0,
+        "argPerigeeDeg": 80.0,
+        "meanAnomalyDeg": 10.0
+      }
+    }
   },
   {
     "id": 3,
@@ -236,7 +247,18 @@
       7,
       13
     ],
-    "changelog": null
+    "changelog": null,
+    "orbit": {
+      "elements": {
+        "epoch": "2026-10-01T00:00:00Z",
+        "semiMajorAxisKm": 7378.0,
+        "eccentricity": 0.002,
+        "inclinationDeg": 65.0,
+        "raanDeg": 30.0,
+        "argPerigeeDeg": 0.0,
+        "meanAnomalyDeg": 180.0
+      }
+    }
   },
   {
     "id": 9,
@@ -386,7 +408,10 @@
       15,
       8
     ],
-    "changelog": null
+    "changelog": null,
+    "orbit": {
+      "tle": "PROJECT-M\n1 99013U 26280A   26280.50000000  .00000000  00000-0  00000-0 0  9993\n2 99013  82.9000 140.0000 0012000 270.0000  90.0000 13.85000000  1018"
+    }
   },
   {
     "id": 14,
@@ -474,7 +499,18 @@
       5,
       4
     ],
-    "changelog": "2026-08-14 · Layered color separation and spectral analysis controls for high-resolution imagery."
+    "changelog": "2026-08-14 · Layered color separation and spectral analysis controls for high-resolution imagery.",
+    "orbit": {
+      "elements": {
+        "epoch": "2026-10-01T00:00:00Z",
+        "meanMotionRevPerDay": 14.57,
+        "eccentricity": 0.0011,
+        "inclinationDeg": 97.6,
+        "raanDeg": 300.0,
+        "argPerigeeDeg": 95.0,
+        "meanAnomalyDeg": 265.0
+      }
+    }
   },
   {
     "id": 17,

@@ -186,12 +186,14 @@ export interface OverlayChromeContextValue {
   isLockdown: boolean;
   isMissionControlOpen: boolean;
   isOmniOpen: boolean;
+  isOrbitalOpsOpen: boolean;
   isWarping: boolean;
   setIsCheatsheetOpen: Setter<boolean>;
   setIsDataMode: Setter<boolean>;
   setIsLockdown: Setter<boolean>;
   setIsMissionControlOpen: Setter<boolean>;
   setIsOmniOpen: Setter<boolean>;
+  setIsOrbitalOpsOpen: Setter<boolean>;
 }
 
 export interface EffectsContextValue {
@@ -221,16 +223,18 @@ export interface ActivityContextValue {
 
 export type GeolocationStatus = 'idle' | 'requesting' | 'granted' | 'denied' | 'unsupported';
 
-// Stub domain for #273 (Orbital Ops): the active ground station and its
-// derived frame, plus geolocation request status. Deliberately its own
-// domain rather than folded into BrowserContext (unrelated to the project
-// catalog) or EffectsContext (which is refs + performance flags only) — see
-// AGENTS.md's "when to split a domain" rule. The pass table / constellation
-// overlay that reads `frame` at frame-rate is #273's job, not this one's.
+// Orbital Ops domain: the active ground station and its derived frame, plus
+// geolocation request status. Deliberately its own domain rather than folded
+// into BrowserContext (unrelated to the project catalog) or EffectsContext
+// (which is refs + performance flags only) — see AGENTS.md's "when to split
+// a domain" rule. The live-ticking look angles / pass table are local state
+// inside the lazy Orbital Ops components, not context, so their per-second
+// updates never re-render anything outside them.
 export interface GroundStationContextValue {
   frame: StationFrame;
   geolocationStatus: GeolocationStatus;
-  requestGeolocation: () => void;
+  /** Resolves the new station, or null (station unchanged) on refusal. */
+  requestGeolocation: () => Promise<GroundStation | null>;
   setStation: Setter<GroundStation>;
   station: GroundStation;
 }

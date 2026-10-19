@@ -6,10 +6,13 @@ import {
   getAutocompleteSuffix,
   shouldDedupeHistoryEntry,
 } from '../lib/terminalParser';
-import type { CommandContext } from '../lib/commandTypes';
+import type { CommandContext, TerminalResult } from '../lib/commandTypes';
 import type { PreventDefaultEvent, TerminalHistoryEntry } from '../app/context/contextTypes';
 
-export type UseTerminalControllerParams = Omit<CommandContext, 'isHoloTerminalOpen' | 'setIsHoloTerminalOpen'>;
+export type UseTerminalControllerParams = Omit<
+  CommandContext,
+  'isHoloTerminalOpen' | 'setIsHoloTerminalOpen' | 'appendTerminalOutput'
+>;
 
 export default function useTerminalController({
   addActivityLog,
@@ -24,6 +27,10 @@ export default function useTerminalController({
   setIsLockdown,
   setIsMatrixMode,
   setIsMissionControlOpen,
+  setIsOrbitalOpsOpen,
+  groundStation,
+  setGroundStation,
+  requestGeolocation,
   setIsSoundEnabled,
   setRandomSeed,
   setSortOption,
@@ -40,6 +47,7 @@ export default function useTerminalController({
   isLockdown,
   isMatrixMode,
   isMissionControlOpen,
+  isOrbitalOpsOpen,
   isSoundEnabled,
 }: UseTerminalControllerParams) {
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
@@ -56,8 +64,13 @@ export default function useTerminalController({
   const terminalInputRef = useRef<HTMLInputElement | null>(null);
   const terminalEndRef = useRef<HTMLDivElement | null>(null);
 
+  const appendTerminalOutput = useCallback((result: TerminalResult) => {
+    setTerminalHistory((prev) => [...prev, { type: result.type, text: result.text }]);
+  }, []);
+
   const commandContext = useMemo<CommandContext>(() => ({
     addActivityLog,
+    appendTerminalOutput,
     activeFilters,
     changeTheme,
     favorites,
@@ -70,6 +83,10 @@ export default function useTerminalController({
     setIsLockdown,
     setIsMatrixMode,
     setIsMissionControlOpen,
+    setIsOrbitalOpsOpen,
+    groundStation,
+    setGroundStation,
+    requestGeolocation,
     setIsSoundEnabled,
     setPerformanceMode,
     rerollPerformance,
@@ -84,12 +101,14 @@ export default function useTerminalController({
     isLockdown,
     isMatrixMode,
     isMissionControlOpen,
+    isOrbitalOpsOpen,
     isSoundEnabled,
     performanceMode,
     effectiveMode,
     flags,
   }), [
     addActivityLog,
+    appendTerminalOutput,
     activeFilters,
     changeTheme,
     favorites,
@@ -102,6 +121,10 @@ export default function useTerminalController({
     setIsLockdown,
     setIsMatrixMode,
     setIsMissionControlOpen,
+    setIsOrbitalOpsOpen,
+    groundStation,
+    setGroundStation,
+    requestGeolocation,
     setIsSoundEnabled,
     setPerformanceMode,
     rerollPerformance,
@@ -116,6 +139,7 @@ export default function useTerminalController({
     isLockdown,
     isMatrixMode,
     isMissionControlOpen,
+    isOrbitalOpsOpen,
     isSoundEnabled,
     performanceMode,
     effectiveMode,

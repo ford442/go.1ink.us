@@ -9,6 +9,7 @@ import { createCommandRegistry } from '../lib/commandRegistry';
 import { resolveCommand } from '../lib/commandParserUtils';
 import { executeCommandLine } from '../lib/terminalParser';
 import { getPerformanceFlags } from '../lib/performanceMode';
+import { PRESET_STATIONS } from '../ground/GroundStation';
 import type { CommandContext, TerminalResult } from '../lib/commandTypes';
 
 interface SpeechRecognitionResultEvent {
@@ -105,6 +106,7 @@ export default function useVoiceCommand() {
   // wiring the rest up is only worth it once voice grows into those commands.
   const commandContext = useMemo<CommandContext>(() => ({
     addActivityLog,
+    appendTerminalOutput: () => {},
     activeFilters: [],
     changeTheme,
     favorites: [],
@@ -117,6 +119,10 @@ export default function useVoiceCommand() {
     setIsLockdown,
     setIsMatrixMode: () => {},
     setIsMissionControlOpen: () => {},
+    setIsOrbitalOpsOpen: () => {},
+    groundStation: PRESET_STATIONS[0]!,
+    setGroundStation: () => {},
+    requestGeolocation: () => Promise.resolve(null),
     setIsSoundEnabled: () => {},
     setPerformanceMode: () => {},
     rerollPerformance: () => {},
@@ -131,6 +137,7 @@ export default function useVoiceCommand() {
     isLockdown: false,
     isMatrixMode: false,
     isMissionControlOpen: false,
+    isOrbitalOpsOpen: false,
     isSoundEnabled: false,
     performanceMode: 'auto',
     effectiveMode: 'auto',

@@ -1,8 +1,9 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useCallback } from 'react';
 const OmniPalette = lazy(() => import('./OmniPalette'));
 const Screensaver = lazy(() => import('../effects/Screensaver'));
 const ShortcutCheatsheet = lazy(() => import('./ShortcutCheatsheet'));
 const MissionControlPanel = lazy(() => import('./MissionControlPanel'));
+const OrbitalOpsPanel = lazy(() => import('./OrbitalOps/OrbitalOpsPanel'));
 import projectData from '../data/projectData';
 import Toast from './Toast';
 import { useOverlayChromeContext } from '../app/context/OverlayChromeContext';
@@ -15,10 +16,18 @@ export default function SystemOverlays() {
     isOmniOpen, setIsOmniOpen, isLockdown, isIdle, clickEffects,
     isCheatsheetOpen, setIsCheatsheetOpen,
     isMissionControlOpen, setIsMissionControlOpen,
+    isOrbitalOpsOpen, setIsOrbitalOpsOpen,
   } = useOverlayChromeContext();
   const { handleProjectSelect } = useOverlayModalContext();
   const { toasts, removeToast } = useOverlayToastContext();
   const { isBooting } = useActivityContext();
+
+  // Stable close callbacks: the panels key their window Escape listener on
+  // `onClose`. An inline arrow changes identity whenever the global Escape
+  // handler (which runs first and closes the terminal) re-renders this tree
+  // mid-dispatch, which swaps the panel's listener out before it can fire.
+  const closeMissionControl = useCallback(() => setIsMissionControlOpen(false), [setIsMissionControlOpen]);
+  const closeOrbitalOps = useCallback(() => setIsOrbitalOpsOpen(false), [setIsOrbitalOpsOpen]);
 
   return (
     <>
@@ -46,7 +55,16 @@ export default function SystemOverlays() {
         <Suspense fallback={null}>
           <MissionControlPanel
             isOpen={isMissionControlOpen}
-            onClose={() => setIsMissionControlOpen(false)}
+            onClose={closeMissionControl}
+          />
+        </Suspense>
+      )}
+
+      {isOrbitalOpsOpen && (
+        <Suspense fallback={null}>
+          <OrbitalOpsPanel
+            isOpen={isOrbitalOpsOpen}
+            onClose={closeOrbitalOps}
           />
         </Suspense>
       )}
