@@ -69,6 +69,11 @@ export function validateProjects(projects: Project[]): void {
       assert(typeof project.changelog === 'string' && project.changelog.trim().length > 0,
         `Project "${project.title}" changelog must be a non-empty string or null`);
     }
+    // `orbit` is deliberately not checked here: this validator runs in the
+    // entry bundle, which has no budget headroom for it. CI's
+    // validate:projects (scripts/validate-projects.mjs) enforces it via
+    // validateOrbit.ts, and lib/orbitalOps.ts re-checks on first use inside
+    // the lazy Orbital Ops chunk, skipping any orbit that fails.
 
     assert(Array.isArray(project.relatedIds), `Project "${project.title}" relatedIds must be an array`);
     for (const relatedId of project.relatedIds) {

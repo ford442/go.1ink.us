@@ -12,11 +12,13 @@ import ProjectGridView from './ProjectGridView';
 import FeaturedSection from './FeaturedSection';
 import RecentlyUpdatedSection from './RecentlyUpdatedSection';
 import Pagination from './Pagination';
-import EmptyState from './EmptyState';
 import useGridPerspective from './useGridPerspective';
 
 const SystemMap = lazy(() => import('../SystemMap'));
 const SystemConstellation = lazy(() => import('../SystemConstellation'));
+// Only rendered when a search/filter matches nothing, so it doesn't need to
+// sit on the critical path (it was ~2.7 KB gzip of the entry chunk).
+const EmptyState = lazy(() => import('./EmptyState'));
 
 export default function MainContent() {
   const { filteredProjects, activeFilters, searchQuery, sortOption, hoveredTag, paginatedProjects, focusedCardIndex, favorites, activeFiltersSet, draggedFavoriteId, dragOverFavoriteId, totalPages, currentPage, suggestedTags } = useBrowserContext();
@@ -187,15 +189,17 @@ export default function MainContent() {
             )}
           </>
         ) : (
-          <EmptyState
-            searchQuery={searchQuery}
-            activeFilters={activeFilters}
-            suggestedTags={suggestedTags}
-            setSearchQuery={setSearchQuery}
-            toggleFilter={toggleFilter}
-            setActiveFilters={setActiveFilters}
-            setCurrentPage={setCurrentPage}
-          />
+          <Suspense fallback={null}>
+            <EmptyState
+              searchQuery={searchQuery}
+              activeFilters={activeFilters}
+              suggestedTags={suggestedTags}
+              setSearchQuery={setSearchQuery}
+              toggleFilter={toggleFilter}
+              setActiveFilters={setActiveFilters}
+              setCurrentPage={setCurrentPage}
+            />
+          </Suspense>
         )}
       </main>
 

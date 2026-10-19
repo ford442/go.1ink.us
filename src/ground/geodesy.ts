@@ -4,39 +4,21 @@
  * angles are radians unless a name says otherwise.
  */
 
-/** WGS84 semi-major axis (km). */
-export const EARTH_RADIUS_KM = 6378.137;
-/** WGS84 flattening. */
-export const EARTH_FLATTENING = 1 / 298.257223563;
-/** WGS84 semi-minor axis (km). */
-export const EARTH_POLAR_RADIUS_KM = EARTH_RADIUS_KM * (1 - EARTH_FLATTENING);
-/** First eccentricity squared. */
-export const ECCENTRICITY_SQ = EARTH_FLATTENING * (2 - EARTH_FLATTENING);
-/** Earth gravitational parameter (km^3/s^2). */
-export const MU_EARTH = 398600.4418;
-/** Second zonal harmonic. */
-export const J2 = 0.00108262998905;
-/** Earth rotation rate (rad/s), including the sidereal correction. */
-export const EARTH_ROTATION_RAD_S = 7.2921159e-5;
+import {
+  DEG2RAD,
+  EARTH_POLAR_RADIUS_KM,
+  EARTH_RADIUS_KM,
+  ECCENTRICITY_SQ,
+  EARTH_ROTATION_RAD_S,
+  TWO_PI,
+  type Geodetic,
+  type Vec3,
+} from './ellipsoid';
 
-export const DEG2RAD = Math.PI / 180;
-export const RAD2DEG = 180 / Math.PI;
-export const TWO_PI = Math.PI * 2;
-
-export interface Vec3 {
-  x: number;
-  y: number;
-  z: number;
-}
-
-export interface Geodetic {
-  /** Latitude in radians, positive north. */
-  latitude: number;
-  /** Longitude in radians, positive east. */
-  longitude: number;
-  /** Height above the WGS84 ellipsoid in km. */
-  altitudeKm: number;
-}
+// Constants, Vec3/Geodetic, geodeticToEcef, and zenithVector live in
+// ellipsoid.ts (see the note there); re-exported so this stays the one
+// import path for geodesy.
+export * from './ellipsoid';
 
 /** Topocentric look angles from an observer to a target. */
 export interface LookAngles {
@@ -114,20 +96,6 @@ export function ecefToEci(v: Vec3, gmstRad: number): Vec3 {
   };
 }
 
-/** Geodetic (WGS84) position to Earth-fixed cartesian km. */
-export function geodeticToEcef(position: Geodetic): Vec3 {
-  const { latitude, longitude, altitudeKm } = position;
-  const sinLat = Math.sin(latitude);
-  const cosLat = Math.cos(latitude);
-  const n = EARTH_RADIUS_KM / Math.sqrt(1 - ECCENTRICITY_SQ * sinLat * sinLat);
-  const radial = (n + altitudeKm) * cosLat;
-  return {
-    x: radial * Math.cos(longitude),
-    y: radial * Math.sin(longitude),
-    z: (n * (1 - ECCENTRICITY_SQ) + altitudeKm) * sinLat,
-  };
-}
-
 /** Earth-fixed cartesian km to geodetic (WGS84), via Bowring's method. */
 export function ecefToGeodetic(v: Vec3): Geodetic {
   const p = Math.hypot(v.x, v.y);
@@ -161,19 +129,6 @@ export function ecefToGeodetic(v: Vec3): Geodetic {
       : p / Math.cos(latitude) - n;
 
   return { latitude, longitude, altitudeKm };
-}
-
-/**
- * Local up (zenith) unit vector in the Earth-fixed frame. Precomputing this
- * per station turns the per-satellite horizon test into a dot product.
- */
-export function zenithVector(latitude: number, longitude: number): Vec3 {
-  const cosLat = Math.cos(latitude);
-  return {
-    x: cosLat * Math.cos(longitude),
-    y: cosLat * Math.sin(longitude),
-    z: Math.sin(latitude),
-  };
 }
 
 /**

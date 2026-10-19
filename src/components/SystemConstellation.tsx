@@ -18,6 +18,9 @@ import soundSystem from '../lib/SoundSystem';
 import type { EnhancedProject, ThemeId } from '../types';
 
 const SystemMapFallback = lazy(() => import('./SystemMap'));
+// Orbital Ops overlay (pass table / look angles / footprint) is its own lazy
+// chunk so the ground propagator only loads once the constellation view does.
+const ConstellationOrbitalOverlay = lazy(() => import('./OrbitalOps/ConstellationOrbitalOverlay'));
 
 const THEME_COLORS: Record<ThemeId, string> = {
   cyan: '#2dd4bf',
@@ -319,6 +322,9 @@ export default function SystemConstellation() {
         }>
           <SystemMapFallback />
         </Suspense>
+        <Suspense fallback={null}>
+          <ConstellationOrbitalOverlay variant="table" />
+        </Suspense>
       </div>
     );
   }
@@ -339,6 +345,9 @@ export default function SystemConstellation() {
         theme={theme}
         onSelectProject={handleSelect}
       />
+      <Suspense fallback={null}>
+        <ConstellationOrbitalOverlay variant="hud" />
+      </Suspense>
       <div className="absolute bottom-3 right-3 z-10 font-mono text-[9px] text-gray-500 tracking-widest uppercase pointer-events-none">
         Drag to orbit · Scroll to zoom · Click to warp
       </div>

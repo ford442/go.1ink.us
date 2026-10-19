@@ -96,6 +96,35 @@ export interface Project {
   changelog: string | null;
   /** Manual reachability override; wins over build-time probe data. */
   healthOverride?: ConnectivityHealth | null;
+  /**
+   * Optional orbit for the Orbital Ops ground station (see src/lib/orbitalOps.ts).
+   * Projects without one stay plain graph/constellation nodes.
+   */
+  orbit?: ProjectOrbit | null;
+}
+
+/**
+ * Classical elements in JSON-friendly units (degrees, ISO epoch) — the
+ * ground module's own `KeplerianElements` uses radians and a Date/ms epoch,
+ * which can't be written by hand in projects.json. Give exactly one of
+ * `meanMotionRevPerDay` / `semiMajorAxisKm`.
+ */
+export interface ProjectOrbitElements {
+  /** ISO 8601 timestamp the elements are mean at. */
+  epoch: string;
+  meanMotionRevPerDay?: number;
+  semiMajorAxisKm?: number;
+  eccentricity: number;
+  inclinationDeg: number;
+  raanDeg: number;
+  argPerigeeDeg: number;
+  meanAnomalyDeg: number;
+}
+
+/** Exactly one of `tle` (two or three lines, newline-separated) or `elements`. */
+export interface ProjectOrbit {
+  tle?: string;
+  elements?: ProjectOrbitElements;
 }
 
 /** Project as enhanced at module load in app/App.tsx for O(1) tag/category lookups. */

@@ -69,6 +69,7 @@ function App() {
   const [isOmniOpen, setIsOmniOpen] = useState(false);
   const [isCheatsheetOpen, setIsCheatsheetOpen] = useState(false);
   const [isMissionControlOpen, setIsMissionControlOpen] = useState(false);
+  const [isOrbitalOpsOpen, setIsOrbitalOpsOpen] = useState(false);
   const [isLockdown, setIsLockdown] = useState(false);
   const [isWarping, setIsWarping] = useState(false);
   const [loadoutsApi, setLoadoutsApi] = useState(loadoutsStub);
@@ -157,6 +158,7 @@ function App() {
     isOmniOpen,
     isCheatsheetOpen,
     isMissionControlOpen,
+    isOrbitalOpsOpen,
     randomSeed,
     selectedProjectRef: quickView.selectedProjectRef,
     setIsCrtEnabled,
@@ -167,6 +169,10 @@ function App() {
     setIsOmniOpen,
     setIsCheatsheetOpen,
     setIsMissionControlOpen,
+    setIsOrbitalOpsOpen,
+    groundStation: groundStation.station,
+    setGroundStation: groundStation.setStation,
+    requestGeolocation: groundStation.requestGeolocation,
     setIsSoundEnabled,
     setPerformanceMode: performance.setPerformanceMode,
     rerollPerformance: performance.rerollPerformance,
@@ -208,9 +214,9 @@ function App() {
     overlayContextMenu: contextMenuState,
     overlayChrome: {
       clickEffects: boot.clickEffects, isDataMode: boot.isDataMode, isIdle,
-      isLockdown, isMissionControlOpen, isOmniOpen, isCheatsheetOpen, isWarping,
+      isLockdown, isMissionControlOpen, isOmniOpen, isOrbitalOpsOpen, isCheatsheetOpen, isWarping,
       setIsDataMode: boot.setIsDataMode, setIsLockdown, setIsMissionControlOpen, setIsOmniOpen,
-      setIsCheatsheetOpen,
+      setIsOrbitalOpsOpen, setIsCheatsheetOpen,
     },
     effects: { ...features, ...performance },
     activity: boot,

@@ -125,11 +125,14 @@ Production build enforces an **initial JS gzip budget of 130 KB** (entry + modul
 | `MatrixRain` | Matrix mode enabled |
 | `OmniPalette` / `Screensaver` / `ShortcutCheatsheet` | First open / idle / cheatsheet |
 | `MissionControlPanel` | Mission Control opened (Omni, `ops` terminal command, or `SystemOverlays`) |
+| `OrbitalOpsPanel` + `orbitalOps` (propagator/pass half of `src/ground/`) | Orbital Ops opened (Omni, `orbital` command), or first `passes`/`horizon`/`station` command (`orbitalTerminal`) |
+| `ConstellationOrbitalOverlay` | Constellation view opened (HUD over 3D, pass table under the 2D fallback) |
+| `EmptyState` | A search/filter matches nothing |
 | `vendor-motion` (`framer-motion`) | Only with `ShortcutCheatsheet` — no longer on the critical path |
 
 `vite.config.ts` sets `manualChunks` for `vendor-react` and `vendor-motion`, `sourcemap: false` in prod, and `reportCompressedSize: true`. `react-force-graph-2d` ships inside the lazy `SystemMap` chunk (not preloaded).
 
-`framer-motion` was previously pulled into the entry bundle because `MainContent`, `Toast`, and `SystemOverlays` imported it eagerly (~41 KB gzip). `MainContent.tsx` was split into `src/components/MainContent/` (`MainContent.tsx` orchestrator, `ViewToolbar`, `ProjectGridView`, `Pagination`, `EmptyState`, `useGridPerspective`), and the card-grid entrance/hover animation and `Toast` enter/exit now use CSS keyframes in `App.css` (`animate-card-enter`, `animate-slide-in-right` / `animate-fade-out-right`) instead of `motion.div`/`AnimatePresence`. `ShortcutCheatsheet` is the only remaining `framer-motion` consumer and is already behind a lazy boundary, so `vendor-motion` no longer ships until it's opened.
+`framer-motion` was previously pulled into the entry bundle because `MainContent`, `Toast`, and `SystemOverlays` imported it eagerly (~41 KB gzip). `MainContent.tsx` was split into `src/components/MainContent/` (`MainContent.tsx` orchestrator, `ViewToolbar`, `ProjectGridView`, `Pagination`, `EmptyState`, `useGridPerspective`; `EmptyState` is now lazy too), and the card-grid entrance/hover animation and `Toast` enter/exit now use CSS keyframes in `App.css` (`animate-card-enter`, `animate-slide-in-right` / `animate-fade-out-right`) instead of `motion.div`/`AnimatePresence`. `ShortcutCheatsheet` is the only remaining `framer-motion` consumer and is already behind a lazy boundary, so `vendor-motion` no longer ships until it's opened.
 
 ---
 
@@ -258,7 +261,7 @@ domain — or the state/actions half of a domain — it actually reads changes:
 | `OverlayChromeContext` | `context/OverlayChromeContext.ts` | omni palette, lockdown, idle, data mode, cheatsheet, warp, click effects | `SystemOverlays`, `CommandHeader`, `BackgroundElements`, `ContextMenu` |
 | `EffectsContext` | `context/EffectsContext.ts` | background refs only (starfield/grids/cursor-trail canvas) + performance flags — stable for the app's lifetime | `BackgroundElements` |
 | `ActivityContext` | `context/ActivityContext.ts` | boot sequence + running activity log | `BootScreen`, `Sidebar`, `ActivityFeed` |
-| `GroundStationContext` | `context/GroundStationContext.ts` | active ground station, its derived frame, geolocation request status (stub for #273) | none yet — #273's pass table/constellation overlay |
+| `GroundStationContext` | `context/GroundStationContext.ts` | active ground station, its derived frame, geolocation request status | `OrbitalOps/StationPicker`, `OrbitalOpsPanel`, `ConstellationOrbitalOverlay` |
 
 `EffectsContext` is deliberately split off from boot/activity-log state
 (`ActivityContext`), even though an early proposal grouped them: typing
@@ -266,9 +269,10 @@ in the search box calls `addActivityLog` once the query is 3+ characters,
 so bundling that with the starfield/grid refs would re-render the
 background on every few keystrokes. For the same reason, `GroundStationContext`
 is its own domain rather than folded into `EffectsContext` or
-`BrowserContext` — its `frame` will tick at pass-table frame-rate once #273
-lands, and that must not re-render the project browser or the background
-effects layer. Don't fold a future worker-handle domain (visual worker
+`BrowserContext` — station changes must not re-render the project browser
+or the background effects layer. The per-second look-angle tick is local
+state inside the lazy Orbital Ops components (`OrbitalOps/useOrbitalClock.ts`),
+not context, so it never re-renders anything above them. Don't fold a future worker-handle domain (visual worker
 clients, WASM control-plane handles) into any existing domain either — give
 it its own.
 
@@ -420,6 +424,11 @@ eventually cost.
   variant with the same command engine plus a live audio waveform and
   system monitor. It is lazy-loaded and mounted from `App.tsx`; the `holo`
   terminal command and its Omni Palette item toggle it.
+  Orbital commands (`orbital`, `station [list|locate|<preset>]`,
+  `passes [id|title]`, `horizon`) live in `lib/commands/orbital.ts` as
+  definitions only; their bodies (`lib/orbitalTerminal.ts`) are loaded with
+  `import()` and print through `CommandContext.appendTerminalOutput` once
+  they resolve, so the propagator never enters the entry chunk.
 - **Omni Command Palette** (`components/OmniPalette.tsx`, `Cmd/Ctrl+K`): a
   fuzzy-searchable command menu for themes, layout mode, effects toggles,
   and filter/navigation actions — the fast path for anything the terminal
@@ -558,6 +567,12 @@ TypeScript) and are validated at load time by `src/data/projectData.ts` via
 (`src/constants.ts`, the single runtime and validation source); invalid tags fail
 `npm run validate:projects` and CI.
 
+The optional `orbit` field (see Orbital Ops below) is the one exception to
+runtime validation: `validateProjects.ts` runs in the entry bundle, which has
+no budget headroom, so `orbit` is checked by `scripts/validate-projects.mjs`
+(CI) via `src/lib/validateOrbit.ts`, and again by `lib/orbitalOps.ts` inside
+the lazy chunk, which skips any orbit that fails.
+
 Quick View resolves `relatedIds` into in-hub navigation, exposes `repo` as a
 secure external source link, and renders `changelog` in a native accessible
 disclosure. The modal is lazy-loaded on first open.
@@ -584,6 +599,7 @@ export interface Project {
   relatedIds: number[];    // Other project ids in this hub
   changelog: string | null;
   healthOverride?: 'live' | 'degraded' | 'unknown' | null; // optional manual reachability override
+  orbit?: { tle?: string; elements?: ProjectOrbitElements } | null; // exactly one of tle/elements; see Orbital Ops
 }
 ```
 
@@ -625,7 +641,8 @@ worker, in tests, or inline in a render loop.
 
 | File | Responsibility |
 |------|----------------|
-| `geodesy.ts` | WGS84 constants, geodetic <-> ECEF, GMST, ECI <-> ECEF, topocentric look angles |
+| `ellipsoid.ts` | The eager core: WGS84 constants, `Vec3`/`Geodetic`, geodetic -> ECEF, zenith vector (re-exported by `geodesy.ts`) |
+| `geodesy.ts` | GMST, ECI <-> ECEF, ECEF -> geodetic, topocentric look angles (+ re-exports `ellipsoid.ts`) |
 | `GroundStation.ts` | Station model, preset cities, validation, opt-in geolocation, `stationFrame()` precompute |
 | `propagator.ts` | `SatellitePropagator` interface + built-in Keplerian/J2 propagator |
 | `tle.ts` | TLE parsing (single set and catalog blobs) -> elements -> propagator |
@@ -652,8 +669,46 @@ and it rejects rather than falling back to a default location so a refused
 permission leaves the current station untouched.
 
 ```bash
-npm run test:unit   # includes scripts/test-ground-station.mjs
+npm run test:unit   # includes scripts/test-ground-station.mjs + test-orbital-ops.mjs
 ```
+
+**Why `ellipsoid.ts` is separate.** `useGroundStation` builds the default
+station frame at startup, so `GroundStation.ts` is in the entry chunk. Rollup
+assigns a whole module to one chunk, so any module shared by the entry and a
+lazy chunk ships *every* export the lazy side uses in the entry. Keeping the
+eager essentials in `ellipsoid.ts` (imported by `GroundStation.ts`) and the
+look-angle/ECI math in `geodesy.ts` (only reached from lazy chunks) keeps
+that math off the critical path. Check `npm run build`'s budget output after
+touching imports here.
+
+### Orbital Ops (the ground-station UI)
+
+The hub treated as a ground station for its own constellation: a catalog
+project may carry an optional `orbit` (`{ tle }` — two lines, optionally
+preceded by a name — or `{ elements }` in JSON-friendly degrees with an ISO
+`epoch` and exactly one of `meanMotionRevPerDay`/`semiMajorAxisKm`). Projects
+without one stay plain graph/constellation nodes. A few featured projects
+carry demo orbits (fictional; the TLE uses an 99xxx catalog number).
+
+| Piece | Role |
+|-------|------|
+| `lib/validateOrbit.ts` | Orbit payload validation (ranges, perigee > 100 km, TLE length/checksum/catalog-number) |
+| `lib/orbitalOps.ts` | Pure glue: projects -> propagators (`projectsToTracks`), merged pass table, look-angle rows, footprint ring, ground track, approximate-time formatting, terminal reports |
+| `lib/orbitalTerminal.ts` | Lazy bodies of `station` / `passes` / `horizon` |
+| `hooks/useGroundStation.ts` + `GroundStationContext` | Active station (defaults to the first preset), frame, geolocation status |
+| `components/OrbitalOps/OrbitalOpsPanel.tsx` | Dialog: station picker, look angles, polar sky plot, footprint/ground-track map, 24h pass table |
+| `components/OrbitalOps/ConstellationOrbitalOverlay.tsx` | `hud` over the 3D constellation; `table` under the 2D fallback |
+
+- **Times are approximate on purpose.** Predicted times are rounded to 5
+  minutes and shown with `≈` plus `MODEL_DISCLAIMER`, because the propagator
+  is Keplerian+J2, not SGP4. A real catalog TLE should get an SGP4 behind the
+  existing `SatellitePropagator` interface (`orbitToPropagator()` is the one
+  place to swap) before anything quotes times more precisely.
+- **Lite mode / no WebGL** render the station picker and pass table only (plain
+  DOM, no SVG plots, 30 s clock tick); the constellation's 2D fallback shows
+  the pass table under the map rather than nothing.
+- **Geolocation** is only requested from the panel's "Use my location" button
+  or `station locate`; a refusal resolves `null` and leaves the station as is.
 
 ---
 

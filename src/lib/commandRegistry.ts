@@ -21,6 +21,7 @@ import { sortCommand, viewCommand, denseCommand, mapCommand, constellationComman
 import { themeCommand, soundCommand, crtCommand, matrixCommand, THEMES, ON_OFF } from './commands/theme';
 import { loadoutCommand } from './commands/loadout';
 import { missionControlCommand } from './commands/missionControl';
+import { orbitalCommand, stationCommand, passesCommand, horizonCommand } from './commands/orbital';
 import {
   helpCommand,
   lsCommand,
@@ -61,6 +62,10 @@ export function createCommandRegistry(_ctx: CommandContext): CommandDefinition[]
     holoCommand,
     statsCommand,
     missionControlCommand,
+    orbitalCommand,
+    stationCommand,
+    passesCommand,
+    horizonCommand,
     clearCommand,
     lockdownCommand,
     unlockCommand,

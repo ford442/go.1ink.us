@@ -1,11 +1,14 @@
 /**
  * CI entry point — validates src/data/projects.json against CATEGORIES and schema rules.
- * Logic mirrors src/lib/validateProjects.ts (keep both in sync when rules change).
+ * Logic mirrors src/lib/validateProjects.ts (keep both in sync when rules change),
+ * plus the optional `orbit` payload (src/lib/validateOrbit.ts), which the
+ * runtime validator leaves to this script and the lazy Orbital Ops chunk.
  */
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CATEGORIES } from '../src/constants.ts';
+import { orbitValidationError } from '../src/lib/validateOrbit.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectsPath = path.join(__dirname, '../src/data/projects.json');
@@ -97,6 +100,10 @@ function validateProjects(projects) {
     }
     if (project.changelog !== null && typeof project.changelog !== 'string') {
       fail(`Project "${project.title}" changelog must be a string or null`);
+    }
+    const orbitError = orbitValidationError(project.orbit);
+    if (orbitError !== null) {
+      fail(`Project "${project.title}" (id ${project.id}): ${orbitError}`);
     }
 
     if (!Array.isArray(project.relatedIds)) {

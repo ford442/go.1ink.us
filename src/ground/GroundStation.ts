@@ -10,7 +10,7 @@ import {
   type Vec3,
   geodeticToEcef,
   zenithVector,
-} from './geodesy';
+} from './ellipsoid';
 
 export interface GroundStation {
   id: string;
