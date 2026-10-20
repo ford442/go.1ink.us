@@ -181,6 +181,7 @@ export interface OverlayContextMenuContextValue {
 export interface OverlayChromeContextValue {
   clickEffects: ClickEffect[];
   isCheatsheetOpen: boolean;
+  isCinematicMode: boolean;
   isDataMode: boolean;
   isIdle: boolean;
   isLockdown: boolean;
@@ -189,6 +190,7 @@ export interface OverlayChromeContextValue {
   isOrbitalOpsOpen: boolean;
   isWarping: boolean;
   setIsCheatsheetOpen: Setter<boolean>;
+  setIsCinematicMode: Setter<boolean>;
   setIsDataMode: Setter<boolean>;
   setIsLockdown: Setter<boolean>;
   setIsMissionControlOpen: Setter<boolean>;

@@ -7,6 +7,8 @@ import type { DisplayMode, Project, SortOption } from '../types';
 export interface UseGlobalShortcutsParams {
   addActivityLog: (text: string) => void;
   contextMenu: ContextMenuState | null;
+  isCinematicMode: boolean;
+  setIsCinematicMode: Dispatch<SetStateAction<boolean>>;
   isDataMode: boolean;
   isOmniOpen: boolean;
   isTerminalOpen: boolean;
@@ -34,6 +36,8 @@ const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft',
 export default function useGlobalShortcuts({
   addActivityLog,
   contextMenu,
+  isCinematicMode,
+  setIsCinematicMode,
   isDataMode,
   isOmniOpen,
   isTerminalOpen,
@@ -104,6 +108,23 @@ export default function useGlobalShortcuts({
         }
       }
 
+      // Toggle Focus Protocol on 'f' or 'F'
+      if ((e.key === 'f' || e.key === 'F') && !isTextEntry) {
+        e.preventDefault();
+        setIsCinematicMode(prev => {
+          const nextMode = !prev;
+          if (nextMode) {
+            addActivityLog(`PROTOCOL OVERRIDE: FOCUS_MODE_ACTIVE`);
+            soundSystem.playSuccess();
+          } else {
+            addActivityLog(`SYS.UI: FOCUS_MODE_DEACTIVATED`);
+            soundSystem.playClick();
+          }
+          return nextMode;
+        });
+        return;
+      }
+
       // Focus Search on '/'
       if (e.key === '/' && !isTextEntry) {
         e.preventDefault();
@@ -163,6 +184,12 @@ export default function useGlobalShortcuts({
 
         if (isCheatsheetOpen) {
           setIsCheatsheetOpen(false);
+          return;
+        }
+
+        if (isCinematicMode) {
+          setIsCinematicMode(false);
+          soundSystem.playClick();
           return;
         }
 
@@ -283,6 +310,8 @@ export default function useGlobalShortcuts({
     isOmniOpen,
     isTerminalOpen,
     isGodMode,
+    isCinematicMode,
+    setIsCinematicMode,
     setIsGodMode,
     isCheatsheetOpen,
     setIsCheatsheetOpen,
