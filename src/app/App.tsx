@@ -72,6 +72,7 @@ function App() {
   const [isOrbitalOpsOpen, setIsOrbitalOpsOpen] = useState(false);
   const [isLockdown, setIsLockdown] = useState(false);
   const [isWarping, setIsWarping] = useState(false);
+  const [isCinematicMode, setIsCinematicMode] = useState(false);
   const [loadoutsApi, setLoadoutsApi] = useState(loadoutsStub);
 
   const isGlitching = useLayoutGlitchTransition(filters.displayMode);
@@ -170,6 +171,8 @@ function App() {
     setIsCheatsheetOpen,
     setIsMissionControlOpen,
     setIsOrbitalOpsOpen,
+    isCinematicMode,
+    setIsCinematicMode,
     groundStation: groundStation.station,
     setGroundStation: groundStation.setStation,
     requestGeolocation: groundStation.requestGeolocation,
@@ -215,8 +218,9 @@ function App() {
     overlayChrome: {
       clickEffects: boot.clickEffects, isDataMode: boot.isDataMode, isIdle,
       isLockdown, isMissionControlOpen, isOmniOpen, isOrbitalOpsOpen, isCheatsheetOpen, isWarping,
+      isCinematicMode,
       setIsDataMode: boot.setIsDataMode, setIsLockdown, setIsMissionControlOpen, setIsOmniOpen,
-      setIsOrbitalOpsOpen, setIsCheatsheetOpen,
+      setIsOrbitalOpsOpen, setIsCheatsheetOpen, setIsCinematicMode,
     },
     effects: { ...features, ...performance },
     activity: boot,
@@ -255,22 +259,26 @@ function App() {
         {isCrtEnabled && <><div className="crt-scanlines pointer-events-none fixed inset-0 z-[9999] mix-blend-overlay" /><div className="crt-vignette pointer-events-none fixed inset-0 z-[9998]" /></>}
         <Suspense fallback={null}><CustomCursor /></Suspense>
         <BootScreen />
-        <CommandHeader />
+        {!isCinematicMode && <CommandHeader />}
         <BackgroundElements />
         {performance.flags.filmGrain && <div className="film-grain" aria-hidden="true" />}
-        <div className="container mx-auto px-4 pt-20 pb-12 relative z-10">
-          <header className="text-center mb-12 flex justify-center">
-            <div className="relative">
-              <div className="absolute inset-0 bg-indigo-500/30 blur-3xl rounded-full transform scale-75" />
-              <BrandImage brand="title" alt="Web apps from 1ink.us" loading="eager" fetchPriority="high" className="relative max-w-lg md:max-w-2xl h-auto max-h-48 md:max-h-64 object-contain animate-fade-in animate-float drop-shadow-2xl filter" pictureClassName="relative block" />
-            </div>
-          </header>
+        <div className={`container mx-auto px-4 pb-12 relative z-10 transition-all duration-500 ${isCinematicMode ? 'pt-4' : 'pt-20'}`}>
+          {!isCinematicMode && (
+            <header className="text-center mb-12 flex justify-center">
+              <div className="relative">
+                <div className="absolute inset-0 bg-indigo-500/30 blur-3xl rounded-full transform scale-75" />
+                <BrandImage brand="title" alt="Web apps from 1ink.us" loading="eager" fetchPriority="high" className="relative max-w-lg md:max-w-2xl h-auto max-h-48 md:max-h-64 object-contain animate-fade-in animate-float drop-shadow-2xl filter" pictureClassName="relative block" />
+              </div>
+            </header>
+          )}
           <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row gap-6 lg:gap-8 xl:gap-8 animate-fade-in relative" style={{ animationDelay: '0.2s' }}>
-            <Sidebar />
+            {!isCinematicMode && <Sidebar />}
             <MainContent />
-            <div className="hidden xl:block w-72 shrink-0">
-              <TransmissionsPanel onSelectProject={quickView.handleProjectSelect} />
-            </div>
+            {!isCinematicMode && (
+              <div className="hidden xl:block w-72 shrink-0">
+                <TransmissionsPanel onSelectProject={quickView.handleProjectSelect} />
+              </div>
+            )}
           </div>
         </div>
         {quickView.selectedProject && (

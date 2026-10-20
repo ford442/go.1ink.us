@@ -9,7 +9,11 @@ type UseAppFeaturesParams = UseProjectBrowserParams
   // isTerminalOpen/setIsTerminalOpen/setIsTerminalClosing come from this
   // hook's own useTerminalController() call below, not from the caller.
   & Omit<UseGlobalShortcutsParams, 'isTerminalOpen' | 'setIsTerminalOpen' | 'setIsTerminalClosing'>
-  & { performanceFlags: PerformanceFlags };
+  & {
+    performanceFlags: PerformanceFlags;
+    isCinematicMode: boolean;
+    setIsCinematicMode: React.Dispatch<React.SetStateAction<boolean>>;
+  };
 
 // Wires the four feature hooks that don't own their own persisted/URL state
 // but instead derive behavior from it: the project browser (filter/sort/
@@ -31,6 +35,7 @@ export default function useAppFeatures({
   isGodMode,
   isOmniOpen,
   isCheatsheetOpen,
+  isCinematicMode,
   isMissionControlOpen,
   isOrbitalOpsOpen,
   itemsPerPage,
@@ -42,6 +47,7 @@ export default function useAppFeatures({
   setCurrentPage,
   setDisplayMode,
   setIsCrtEnabled,
+  setIsCinematicMode,
   setIsDataMode,
   setIsGodMode,
   setIsLockdown,
@@ -159,6 +165,8 @@ export default function useAppFeatures({
     isDataMode,
     isOmniOpen,
     isTerminalOpen,
+    isCinematicMode,
+    setIsCinematicMode,
     isGodMode,
     setIsGodMode,
     isCheatsheetOpen,

@@ -145,6 +145,7 @@ export default function useAppProviderValues({
   const overlayChromeValue = useDomainValue({
     clickEffects: overlayChrome.clickEffects,
     isCheatsheetOpen: overlayChrome.isCheatsheetOpen,
+    isCinematicMode: overlayChrome.isCinematicMode,
     isDataMode: overlayChrome.isDataMode,
     isIdle: overlayChrome.isIdle,
     isLockdown: overlayChrome.isLockdown,
@@ -153,6 +154,7 @@ export default function useAppProviderValues({
     isOrbitalOpsOpen: overlayChrome.isOrbitalOpsOpen,
     isWarping: overlayChrome.isWarping,
     setIsCheatsheetOpen: overlayChrome.setIsCheatsheetOpen,
+    setIsCinematicMode: overlayChrome.setIsCinematicMode,
     setIsDataMode: overlayChrome.setIsDataMode,
     setIsLockdown: overlayChrome.setIsLockdown,
     setIsMissionControlOpen: overlayChrome.setIsMissionControlOpen,

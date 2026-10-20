@@ -1,5 +1,6 @@
 import { CATEGORY_ICONS } from '../../constants';
 import type { Category, DisplayMode } from '../../types';
+import { useOverlayChromeContext } from '../../app/context/OverlayChromeContext';
 
 interface DisplayModeOption {
   mode: DisplayMode;
@@ -58,6 +59,8 @@ export default function ViewToolbar({
   displayMode,
   handleDisplayModeChange,
 }: ViewToolbarProps) {
+  const { isCinematicMode, setIsCinematicMode } = useOverlayChromeContext();
+
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -97,6 +100,21 @@ export default function ViewToolbar({
 
       {/* View & Sort Controls */}
       <div className="flex items-center gap-3">
+        {/* Focus Protocol Toggle */}
+        <button
+          onClick={() => setIsCinematicMode(prev => !prev)}
+          className={`px-3 py-1.5 rounded-lg border text-sm font-mono transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 ${isCinematicMode ? 'bg-accent-500/20 text-accent-300 border-accent-500/50 shadow-[0_0_15px_rgba(var(--rgb-accent-400),0.3)]' : 'bg-black/20 text-gray-400 border-white/10 hover:text-white hover:border-white/20'}`}
+          aria-label="Toggle Focus Protocol"
+          title="Focus Protocol (F)"
+        >
+          <span className="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zm6 10h-2v4h-4v2h6v-6zM10 20H4v-6h2v4h4v2z" />
+            </svg>
+            <span className="hidden sm:inline uppercase text-xs">FOCUS</span>
+          </span>
+        </button>
+
         {/* Display Mode Toggle */}
         <div className="bg-black/20 backdrop-blur-xl rounded-lg border border-white/10 p-1 flex" role="group" aria-label="Layout mode">
           {DISPLAY_MODES.map(({ mode, label, title, path }) => (
