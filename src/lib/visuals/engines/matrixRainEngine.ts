@@ -1,12 +1,13 @@
 import type { Canvas2D, Engine, EngineInitOptions } from './types';
 import type { ThemeId } from '../../../types';
 
-const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+{}[]|;:,.<>?/~'.split('');
+/** Glyph table; the WASM core emits indices into it (`VC_MATRIX_GLYPH_COUNT` must equal its length). */
+export const MATRIX_GLYPHS: readonly string[] = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+{}[]|;:,.<>?/~'.split('');
 const FONT_SIZE = 16;
 const FPS = 30;
 const FRAME_INTERVAL = 1000 / FPS;
 
-function themeColor(theme: ThemeId): string {
+export function matrixThemeColor(theme: ThemeId): string {
   switch (theme) {
     case 'purple': return '#d946ef'; // fuchsia-500
     case 'emerald': return '#10b981'; // emerald-500
@@ -74,11 +75,11 @@ export class MatrixRainEngine implements Engine {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
     ctx.fillRect(0, 0, this.width, this.height);
 
-    ctx.fillStyle = themeColor(this.theme);
+    ctx.fillStyle = matrixThemeColor(this.theme);
     ctx.font = `${FONT_SIZE}px monospace`;
 
     for (let i = 0; i < drops.length; i++) {
-      const text = CHARS[Math.floor(Math.random() * CHARS.length)]!;
+      const text = MATRIX_GLYPHS[Math.floor(Math.random() * MATRIX_GLYPHS.length)]!;
       let drop = drops[i]!;
       ctx.fillText(text, i * FONT_SIZE, drop * FONT_SIZE);
 

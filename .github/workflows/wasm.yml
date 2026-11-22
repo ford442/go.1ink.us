@@ -1,0 +1,78 @@
+name: WASM visual core
+
+# Optional job: only runs when the C++ visual core or its adapter changes.
+# `npm run build` never needs Emscripten (the prebuilt
+# src/lib/visuals/wasm/visual-core.wasm is committed), so the main CI
+# workflow doesn't either. Don't mark this check as required in branch
+# protection: path filtering means it won't report on unrelated PRs.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/visual-core/**'
+      - 'src/lib/visuals/wasm/**'
+      - 'scripts/build-wasm.mjs'
+      - 'scripts/test-visual-core-wasm.mjs'
+      - '.github/workflows/wasm.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/visual-core/**'
+      - 'src/lib/visuals/wasm/**'
+      - 'scripts/build-wasm.mjs'
+      - 'scripts/test-visual-core-wasm.mjs'
+      - '.github/workflows/wasm.yml'
+
+concurrency:
+  group: wasm-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  visual-core:
+    name: Build visual core, check the prebuilt .wasm is fresh
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Cache Emscripten SDK
+        uses: actions/cache@v4
+        with:
+          path: ~/emsdk
+          key: emsdk-${{ runner.os }}-${{ hashFiles('packages/visual-core/EMSDK_VERSION') }}
+
+      - name: Install pinned Emscripten (packages/visual-core/EMSDK_VERSION)
+        run: |
+          version="$(cat packages/visual-core/EMSDK_VERSION)"
+          if [ ! -x ~/emsdk/emsdk ]; then
+            git clone --depth 1 https://github.com/emscripten-core/emsdk.git ~/emsdk
+          fi
+          ~/emsdk/emsdk install "$version"
+          ~/emsdk/emsdk activate "$version"
+
+      - run: npm ci
+
+      - name: Build the visual core
+        run: |
+          source ~/emsdk/emsdk_env.sh
+          npm run build:wasm
+
+      # The build is deterministic for a given Emscripten version (no paths or
+      # timestamps end up in the binary), so any difference means the committed
+      # prebuilt is stale relative to the C++ sources.
+      - name: Committed visual-core.wasm matches the sources
+        run: |
+          if ! git diff --quiet -- src/lib/visuals/wasm/visual-core.wasm; then
+            echo "::error file=src/lib/visuals/wasm/visual-core.wasm::Stale prebuilt. Run npm run build:wasm (Emscripten $(cat packages/visual-core/EMSDK_VERSION)) and commit the result."
+            exit 1
+          fi
+
+      - run: npm run test:unit

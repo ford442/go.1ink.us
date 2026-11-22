@@ -65,9 +65,16 @@ src/
   hooks/        # Feature and utility hooks (persisted state, URL sync, idle protocol, favorites, toasts, …)
   lib/          # SoundSystem (procedural Web Audio SFX engine)
   ground/       # Dependency-free orbital-visibility math (geodesy, ground station, TLE, passes) — not yet wired into the UI
+packages/
+  visual-core/  # Optional C++ (Emscripten) simulation core for the ambient visuals; prebuilt .wasm is committed
   data/         # projects.json catalog + validated projectData.ts export
   styles/       # Tailwind entry point + theme CSS variables
 ```
+
+In Full performance mode the particle network, starfield and matrix rain run on a C++ core compiled to
+WebAssembly inside the visuals worker (falling back to the TypeScript engines if it can't load). The JS app
+has no `compile_commands.json`; the C++ package does. Changing it needs the Emscripten SDK and
+`npm run build:wasm`. `npm run build` never does, because it uses the committed prebuilt `.wasm`.
 
 See `AGENTS.md` for the full architecture deep dive (context domains, hook composition, Card layout variants, etc.).
 

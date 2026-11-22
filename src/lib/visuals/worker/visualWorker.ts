@@ -10,6 +10,15 @@ declare const self: {
   postMessage(message: WorkerToHostMessage): void;
 };
 
-const runtime = new VisualWorkerRuntime((message) => self.postMessage(message));
+const runtime = new VisualWorkerRuntime(
+  (message) => self.postMessage(message),
+  undefined, // default engine factory (the JS engines)
+  undefined, // default frame scheduler
+  undefined,
+  // Only invoked for a layer that requests 'wasm' (Full mode; see
+  // createVisualBackend). The adapter chunk and the .wasm are both fetched on
+  // that first request, never in a JS-only session.
+  () => import('../wasm/loadVisualCore').then(({ loadVisualCore }) => loadVisualCore()),
+);
 
 self.onmessage = (event) => runtime.handleMessage(event.data);

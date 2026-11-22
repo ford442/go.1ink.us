@@ -4,12 +4,14 @@ import type { ThemeId } from '../types';
 
 interface MatrixRainProps {
   theme: ThemeId;
+  /** Drive the layer with the WASM visual core (Full mode). */
+  preferWasm?: boolean;
 }
 
-const MatrixRain = ({ theme }: MatrixRainProps) => {
+const MatrixRain = ({ theme, preferWasm = false }: MatrixRainProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  useVisualLayer('matrixRain', canvasRef, { enabled: true, theme });
+  useVisualLayer('matrixRain', canvasRef, { enabled: true, theme, preferWasm });
 
   return (
     <canvas

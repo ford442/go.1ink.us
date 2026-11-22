@@ -18,6 +18,7 @@ export class MainThreadCanvasBackend implements VisualBackend {
     if (!ctx) return;
 
     this.canvas = canvas;
+    canvas.dataset.visualEngine = 'main';
     canvas.width = options.width;
     canvas.height = options.height;
 

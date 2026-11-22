@@ -9,13 +9,17 @@ import { useSettingsContext } from '../app/context/SettingsContext';
 import { useOverlayChromeContext } from '../app/context/OverlayChromeContext';
 
 export default function BackgroundElements() {
-  const { starfieldRef, deepGridRef, baseGridRef, gridSpotlightRef, flags } = useEffectsContext();
+  const { starfieldRef, deepGridRef, baseGridRef, gridSpotlightRef, flags, effectiveMode } = useEffectsContext();
   const { isMatrixMode, theme, isGodMode } = useSettingsContext();
   const { isWarping } = useOverlayChromeContext();
 
   const showMatrix = flags.matrixRain && isMatrixMode;
   const showParticles = flags.particleNetwork && !isMatrixMode;
   const showWarpFx = flags.warpTransition && isWarping;
+  // Full mode runs the particle/starfield/matrix simulations on the C++ visual
+  // core (WASM, inside the visuals worker). Every other mode keeps the JS
+  // engines and never fetches the .wasm.
+  const preferWasm = effectiveMode === 'full';
 
   return (
     <>
@@ -29,7 +33,7 @@ export default function BackgroundElements() {
             width: '110%',
             height: '110%'
           }}>
-            <Starfield ref={starfieldRef} />
+            <Starfield ref={starfieldRef} preferWasm={preferWasm} />
           </div>
         )}
 
@@ -43,11 +47,11 @@ export default function BackgroundElements() {
 
         {showMatrix && (
           <Suspense fallback={null}>
-            <MatrixRain theme={theme} />
+            <MatrixRain theme={theme} preferWasm={preferWasm} />
           </Suspense>
         )}
         {showParticles && (
-          <ParticleNetwork isGodMode={isGodMode} />
+          <ParticleNetwork isGodMode={isGodMode} preferWasm={preferWasm} />
         )}
 
         {flags.floatingDebris && (

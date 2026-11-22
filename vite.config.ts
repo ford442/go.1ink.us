@@ -3,8 +3,12 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// Build pipeline: Vite 7 + Rollup (see AGENTS.md). There is no compile_commands.json
-// or CMake in this repo — WASM/toolchain work would add its own build step separately.
+// Build pipeline: Vite 7 + Rollup (see AGENTS.md). The JS app has no
+// compile_commands.json or CMake. The one native toolchain in the repo is the
+// optional C++ visual core (packages/visual-core, `npm run build:wasm`), whose
+// prebuilt src/lib/visuals/wasm/visual-core.wasm is committed. Vite only sees it
+// as an asset (`new URL('./visual-core.wasm', import.meta.url)` inside the visuals
+// worker), so this build never needs Emscripten.
 
 const LAZY_VENDOR_CHUNKS = /vendor-force-graph|vendor-three|MatrixRain|SystemMap|SystemConstellation|HoloTerminal|OmniPalette|Screensaver|ShortcutCheatsheet|LoadoutsBootstrap|LoadoutPanel|loadoutCodec|loadoutIds/
 
@@ -50,10 +54,29 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // `.wasm` is deliberately not precached: only Full-mode sessions ever
+        // fetch the visual core, so precaching would download it for lite and
+        // balanced visitors too. The runtime rule below caches it on first use.
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,avif,woff2,json}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
+          {
+            // The visual core, fetched by the visuals worker in Full mode.
+            // Hashed filename, so cache-first is safe; keeps Full mode on the
+            // WASM path offline instead of falling back to the JS engines.
+            urlPattern: /\/assets\/.+\.wasm$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'visual-core-wasm',
+              expiration: {
+                maxEntries: 4,
+              },
+              cacheableResponse: {
+                statuses: [200],
+              },
+            },
+          },
           {
             urlPattern: /\/images\/.+\.(?:webp|avif|png|jpe?g|svg)$/i,
             handler: 'CacheFirst',

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { VisualWorkerRuntime } from '../src/lib/visuals/worker/visualWorkerRuntime.ts';
 import { VisualWorkerClient } from '../src/lib/visuals/VisualWorkerClient.ts';
 import { OffscreenWorkerBackend } from '../src/lib/visuals/backends/OffscreenWorkerBackend.ts';
+import { WasmWorkerBackend } from '../src/lib/visuals/backends/WasmWorkerBackend.ts';
 
 // --- Fakes standing in for the browser objects the real protocol crosses ---
 
@@ -50,7 +51,7 @@ function basePayload(overrides = {}) {
 }
 
 describe('VisualWorkerRuntime', () => {
-  it('creates an engine on init, calls Engine.init, and posts ready', () => {
+  it('creates an engine on init, calls Engine.init, and posts ready + the engine it chose', () => {
     const posted = [];
     const { factory, engines } = createFakeEngineFactory();
     const runtime = new VisualWorkerRuntime((msg) => posted.push(msg), factory, () => 'noop-handle', () => {});
@@ -63,7 +64,10 @@ describe('VisualWorkerRuntime', () => {
     assert.equal(engine.calls[0][2], 800);
     assert.equal(engine.calls[0][3], 600);
     assert.deepEqual(engine.calls[0][4], { accentRgb: '34, 211, 238', theme: 'cyan', density: 1 });
-    assert.deepEqual(posted, [{ type: 'ready', layerId: 'starfield-1' }]);
+    assert.deepEqual(posted, [
+      { type: 'ready', layerId: 'starfield-1' },
+      { type: 'engine', layerId: 'starfield-1', engine: 'js' },
+    ]);
     // The runtime sizes the canvas itself before handing it to the engine.
     assert.equal(payload.canvas.width, 800);
     assert.equal(payload.canvas.height, 600);
@@ -278,11 +282,17 @@ describe('OffscreenWorkerBackend', () => {
   function createFakeClient() {
     const sent = [];
     const initLayerCalls = [];
+    const listeners = new Map();
     return {
       sent,
       initLayerCalls,
+      listeners,
       initLayer: (payload, transfer) => initLayerCalls.push({ payload, transfer }),
       send: (message) => sent.push(message),
+      onLayerMessage: (layerId, listener) => {
+        listeners.set(layerId, listener);
+        return () => listeners.delete(layerId);
+      },
     };
   }
 
@@ -331,5 +341,271 @@ describe('OffscreenWorkerBackend', () => {
 
     assert.equal(client.initLayerCalls.length, 2);
     assert.notEqual(client.initLayerCalls[0].payload.layerId, client.initLayerCalls[1].payload.layerId);
+  });
+});
+
+describe('VisualWorkerRuntime engine selection (WASM -> JS fallback)', () => {
+  // A stand-in for the loaded visual core: hands out recording fake engines
+  // tagged 'wasm' for the effects it "implements", null for the rest.
+  function createFakeCore(effects = ['starfield', 'particleNetwork', 'matrixRain']) {
+    const { factory, engines } = createFakeEngineFactory();
+    return {
+      engines,
+      core: {
+        effects: new Set(effects),
+        createEngine: (effect) => (effects.includes(effect) ? factory(effect) : null),
+      },
+    };
+  }
+
+  function deferred() {
+    let resolve;
+    let reject;
+    const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
+    return { promise, resolve, reject };
+  }
+
+  function engineMessages(posted) {
+    return posted.filter((m) => m.type === 'engine').map((m) => [m.layerId, m.engine]);
+  }
+
+  it('runs a wasm request on the JS engine straight away when no loader is wired up', () => {
+    const posted = [];
+    const js = createFakeEngineFactory();
+    const runtime = new VisualWorkerRuntime((m) => posted.push(m), js.factory, () => 1, () => {});
+
+    runtime.handleMessage({ type: 'init', payload: basePayload({ engine: 'wasm' }) });
+
+    assert.ok(js.engines.has('starfield'));
+    assert.deepEqual(engineMessages(posted), [['starfield-1', 'js']]);
+  });
+
+  it('parks a fresh wasm layer until the core loads, then inits the wasm engine from the latest state', async () => {
+    const posted = [];
+    const js = createFakeEngineFactory();
+    const wasm = createFakeCore();
+    const load = deferred();
+    let loads = 0;
+    const runtime = new VisualWorkerRuntime((m) => posted.push(m), js.factory, () => 1, () => {}, () => {
+      loads++;
+      return load.promise;
+    });
+
+    runtime.handleMessage({ type: 'init', payload: basePayload({ engine: 'wasm' }) });
+    // State that arrives while the core is still loading must not be lost.
+    runtime.handleMessage({ type: 'resize', layerId: 'starfield-1', width: 1280, height: 720 });
+    runtime.handleMessage({ type: 'setTheme', layerId: 'starfield-1', accentRgb: '1, 2, 3', theme: 'gold' });
+    runtime.handleMessage({ type: 'setPointer', layerId: 'starfield-1', x: 40, y: 50 });
+    runtime.handleMessage({ type: 'setHover', layerId: 'starfield-1', hovering: true });
+    runtime.handleMessage({ type: 'setDensity', layerId: 'starfield-1', density: 2 });
+    runtime.tickForTest(16);
+
+    assert.equal(js.engines.size, 0, 'no JS engine is spun up just to be thrown away');
+    assert.equal(engineMessages(posted).length, 0);
+    assert.equal(loads, 1);
+
+    load.resolve(wasm.core);
+    await runtime.wasmSettledForTest();
+
+    const engine = wasm.engines.get('starfield');
+    assert.deepEqual(engine.calls, [
+      ['init', engine.calls[0][1], 1280, 720, { accentRgb: '1, 2, 3', theme: 'gold', density: 2 }],
+      ['setPointer', 40, 50],
+      ['setHover', true],
+    ]);
+    assert.deepEqual(engineMessages(posted), [['starfield-1', 'wasm']]);
+
+    runtime.tickForTest(32);
+    assert.ok(engine.calls.some((c) => c[0] === 'tick' && c[1] === 32));
+  });
+
+  it('loads the core once however many layers request it', async () => {
+    let loads = 0;
+    const wasm = createFakeCore();
+    const runtime = new VisualWorkerRuntime(() => {}, createFakeEngineFactory().factory, () => 1, () => {}, async () => {
+      loads++;
+      return wasm.core;
+    });
+
+    runtime.handleMessage({ type: 'init', payload: basePayload({ layerId: 'a', effect: 'starfield', engine: 'wasm' }) });
+    runtime.handleMessage({ type: 'init', payload: basePayload({ layerId: 'b', effect: 'particleNetwork', engine: 'wasm' }) });
+    await runtime.wasmSettledForTest();
+    runtime.handleMessage({ type: 'init', payload: basePayload({ layerId: 'c', effect: 'matrixRain', engine: 'wasm' }) });
+
+    assert.equal(loads, 1);
+    assert.deepEqual([...wasm.engines.keys()].sort(), ['matrixRain', 'particleNetwork', 'starfield']);
+  });
+
+  it('falls back to JS, and reports the failure once, when the core fails to load', async () => {
+    const posted = [];
+    const js = createFakeEngineFactory();
+    const runtime = new VisualWorkerRuntime((m) => posted.push(m), js.factory, () => 1, () => {}, async () => {
+      throw new Error('HTTP 404');
+    });
+
+    runtime.handleMessage({ type: 'init', payload: basePayload({ layerId: 'a', effect: 'starfield', engine: 'wasm' }) });
+    runtime.handleMessage({ type: 'init', payload: basePayload({ layerId: 'b', effect: 'matrixRain', engine: 'wasm' }) });
+    await runtime.wasmSettledForTest();
+    // A later request doesn't retry a load that already failed.
+    runtime.handleMessage({ type: 'init', payload: basePayload({ layerId: 'c', effect: 'particleNetwork', engine: 'wasm' }) });
+
+    const errors = posted.filter((m) => m.type === 'error');
+    assert.equal(errors.length, 1);
+    assert.match(errors[0].message, /WASM visual core unavailable.*HTTP 404/);
+    assert.deepEqual(engineMessages(posted), [['a', 'js'], ['b', 'js'], ['c', 'js']]);
+    assert.deepEqual([...js.engines.keys()].sort(), ['matrixRain', 'particleNetwork', 'starfield']);
+  });
+
+  it('uses the JS engine for an effect the core does not implement', async () => {
+    const posted = [];
+    const js = createFakeEngineFactory();
+    const wasm = createFakeCore(['starfield']);
+    const runtime = new VisualWorkerRuntime((m) => posted.push(m), js.factory, () => 1, () => {}, async () => wasm.core);
+
+    runtime.handleMessage({ type: 'init', payload: basePayload({ layerId: 'cur', effect: 'cursor', engine: 'wasm' }) });
+    await runtime.wasmSettledForTest();
+
+    assert.ok(js.engines.has('cursor'));
+    assert.deepEqual(engineMessages(posted), [['cur', 'js']]);
+  });
+
+  it('swaps a live layer between engines on setEngine, keeping JS running until the core is ready', async () => {
+    const posted = [];
+    const js = createFakeEngineFactory();
+    const wasm = createFakeCore();
+    const load = deferred();
+    const runtime = new VisualWorkerRuntime((m) => posted.push(m), js.factory, () => 1, () => {}, () => load.promise);
+
+    runtime.handleMessage({ type: 'init', payload: basePayload() });
+    const jsEngine = js.engines.get('starfield');
+
+    runtime.handleMessage({ type: 'setEngine', layerId: 'starfield-1', engine: 'wasm' });
+    runtime.tickForTest(10);
+    assert.ok(jsEngine.calls.some((c) => c[0] === 'tick' && c[1] === 10), 'JS keeps drawing while the core loads');
+    assert.ok(!jsEngine.calls.some((c) => c[0] === 'dispose'));
+
+    load.resolve(wasm.core);
+    await runtime.wasmSettledForTest();
+    assert.ok(jsEngine.calls.some((c) => c[0] === 'dispose'), 'the replaced JS engine is disposed');
+    assert.equal(wasm.engines.get('starfield').calls[0][0], 'init');
+
+    // Re-requesting the engine already running is a no-op, not a reseed.
+    runtime.handleMessage({ type: 'setEngine', layerId: 'starfield-1', engine: 'wasm' });
+    assert.equal(wasm.engines.get('starfield').calls.filter((c) => c[0] === 'init').length, 1);
+
+    runtime.handleMessage({ type: 'setEngine', layerId: 'starfield-1', engine: 'js' });
+    assert.ok(wasm.engines.get('starfield').calls.some((c) => c[0] === 'dispose'));
+    assert.deepEqual(engineMessages(posted), [['starfield-1', 'js'], ['starfield-1', 'wasm'], ['starfield-1', 'js']]);
+  });
+
+  it('wakes the shared loop when a parked wasm layer gets its engine', async () => {
+    const frames = [];
+    const wasm = createFakeCore();
+    const runtime = new VisualWorkerRuntime(
+      () => {},
+      createFakeEngineFactory().factory,
+      (cb) => { frames.push(cb); return frames.length; },
+      () => {},
+      async () => wasm.core,
+    );
+
+    runtime.handleMessage({ type: 'init', payload: basePayload({ engine: 'wasm' }) });
+    // The first frame finds no engine yet; the layer parks and the loop stops.
+    frames.shift()(16);
+    assert.ok(!runtime.isLoopRunningForTest());
+
+    await runtime.wasmSettledForTest();
+    assert.ok(runtime.isLoopRunningForTest(), 'attaching the wasm engine reschedules the loop');
+  });
+});
+
+describe('VisualWorkerClient layer routing', () => {
+  it('delivers worker messages to the listener for their layer only', () => {
+    let onMessage;
+    const client = new VisualWorkerClient(() => ({
+      postMessage: () => {},
+      addEventListener: (_type, listener) => { onMessage = listener; },
+      removeEventListener: () => {},
+    }));
+    client.initLayer(basePayload({ layerId: 'a' }), []);
+
+    const seenA = [];
+    const seenB = [];
+    client.onLayerMessage('a', (m) => seenA.push(m));
+    const unsubscribeB = client.onLayerMessage('b', (m) => seenB.push(m));
+
+    onMessage({ data: { type: 'engine', layerId: 'a', engine: 'wasm' } });
+    unsubscribeB();
+    onMessage({ data: { type: 'engine', layerId: 'b', engine: 'js' } });
+
+    assert.deepEqual(seenA, [{ type: 'engine', layerId: 'a', engine: 'wasm' }]);
+    assert.deepEqual(seenB, []);
+  });
+});
+
+describe('WasmWorkerBackend', () => {
+  function createFakeCanvasElement() {
+    return { dataset: {}, transferControlToOffscreen: () => ({ width: 0, height: 0 }) };
+  }
+
+  function createFakeClient() {
+    const sent = [];
+    const initLayerCalls = [];
+    const listeners = new Map();
+    return {
+      sent,
+      initLayerCalls,
+      listeners,
+      initLayer: (payload, transfer) => initLayerCalls.push({ payload, transfer }),
+      send: (message) => sent.push(message),
+      onLayerMessage: (layerId, listener) => {
+        listeners.set(layerId, listener);
+        return () => listeners.delete(layerId);
+      },
+    };
+  }
+
+  const OPTIONS = { width: 100, height: 100, accentRgb: 'a', theme: 'cyan', density: 1 };
+
+  it('requests the wasm engine in its init payload; the JS worker backend requests js', () => {
+    const client = createFakeClient();
+    new WasmWorkerBackend('particleNetwork', client).init(createFakeCanvasElement(), OPTIONS);
+    new OffscreenWorkerBackend('particleNetwork', client).init(createFakeCanvasElement(), OPTIONS);
+
+    assert.equal(client.initLayerCalls[0].payload.engine, 'wasm');
+    assert.equal(client.initLayerCalls[1].payload.engine, 'js');
+  });
+
+  it('mirrors the engine the worker reports onto the canvas as data-visual-engine', () => {
+    const client = createFakeClient();
+    const canvas = createFakeCanvasElement();
+    new WasmWorkerBackend('starfield', client).init(canvas, OPTIONS);
+    const { layerId } = client.initLayerCalls[0].payload;
+
+    client.listeners.get(layerId)({ type: 'ready', layerId });
+    assert.equal(canvas.dataset.visualEngine, undefined);
+    client.listeners.get(layerId)({ type: 'engine', layerId, engine: 'wasm' });
+    assert.equal(canvas.dataset.visualEngine, 'wasm');
+  });
+
+  it('re-selects the engine, after the fresh state, when a new backend reuses a transferred canvas', () => {
+    // Full mode toggling while the starfield stays mounted: useVisualLayer
+    // re-inits with the other backend class against the same <canvas>.
+    const client = createFakeClient();
+    const canvas = createFakeCanvasElement();
+    const first = new OffscreenWorkerBackend('starfield', client);
+    first.init(canvas, OPTIONS);
+    first.dispose();
+
+    new WasmWorkerBackend('starfield', client).init(canvas, { ...OPTIONS, width: 300 });
+
+    assert.equal(client.initLayerCalls.length, 1, 'still only one transfer');
+    const types = client.sent.map((m) => m.type);
+    assert.deepEqual(types.slice(-5), ['setRunning', 'resize', 'setTheme', 'setDensity', 'setEngine']);
+    assert.deepEqual(client.sent.at(-1), {
+      type: 'setEngine',
+      layerId: client.initLayerCalls[0].payload.layerId,
+      engine: 'wasm',
+    });
   });
 });

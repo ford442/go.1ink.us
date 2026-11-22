@@ -2,7 +2,7 @@ import { getVisualWorkerClient } from '../VisualWorkerClient';
 import type { VisualWorkerClient } from '../VisualWorkerClient';
 import type { TransferableCanvas } from '../engines/types';
 import type { LayerInitPayload } from '../protocol';
-import type { EffectKind, VisualBackend, VisualInitOptions } from '../types';
+import type { EffectKind, EngineImpl, VisualBackend, VisualInitOptions } from '../types';
 import type { ThemeId } from '../../../types';
 
 let nextLayerId = 0;
@@ -17,14 +17,22 @@ let nextLayerId = 0;
 // instead of re-transferred.
 const activeTransfers = new WeakMap<HTMLCanvasElement, string>();
 
-/** Transfers the canvas to the shared visuals worker and proxies every call over `postMessage`. */
+/**
+ * Transfers the canvas to the shared visuals worker and proxies every call
+ * over `postMessage`. The worker reports which engine ended up driving the
+ * layer, mirrored onto the canvas as `data-visual-engine` (`js` | `wasm`;
+ * `MainThreadCanvasBackend` sets `main`) for debugging and the e2e suite.
+ */
 export class OffscreenWorkerBackend implements VisualBackend {
   readonly kind: EffectKind;
+  /** The engine this backend asks the worker for; see `WasmWorkerBackend`. */
+  readonly engine: EngineImpl;
   private layerId: string;
   private readonly client: VisualWorkerClient;
 
-  constructor(kind: EffectKind, client: VisualWorkerClient = getVisualWorkerClient()) {
+  constructor(kind: EffectKind, client: VisualWorkerClient = getVisualWorkerClient(), engine: EngineImpl = 'js') {
     this.kind = kind;
+    this.engine = engine;
     this.layerId = `${kind}-${++nextLayerId}`;
     this.client = client;
   }
@@ -39,11 +47,17 @@ export class OffscreenWorkerBackend implements VisualBackend {
       this.resize(options.width, options.height);
       this.setTheme(options.accentRgb, options.theme);
       this.setDensity(options.density);
+      // Last, so a JS <-> WASM swap initializes from the state just sent.
+      this.client.send({ type: 'setEngine', layerId: this.layerId, engine: this.engine });
       return;
     }
 
     const offscreen = canvas.transferControlToOffscreen();
     activeTransfers.set(canvas, this.layerId);
+    // Registered once per canvas: the layer (and its id) outlives this backend instance.
+    this.client.onLayerMessage(this.layerId, (message) => {
+      if (message.type === 'engine') canvas.dataset.visualEngine = message.engine;
+    });
     const payload: LayerInitPayload = {
       layerId: this.layerId,
       effect: this.kind,
@@ -56,6 +70,7 @@ export class OffscreenWorkerBackend implements VisualBackend {
       accentRgb: options.accentRgb,
       theme: options.theme,
       density: options.density,
+      engine: this.engine,
     };
     this.client.initLayer(payload, [offscreen]);
   }

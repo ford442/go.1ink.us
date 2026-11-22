@@ -1,0 +1,9 @@
+# clangd config for the only C++ in this repo: packages/visual-core.
+#
+# The JS/TS app has no compile_commands.json and must not get one (clangd
+# would fight Vite over src/). This points clangd at the database CMake
+# generates for the C++ package, which is gitignored. Generate it with
+# `npm run build:wasm` (Emscripten), or without Emscripten via the native,
+# IDE-only configure: `cmake -S packages/visual-core -B packages/visual-core/build`.
+CompileFlags:
+  CompilationDatabase: packages/visual-core/build

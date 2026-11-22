@@ -8,6 +8,7 @@ export interface WorkerLike {
 }
 
 export type WorkerFactory = () => WorkerLike;
+export type LayerMessageListener = (message: WorkerToHostMessage) => void;
 
 function createDefaultWorker(): WorkerLike {
   return new Worker(new URL('./worker/visualWorker.ts', import.meta.url), { type: 'module' });
@@ -21,6 +22,7 @@ function createDefaultWorker(): WorkerLike {
  */
 export class VisualWorkerClient {
   private worker: WorkerLike | null = null;
+  private layerListeners = new Map<string, LayerMessageListener>();
 
   constructor(private workerFactory: WorkerFactory = createDefaultWorker) {}
 
@@ -28,9 +30,11 @@ export class VisualWorkerClient {
     if (!this.worker) {
       const worker = this.workerFactory();
       worker.addEventListener('message', (event) => {
-        if (event.data?.type === 'error') {
-          console.error('[visuals worker]', event.data.message);
+        const message = event.data;
+        if (message?.type === 'error') {
+          console.error('[visuals worker]', message.message);
         }
+        if (message?.layerId) this.layerListeners.get(message.layerId)?.(message);
       });
       this.worker = worker;
     }
@@ -44,6 +48,14 @@ export class VisualWorkerClient {
 
   send(message: Exclude<HostToWorkerMessage, { type: 'init' }>): void {
     this.worker?.postMessage(message);
+  }
+
+  /** Routes worker messages addressed to `layerId` (e.g. which engine it ended up on). Returns an unsubscribe function. */
+  onLayerMessage(layerId: string, listener: LayerMessageListener): () => void {
+    this.layerListeners.set(layerId, listener);
+    return () => {
+      if (this.layerListeners.get(layerId) === listener) this.layerListeners.delete(layerId);
+    };
   }
 }
 
