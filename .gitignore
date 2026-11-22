@@ -17,6 +17,13 @@ dist-ssr
 /playwright-report/
 /blob-report/
 
+# C++ visual core (packages/visual-core): CMake build tree, the
+# compile_commands.json clangd reads from it, and clangd's index. The
+# prebuilt src/lib/visuals/wasm/visual-core.wasm *is* committed.
+packages/*/build/
+packages/*/compile_commands.json
+.cache/clangd/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

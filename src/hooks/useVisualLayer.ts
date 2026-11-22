@@ -18,13 +18,21 @@ export interface UseVisualLayerOptions {
   theme?: ThemeId;
   /** Only run while this element is on screen. */
   target?: RefObject<Element | null>;
+  /**
+   * Ask the worker to drive this layer with the C++ visual core (WASM). Only
+   * honoured for worker-backed layers of an effect the core implements; the
+   * worker falls back to the JS engine if the core can't load. Callers pass
+   * `effectiveMode === 'full'`, so balanced/random/lite never fetch the `.wasm`.
+   */
+  preferWasm?: boolean;
 }
 
 /**
- * Wires a `<canvas>` to a `VisualBackend` — the worker-backed
- * `OffscreenWorkerBackend` when the browser supports `transferControlToOffscreen`,
- * `MainThreadCanvasBackend` otherwise — and keeps it fed with resize, pointer,
- * theme and density updates for as long as the effect is enabled.
+ * Wires a `<canvas>` to a `VisualBackend` — `WasmWorkerBackend` when the
+ * caller prefers WASM, the worker-backed `OffscreenWorkerBackend` when the
+ * browser supports `transferControlToOffscreen`, `MainThreadCanvasBackend`
+ * otherwise — and keeps it fed with resize, pointer, theme and density
+ * updates for as long as the effect is enabled.
  *
  * `prefers-reduced-motion` is a hard floor: no backend is created at all, so a
  * reduced-motion visitor never spawns the visuals worker for something that
@@ -40,7 +48,7 @@ export default function useVisualLayer(
   canvasRef: RefObject<HTMLCanvasElement | null>,
   options: UseVisualLayerOptions = {},
 ): VisualLayerHandle {
-  const { enabled = true, density = 1, theme = 'cyan', target } = options;
+  const { enabled = true, density = 1, theme = 'cyan', target, preferWasm = false } = options;
   const prefersReducedMotion = usePrefersReducedMotion();
   const active = enabled && !prefersReducedMotion;
 
@@ -51,6 +59,11 @@ export default function useVisualLayer(
   // A browser's OffscreenCanvas support can't change mid-session, so this is
   // computed once (lazy initializer) rather than re-derived inside an effect.
   const [usesWorker] = useState(() => supportsOffscreenCanvas());
+  // WASM only exists inside the worker. Folding that in here means toggling
+  // Full mode never tears down and reseeds a main-thread layer for nothing;
+  // a worker layer re-inits onto its existing canvas and swaps engines there
+  // (OffscreenWorkerBackend's reuse path sends `setEngine`).
+  const wantsWasm = usesWorker && preferWasm;
 
   const loopHandle = useAnimationLoop((time) => backendRef.current?.tick(time), {
     enabled: active && !usesWorker,
@@ -66,7 +79,7 @@ export default function useVisualLayer(
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const backend = createVisualBackend(effect, usesWorker);
+    const backend = createVisualBackend(effect, { worker: usesWorker, wasm: wantsWasm });
     backendRef.current = backend;
 
     backend.init(canvas, {
@@ -102,7 +115,7 @@ export default function useVisualLayer(
     // instead of tearing down and reinitializing the backend. Re-running init()
     // means re-transferring the canvas for a worker-backed layer, which can
     // only happen once per <canvas> element ever (see OffscreenWorkerBackend).
-  }, [effect, active, canvasRef, loopHandle, usesWorker]);
+  }, [effect, active, canvasRef, loopHandle, usesWorker, wantsWasm]);
 
   useEffect(() => {
     themeRef.current = theme;

@@ -3,6 +3,14 @@ import type { ThemeId } from '../../types';
 /** Every ambient background effect that can be driven through a `VisualBackend`. */
 export type EffectKind = 'starfield' | 'particleNetwork' | 'matrixRain' | 'cursorTrail' | 'cursor';
 
+/**
+ * Which simulation drives a worker layer: the TypeScript engines
+ * (`src/lib/visuals/engines/`) or the C++ visual core compiled to WASM
+ * (`packages/visual-core/`, adapted by `src/lib/visuals/wasm/`). Main-thread
+ * layers always use the TypeScript engines.
+ */
+export type EngineImpl = 'js' | 'wasm';
+
 export interface VisualInitOptions {
   width: number;
   height: number;
@@ -15,8 +23,10 @@ export interface VisualInitOptions {
 /**
  * Backend-agnostic handle to one running visual layer. `MainThreadCanvasBackend`
  * runs the simulation in-page; `OffscreenWorkerBackend` transfers the canvas to
- * the shared visuals worker and proxies these calls over `postMessage`. Both
- * implementations share the same `src/lib/visuals/engines/*` simulation code.
+ * the shared visuals worker and proxies these calls over `postMessage`, and
+ * `WasmWorkerBackend` does the same but asks the worker to drive the layer
+ * with the C++ visual core. All of them run the same `Engine` protocol, so
+ * the worker can fall back from WASM to the JS engines per layer.
  */
 export interface VisualBackend {
   readonly kind: EffectKind;

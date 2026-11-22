@@ -24,6 +24,8 @@
     "validate:projects": "node --import tsx scripts/validate-projects.mjs",
     "check:health": "node scripts/check-project-health.mjs",
     "test:unit": "node --import tsx scripts/unit-tests.mjs",
+    "build:wasm": "node scripts/build-wasm.mjs",
+    "bench:visual-core": "node --import tsx scripts/bench-visual-core.mjs",
     "deploy": "python deploy.py"
   },
   "dependencies": {

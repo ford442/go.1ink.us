@@ -2,12 +2,17 @@ import { forwardRef, memo, useContext, useRef } from 'react';
 import { OverlayChromeContext } from '../app/context/OverlayChromeContext';
 import useVisualLayer from '../hooks/useVisualLayer';
 
-const Starfield = memo(forwardRef<HTMLCanvasElement>((_props, forwardedRef) => {
+interface StarfieldProps {
+  /** Drive the layer with the WASM visual core (Full mode). */
+  preferWasm?: boolean;
+}
+
+const Starfield = memo(forwardRef<HTMLCanvasElement, StarfieldProps>(({ preferWasm = false }, forwardedRef) => {
   const context = useContext(OverlayChromeContext);
   const isWarping = context?.isWarping || false;
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  useVisualLayer('starfield', canvasRef, { enabled: true });
+  useVisualLayer('starfield', canvasRef, { enabled: true, preferWasm });
 
   return (
     <canvas

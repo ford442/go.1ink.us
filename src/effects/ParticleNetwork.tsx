@@ -3,12 +3,14 @@ import useVisualLayer from '../hooks/useVisualLayer';
 
 interface ParticleNetworkProps {
   isGodMode: boolean;
+  /** Drive the layer with the WASM visual core (Full mode). */
+  preferWasm?: boolean;
 }
 
-const ParticleNetwork = memo(({ isGodMode }: ParticleNetworkProps) => {
+const ParticleNetwork = memo(({ isGodMode, preferWasm = false }: ParticleNetworkProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  useVisualLayer('particleNetwork', canvasRef, { enabled: true, density: isGodMode ? 2 : 1 });
+  useVisualLayer('particleNetwork', canvasRef, { enabled: true, density: isGodMode ? 2 : 1, preferWasm });
 
   return (
     <canvas

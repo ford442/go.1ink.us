@@ -45,7 +45,16 @@ async function main() {
     rows.push({ name: href.split('/').pop(), raw: raw.length, gzip: gz });
   }
 
-  const assetFiles = (await readdir(ASSETS)).filter((name) => name.endsWith('.js'));
+  // The WASM visual core must stay off the critical path: fetched by the
+  // visuals worker in Full mode only, never preloaded from index.html.
+  const preloadedWasm = [...indexHtml.matchAll(/\b(?:src|href)="([^"]+\.wasm)"/g)].map((match) => match[1]);
+  if (preloadedWasm.length > 0) {
+    console.error(`check-bundle-budget: index.html references WASM (${preloadedWasm.join(', ')}); it must load on demand`);
+    process.exit(1);
+  }
+
+  const allAssets = await readdir(ASSETS);
+  const assetFiles = allAssets.filter((name) => name.endsWith('.js'));
   const lazyRows = [];
 
   for (const name of assetFiles.sort()) {
@@ -69,6 +78,16 @@ async function main() {
     console.log('--- Lazy / on-demand chunks ---');
     for (const row of lazyRows) {
       console.log(`  ${row.name}: ${fmt(row.raw)} raw, ${fmt(row.gzip)} gzip`);
+    }
+    console.log('');
+  }
+
+  const wasmFiles = allAssets.filter((name) => name.endsWith('.wasm')).sort();
+  if (wasmFiles.length > 0) {
+    console.log('--- WASM (worker-fetched in Full mode; not in the initial budget) ---');
+    for (const name of wasmFiles) {
+      const raw = await readFile(join(ASSETS, name));
+      console.log(`  ${name}: ${fmt(raw.length)} raw, ${fmt(gzipSize(raw))} gzip`);
     }
     console.log('');
   }

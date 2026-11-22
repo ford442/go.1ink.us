@@ -177,3 +177,32 @@ test('orbital ops panel and terminal pass table work from a preset station', asy
   await page.keyboard.press('Escape');
   await expect(panel).not.toBeVisible();
 });
+
+test('full mode drives the starfield and particle network with the WASM visual core', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  await page.addInitScript(() => localStorage.setItem('curator_perf', 'full'));
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('data-perf', 'full');
+  // Set by OffscreenWorkerBackend from the worker's report of the engine it actually runs.
+  await expect(page.locator('canvas[data-visual-engine="wasm"]')).toHaveCount(2, { timeout: 10_000 });
+  // The cursor effects have no C++ port and stay on the JS engines in the same worker.
+  await expect(page.locator('canvas[data-visual-engine="js"]')).not.toHaveCount(0);
+  expect(errors.filter((text) => text.includes('visuals worker'))).toEqual([]);
+});
+
+test('balanced mode keeps the JS engines and never fetches the WASM visual core', async ({ page }) => {
+  const wasmRequests: string[] = [];
+  // Context-level, so requests from the visuals worker are seen as well as the page's.
+  page.context().on('request', (request) => {
+    if (request.url().endsWith('.wasm')) wasmRequests.push(request.url());
+  });
+  await page.addInitScript(() => localStorage.setItem('curator_perf', 'balanced'));
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('data-perf', 'balanced');
+  await expect(page.locator('canvas[data-visual-engine="js"]')).not.toHaveCount(0, { timeout: 10_000 });
+  await expect(page.locator('canvas[data-visual-engine="wasm"]')).toHaveCount(0);
+  expect(wasmRequests).toEqual([]);
+});

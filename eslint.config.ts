@@ -6,7 +6,9 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // CMake writes a `compiler_depend.ts` timestamp (not TypeScript) into the
+  // C++ package's build dir.
+  globalIgnores(['dist', 'packages/*/build']),
   {
     // `src/` is 100% TypeScript (see AGENTS.md "TypeScript Migration").
     // Not type-aware (no `project` service) to stay fast; `tsc --noEmit`

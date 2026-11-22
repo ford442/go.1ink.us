@@ -20,6 +20,7 @@ This is a single-page application (SPA) built with modern React patterns, served
 | Map View | react-force-graph-2d | ^1.29.1 |
 | Linting | ESLint | ^9.39.1 |
 | Types | TypeScript (100% of `src/` — see TypeScript Migration) | ^7.0.2 |
+| WASM visual core (optional) | C++20 via Emscripten + CMake (`packages/visual-core/`; prebuilt `.wasm` committed) | Emscripten 4.0.15 (pinned in `packages/visual-core/EMSDK_VERSION`) |
 | Deployment | Python + Paramiko (SFTP) | - |
 | Deployment | Python (HTTP upload to storage.noahcohn.com) | - |
 
@@ -41,6 +42,12 @@ go.1ink.us/
 ├── eslint.config.ts           # ESLint flat config
 ├── tsconfig.json               # TypeScript config (see TypeScript Migration below)
 ├── deploy.py                  # SFTP deployment script
+├── .clangd                    # Points clangd at packages/visual-core/build/compile_commands.json (C++ only)
+├── packages/visual-core/      # C++ simulation core for the WASM visuals backend (see Ambient visuals)
+│   ├── CMakeLists.txt         # emcmake build; CMAKE_EXPORT_COMPILE_COMMANDS=ON
+│   ├── EMSDK_VERSION          # Pinned Emscripten version (CI + build:wasm)
+│   ├── include/visual_core.h  # C API + draw-list ABI (mirrored in src/lib/visuals/wasm/visualCoreAbi.ts)
+│   └── src/*.cpp, *.h         # Particle network, starfield, matrix rain ports
 ├── public/                    # Static assets
 │   ├── *.png                  # Project screenshots
 │   ├── title.png              # Site header image
@@ -69,7 +76,22 @@ go.1ink.us/
 
 ## Build and Development Commands
 
-**Compile pipeline:** This project has **no** `compile_commands.json`, CMake, or native toolchain. The sole compile step is **Vite 7** (Rollup for production). Future WASM work would add its own build step separately.
+**Compile pipeline:** The JS app has **no** `compile_commands.json`, CMake, or native toolchain: its sole compile step is **Vite 7** (Rollup for production). Never add a root `compile_commands.json` pointing at `src/` — clangd would fight Vite. The one C++ package, `packages/visual-core/`, has its own CMake build and *does* generate `compile_commands.json` (gitignored, in `packages/visual-core/build/`, where the root `.clangd` points). Its output, `src/lib/visuals/wasm/visual-core.wasm`, is committed prebuilt, so `npm run build` works on a machine without Emscripten.
+
+```bash
+# Rebuild the WASM visual core after changing packages/visual-core (needs the pinned Emscripten
+# on PATH: source emsdk_env.sh). Runs, in effect:
+#   emcmake cmake -S packages/visual-core -B packages/visual-core/build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+#   cmake --build packages/visual-core/build
+# then copies visual_core.wasm to src/lib/visuals/wasm/visual-core.wasm (commit it).
+npm run build:wasm
+
+# IDE-only, no Emscripten: native configure with the host compiler, just for clangd's compile_commands.json
+cmake -S packages/visual-core -B packages/visual-core/build
+
+# JS engines vs. WASM core, per-tick cost under Node (no-op canvas)
+npm run bench:visual-core
+```
 
 ```bash
 # Install dependencies
@@ -110,11 +132,13 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR and push to `main`:
 
 Branch protection should require the **CI** checks to pass before merge.
 
+`.github/workflows/wasm.yml` is an **optional** job that only runs when `packages/visual-core/**` or the WASM adapter changes: it installs the pinned Emscripten, runs `npm run build:wasm`, and fails if the committed `visual-core.wasm` differs from what the sources build (the build is byte-for-byte deterministic for a given Emscripten version). Don't make it a required check — path filtering means it doesn't report on unrelated PRs.
+
 ---
 
 ### Bundle budget
 
-Production build enforces an **initial JS gzip budget of 130 KB** (entry + modulepreloaded vendor chunks, actual ~116 KB) via `scripts/check-bundle-budget.mjs`. Heavy views are code-split with `React.lazy`:
+Production build enforces an **initial JS gzip budget of 130 KB** (entry + modulepreloaded vendor chunks) via `scripts/check-bundle-budget.mjs`. Actual is ~129.9 KB as of the WASM visual core landing (it was ~129.6 KB before; the WASM work added ~0.3 KB of host-side selection code), so there is almost no headroom left — check the build output before adding anything eager. Heavy views are code-split with `React.lazy`:
 
 | Chunk | Loads when |
 |-------|------------|
@@ -129,6 +153,7 @@ Production build enforces an **initial JS gzip budget of 130 KB** (entry + modul
 | `ConstellationOrbitalOverlay` | Constellation view opened (HUD over 3D, pass table under the 2D fallback) |
 | `EmptyState` | A search/filter matches nothing |
 | `vendor-motion` (`framer-motion`) | Only with `ShortcutCheatsheet` — no longer on the critical path |
+| `loadVisualCore` (WASM adapter) + `visual-core-*.wasm` (~10 KB gzip) | Imported/fetched by the visuals worker on the first layer that requests the WASM core (Full mode only). The `.wasm` is never preloaded (the budget script fails if `index.html` references one) and never precached by the service worker; a runtime cache rule keeps it after first use |
 
 `vite.config.ts` sets `manualChunks` for `vendor-react` and `vendor-motion`, `sourcemap: false` in prod, and `reportCompressedSize: true`. `react-force-graph-2d` ships inside the lazy `SystemMap` chunk (not preloaded).
 
@@ -520,21 +545,45 @@ wrappers around one shared system rather than five independent rAF loops:
 | `lib/visuals/engines/*Engine.ts` | Pure simulation + draw step per effect (`starfieldEngine`, `particleNetworkEngine`, `matrixRainEngine`, `cursorTrailEngine`, `cursorEngine`), framework- and canvas-implementation-free — each works against any object satisfying `engines/types.ts`'s `Canvas2D` (a structural subset both `CanvasRenderingContext2D` and `OffscreenCanvasRenderingContext2D` already implement) |
 | `lib/visuals/types.ts` | `VisualBackend` — the `init/resize/setTheme/setPointer/setDensity/setHover/setRunning/tick/dispose` protocol every backend implements |
 | `lib/visuals/backends/MainThreadCanvasBackend.ts` | Runs an engine directly against a normal `<canvas>`, ticked by the host's own rAF |
-| `lib/visuals/backends/OffscreenWorkerBackend.ts` + `VisualWorkerClient.ts` | Transfers the canvas to one shared `visualWorker` (via `transferControlToOffscreen`) and proxies every call over `postMessage`; one `Worker` backs every layer on the page, not one per effect |
-| `lib/visuals/worker/visualWorkerRuntime.ts` | The worker-side protocol handler — owns every layer's engine + canvas and runs one shared frame loop for all of them. Decoupled from `self`/`postMessage` so it's testable under Node (`scripts/test-visual-worker-protocol.mjs`, with a fake worker/canvas) |
+| `lib/visuals/backends/OffscreenWorkerBackend.ts` + `VisualWorkerClient.ts` | Transfers the canvas to one shared `visualWorker` (via `transferControlToOffscreen`) and proxies every call over `postMessage`; one `Worker` backs every layer on the page, not one per effect. Mirrors the engine the worker reports onto the canvas as `data-visual-engine` (`wasm` / `js`; `main` for `MainThreadCanvasBackend`) |
+| `lib/visuals/backends/WasmWorkerBackend.ts` | Same as `OffscreenWorkerBackend`, but asks the worker to drive the layer with the C++ visual core (`engine: 'wasm'` in the init payload, `setEngine` on reuse) |
+| `lib/visuals/worker/visualWorkerRuntime.ts` | The worker-side protocol handler — owns every layer's engine + canvas and runs one shared frame loop for all of them. Loads the WASM core at most once, on the first `'wasm'` request, and falls back to the JS engine per layer if it can't. Decoupled from `self`/`postMessage` so it's testable under Node (`scripts/test-visual-worker-protocol.mjs`, with a fake worker/canvas) |
+| `lib/visuals/worker/layerEngine.ts` | The `Engine` each worker layer actually holds: records the latest size/theme/density/pointer/hover and delegates to a swappable inner engine, so JS <-> WASM swaps (core loaded, core failed, Full mode toggled) re-init from that state without re-transferring the canvas |
+| `lib/visuals/wasm/` | The WASM adapter, loaded only inside the worker: `visualCoreAbi.ts` (mirror of `visual_core.h`), `loadVisualCore.ts` (fetch/instantiate, streaming with an ArrayBuffer fallback, ABI check), `WasmEngine.ts` (`Engine` over one C++ instance), `drawList.ts` (replays the core's draw list onto `Canvas2D`), and the prebuilt `visual-core.wasm` |
+| `packages/visual-core/` | C++ ports of `particleNetworkEngine`, `starfieldEngine`, `matrixRainEngine`: simulation only. Each tick writes a flat draw list (opcode + float/RGBA words, layouts in `include/visual_core.h`) into linear memory; no canvas, DOM, or JS imports beyond Emscripten's memory-growth hook |
 | `lib/visuals/ambientSignals.ts` | One shared pointer (`mousemove`/`mouseout`) + theme-accent (`getComputedStyle` on `data-theme` change) reader for every layer, instead of each effect running its own listener |
-| `hooks/useVisualLayer.ts` | The React hook every `effects/*` component calls: picks `OffscreenWorkerBackend` when `lib/visuals/support.ts`'s `supportsOffscreenCanvas()` passes, else falls back to `MainThreadCanvasBackend`; wires resize/pointer/theme/density updates and the rAF (`useAnimationLoop`) or visibility-gate (`hooks/useVisibilityGate.ts`) loop appropriately. Returns a `{ setHover }` handle for the one effect (the cursor) that needs a signal beyond resize/pointer/theme/density |
+| `hooks/useVisualLayer.ts` | The React hook every `effects/*` component calls: picks (via `backends/createVisualBackend.ts`) `WasmWorkerBackend` when the caller passes `preferWasm` and the core implements the effect, `OffscreenWorkerBackend` when `lib/visuals/support.ts`'s `supportsOffscreenCanvas()` passes, else falls back to `MainThreadCanvasBackend`; wires resize/pointer/theme/density updates and the rAF (`useAnimationLoop`) or visibility-gate (`hooks/useVisibilityGate.ts`) loop appropriately. Returns a `{ setHover }` handle for the one effect (the cursor) that needs a signal beyond resize/pointer/theme/density |
 
 **Fallback chain**, per layer, cheapest-capability-first: **WASM worker**
-(not implemented yet — tracked separately; would be a third `VisualBackend`
-alongside the two below, still driven through the same `Engine` protocol so
-it's a drop-in) → **JS worker** (`OffscreenWorkerBackend`, when
-`supportsOffscreenCanvas()` passes) → **main-thread canvas**
-(`MainThreadCanvasBackend`, ticked by the host's own rAF) → **CSS/off**
-(`prefers-reduced-motion` or `performanceMode === 'lite'`, below). A WASM
-backend can only be a true drop-in once every 2D effect either implements
-`Engine` or is a documented CSS/DOM exception (see the table above) — that's
-why `CustomCursor` was ported rather than left as a one-off rAF loop.
+(`WasmWorkerBackend`, Full mode only, for the effects the C++ core
+implements) → **JS worker** (`OffscreenWorkerBackend`, when
+`supportsOffscreenCanvas()` passes; also what a WASM layer drops to, inside
+the same worker, if the core fails to fetch, compile, or pass the ABI check)
+→ **main-thread canvas** (`MainThreadCanvasBackend`, ticked by the host's own
+rAF; WASM never runs on the main thread) → **CSS/off**
+(`prefers-reduced-motion` or `performanceMode === 'lite'`, below). The WASM
+tier is a drop-in because every 2D effect either implements `Engine` or is a
+documented CSS/DOM exception (see the table above) — that's why
+`CustomCursor` was ported rather than left as a one-off rAF loop.
+
+**WASM visual core.** `BackgroundElements` passes `preferWasm` as
+`effectiveMode === 'full'`, so only Full mode ever requests the core;
+balanced, random and lite keep the JS engines and never fetch the `.wasm`
+(the e2e smoke suite checks both). The core implements particle network,
+starfield and matrix rain; the cursor and cursor trail have no port (no
+simulation worth moving) and stay on JS in the same worker. Rendering stays
+in the browser's canvas: the C++ side only simulates and writes a draw list,
+and `drawList.ts` replays it with each primitive's alpha applied through
+`globalAlpha` over an opaque `rgb(...)` style, so a frame parses a colour
+string about once per effect instead of once per particle link. Measured
+with `npm run bench:visual-core` (no-op canvas, so simulation + draw-call
+overhead only): the particle network is ~7-9x cheaper per tick on WASM,
+while the starfield and matrix rain, which barely compute anything, are a
+wash (about 1 µs per tick slower). The adapter's ABI constants are
+hand-mirrored from `visual_core.h`; `scripts/test-visual-core-wasm.mjs`
+parses the header and fails on drift, so bump `VC_ABI_VERSION` on any
+incompatible change. `SIMD` (`-msimd128`) is not enabled — add it only with
+a measured win.
 
 **`prefers-reduced-motion` never spawns the worker** — `useVisualLayer` skips
 creating a backend at all when reduced motion is active, so there's nothing to
@@ -556,8 +605,13 @@ records calls. `scripts/test-visual-engines.mjs` covers the *math* inside
 each real engine — star count vs. density, particle boundary bounce, matrix
 glyph step + 30fps throttle, cursor-trail decay + particle cap — so a
 "simplification" that quietly changes wrap/decay/step behavior fails a test
-even though the protocol still shakes out fine. Both run under
-`npm run test:unit`.
+even though the protocol still shakes out fine.
+`scripts/test-visual-core-wasm.mjs` runs the committed `visual-core.wasm`
+(no Emscripten needed) through the real adapter: ABI drift against
+`visual_core.h` and the CMake export list, particle links vs. an O(n²) brute
+force, counts/alpha/radius ranges and throttle timing matched against the JS
+engines, memory growth, and the loader's MIME/HTTP/ABI failure paths. All
+three run under `npm run test:unit`.
 
 ### Data Model
 
