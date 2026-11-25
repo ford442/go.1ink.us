@@ -241,6 +241,14 @@ export function ConstellationScene({ projects, theme, onSelectProject }: Constel
 
 function ConstellationCanvas({ projects, theme, onSelectProject, onFailure }: ConstellationSceneProps & { onFailure: () => void }) {
   const { flags } = useEffectsContext();
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const failureRef = useRef(onFailure);
+  const handleContextLost = useCallback(() => failureRef.current(), []);
+
+  useEffect(() => { failureRef.current = onFailure; }, [onFailure]);
+  useEffect(() => () => {
+    canvasRef.current?.removeEventListener('webglcontextlost', handleContextLost);
+  }, [handleContextLost]);
 
   return (
     <Canvas
@@ -255,7 +263,8 @@ function ConstellationCanvas({ projects, theme, onSelectProject, onFailure }: Co
         }
       }}
       onCreated={({ gl }) => {
-        gl.domElement.addEventListener('webglcontextlost', onFailure, { once: true });
+        canvasRef.current = gl.domElement;
+        gl.domElement.addEventListener('webglcontextlost', handleContextLost, { once: true });
       }}
       className="w-full h-full"
     >

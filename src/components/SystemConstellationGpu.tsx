@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ElementRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -67,12 +67,12 @@ function Globe({ projects, onSelectProject }: { projects: EnhancedProject[]; onS
           <group key={node.id}>
             {satellite && (
               <>
-                <lineLoop>
+                <line>
                   <bufferGeometry>
                     <bufferAttribute attach="attributes-position" args={[new Float32Array(satellite.ring.flat()), 3]} />
                   </bufferGeometry>
                   <lineBasicMaterial color={node.color} transparent opacity={0.7} />
-                </lineLoop>
+                </line>
                 {satellite.visible && (
                   <line>
                     <bufferGeometry>
@@ -96,31 +96,51 @@ function Globe({ projects, onSelectProject }: { projects: EnhancedProject[]; onS
 export default function SystemConstellationGpu({ onFailure }: { onFailure: () => void }) {
   const { filteredProjects } = useBrowserContext();
   const { handleProjectSelect } = useOverlayModalContext();
+  const active = useRef(true);
+  const rendererRef = useRef<WebGPURenderer | null>(null);
+  const initialized = useRef(false);
+
+  useEffect(() => {
+    active.current = true;
+    return () => {
+      active.current = false;
+      if (initialized.current) rendererRef.current?.dispose();
+    };
+  }, []);
 
   return (
-    <div className="relative w-full min-h-[480px] h-[min(72vh,720px)] rounded-xl border border-accent-500/30 overflow-hidden tinted-glass">
+    <div className="@container relative w-full min-h-[480px] h-[min(72vh,720px)] rounded-xl border border-accent-500/30 overflow-hidden tinted-glass">
       <div className="absolute top-3 left-3 z-10 px-2 py-1 rounded-md bg-black/50 border border-accent-500/30 font-mono text-[10px] text-accent-400 uppercase pointer-events-none">
         WebGPU · {filteredProjects.length} nodes
       </div>
       <p className="sr-only">Earth orbit constellation. Click a satellite or star to open its project briefing.</p>
-      <Canvas camera={{ position: [0, 8, 42], fov: 55, near: 0.1, far: 200 }} dpr={[1, 1.75]} gl={async (props) => {
+      <Canvas camera={{ position: [0, 8, 30], fov: 55, near: 0.1, far: 200 }} dpr={[1, 1.75]} gl={async (props) => {
         let renderer: WebGPURenderer | undefined;
         try {
           renderer = new WebGPURenderer({ canvas: props.canvas as HTMLCanvasElement, antialias: true, alpha: false });
-          renderer.onDeviceLost = onFailure;
-          renderer.onError = onFailure;
+          rendererRef.current = renderer;
+          renderer.onDeviceLost = () => { if (active.current) onFailure(); };
+          renderer.onError = () => { if (active.current) onFailure(); };
           await renderer.init();
+          if (!active.current) {
+            renderer.dispose();
+            return new Promise<THREE.WebGLRenderer>(() => {});
+          }
+          initialized.current = true;
           if (!(renderer.backend as unknown as { isWebGPUBackend?: boolean }).isWebGPUBackend) throw new Error('WebGPU unavailable');
           return renderer as unknown as THREE.WebGLRenderer;
         } catch {
           renderer?.dispose();
-          onFailure();
+          initialized.current = false;
+          if (active.current) onFailure();
           return new Promise<THREE.WebGLRenderer>(() => {});
         }
       }}>
         <Suspense fallback={null}><Globe projects={filteredProjects} onSelectProject={handleProjectSelect} /></Suspense>
       </Canvas>
-      <Suspense fallback={null}><ConstellationOrbitalOverlay variant="hud" /></Suspense>
+      <div className="hidden @2xl:block">
+        <Suspense fallback={null}><ConstellationOrbitalOverlay variant="hud" /></Suspense>
+      </div>
       <div className="absolute bottom-3 right-3 z-10 font-mono text-[9px] text-gray-500 tracking-widest uppercase pointer-events-none">
         Drag to orbit · Scroll to zoom · Click to warp
       </div>

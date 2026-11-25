@@ -1,8 +1,9 @@
-import { Component, Suspense, lazy, useEffect, useState } from 'react';
+import { Component, Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { useEffectsContext } from '../app/context/EffectsContext';
 import { probeGpu } from '../lib/gpuSupport';
 import type { GpuCapability } from '../lib/gpuSupport';
+import { canUseConstellation3d } from '../lib/webglSupport';
 
 const WebGPU = lazy(() => import('./SystemConstellationGpu'));
 const WebGL = lazy(() => import('./SystemConstellationWebGL'));
@@ -33,6 +34,11 @@ export default function SystemConstellation() {
   const [choice, setChoice] = useState<View | null>(null);
   const [gpuFailed, setGpuFailed] = useState(false);
   const [glFailed, setGlFailed] = useState(false);
+  const glSupported = useMemo(() => {
+    if (!flags.constellation3d) return false;
+    if (capability === 'webgl') return true;
+    return capability === 'webgpu' && canUseConstellation3d(true);
+  }, [capability, flags.constellation3d]);
 
   useEffect(() => {
     if (!flags.constellation3d) return;
@@ -48,9 +54,7 @@ export default function SystemConstellation() {
   }
 
   const gpuAvailable = flags.constellation3d && capability === 'webgpu' && !gpuFailed;
-  // WebGPU availability does not guarantee that WebGL is usable; the WebGL
-  // sibling performs its own conservative probe before creating a canvas.
-  const glAvailable = flags.constellation3d && (capability === 'webgpu' || capability === 'webgl') && !glFailed;
+  const glAvailable = glSupported && !glFailed;
   const preferred = gpuAvailable ? 'webgpu' : glAvailable ? 'webgl' : 'map';
   const view = choice === 'map' ? 'map'
     : choice === 'webgl' && glAvailable ? 'webgl'
