@@ -144,6 +144,7 @@ Production build enforces an **initial JS gzip budget of 130 KB** (entry + modul
 |-------|------------|
 | `SystemMap` + `vendor-force-graph` | Map view opened |
 | `SystemConstellation` | Constellation view opened |
+| `SystemConstellationGpu` + `vendor-webgpu` | WebGPU constellation selected on a capable adapter (not precached) |
 | `HoloTerminal` | Holo terminal opened |
 | `ProjectQuickView` | A project quick view opened |
 | `MatrixRain` | Matrix mode enabled |
@@ -462,6 +463,13 @@ eventually cost.
   icon in the layout toggle): renders projects as a `react-force-graph-2d`
   graph, linking projects that share tags (Jaccard similarity), with
   click-to-open on nodes.
+- **Constellation** (`view=constellation`): chooses a lazy WebGPU globe on a
+  hardware adapter, otherwise the existing WebGL constellation or 2D map.
+  The renderer buttons also allow an explicit selection. Lite and reduced
+  motion go straight to the map without requesting the WebGPU chunks.
+  Orbital projects use Earth-fixed propagation, station visibility, and
+  footprint rings; other projects remain category stars. The orbit model is
+  approximate, as in Orbital Ops.
 
 ### Boot Sequence
 

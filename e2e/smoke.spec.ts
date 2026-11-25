@@ -144,6 +144,38 @@ test('map view loads without crashing', async ({ page }) => {
   await expect(page.locator('canvas').first()).toBeVisible({ timeout: 15_000 });
 });
 
+test('lite constellation uses the map without requesting WebGPU chunks', async ({ page, context }) => {
+  const gpuRequests: string[] = [];
+  context.on('request', (request) => {
+    if (/SystemConstellationGpu-|vendor-webgpu-/.test(request.url())) gpuRequests.push(request.url());
+  });
+  await page.addInitScript(() => localStorage.setItem('curator_perf', 'lite'));
+  await page.goto('/?view=constellation');
+  await expect(page.getByRole('button', { name: '2D map' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText('NEURAL_MAP_VIEW')).toBeVisible();
+  await page.waitForFunction(() => navigator.serviceWorker?.controller != null);
+  expect(gpuRequests).toEqual([]);
+});
+
+test('failed WebGPU initialization falls back without a blank view', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('curator_perf', 'full');
+    Object.defineProperty(navigator, 'gpu', {
+      configurable: true,
+      value: { requestAdapter: async () => ({ isFallbackAdapter: false }) },
+    });
+    const getContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, ...args: Parameters<typeof getContext>) {
+      if (args[0] === 'webgl' || args[0] === 'webgl2') return null;
+      return getContext.apply(this, args);
+    } as typeof getContext;
+  });
+  await page.goto('/?view=constellation');
+  await expect(page.getByRole('button', { name: '2D map' })).toHaveAttribute('aria-pressed', 'true', { timeout: 15_000 });
+  await expect(page.getByText('NEURAL_MAP_VIEW')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'WebGPU', exact: true })).toBeDisabled();
+});
+
 test('transmissions panel displays dispatches and opens quick view on click', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('curator_perf', 'lite'));
   await page.setViewportSize({ width: 1440, height: 900 });

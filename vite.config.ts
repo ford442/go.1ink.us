@@ -10,7 +10,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 // as an asset (`new URL('./visual-core.wasm', import.meta.url)` inside the visuals
 // worker), so this build never needs Emscripten.
 
-const LAZY_VENDOR_CHUNKS = /vendor-force-graph|vendor-three|MatrixRain|SystemMap|SystemConstellation|HoloTerminal|OmniPalette|Screensaver|ShortcutCheatsheet|LoadoutsBootstrap|LoadoutPanel|loadoutCodec|loadoutIds/
+const LAZY_VENDOR_CHUNKS = /vendor-force-graph|vendor-three|vendor-webgpu|MatrixRain|SystemMap|SystemConstellation|HoloTerminal|OmniPalette|Screensaver|ShortcutCheatsheet|LoadoutsBootstrap|LoadoutPanel|loadoutCodec|loadoutIds/
 
 export default defineConfig({
   resolve: {
@@ -58,6 +58,7 @@ export default defineConfig({
         // fetch the visual core, so precaching would download it for lite and
         // balanced visitors too. The runtime rule below caches it on first use.
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,avif,woff2,json}'],
+        globIgnores: ['**/SystemConstellationGpu-*.js', '**/vendor-webgpu-*.js'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
@@ -147,6 +148,9 @@ export default defineConfig({
         manualChunks(id) {
           if (!id.includes('node_modules')) return;
 
+          if (id.includes('/three/build/three.webgpu.js')) {
+            return 'vendor-webgpu';
+          }
           if (id.includes('three') || id.includes('@react-three')) {
             return 'vendor-three';
           }

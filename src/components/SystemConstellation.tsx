@@ -1,356 +1,86 @@
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState, lazy } from 'react';
-import type { ElementRef, RefObject } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Html, Line, OrbitControls, Stars } from '@react-three/drei';
-import * as THREE from 'three';
-import { useBrowserContext } from '../app/context/BrowserContext';
-import { useOverlayModalContext } from '../app/context/OverlayModalContext';
-import { useSettingsContext } from '../app/context/SettingsContext';
+import { Component, Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
 import { useEffectsContext } from '../app/context/EffectsContext';
-import {
-  buildConstellationLayout,
-  buildConstellationLinks,
-  nodeMap,
-} from '../lib/constellationLayout';
-import type { ConstellationNode, ConstellationLink } from '../lib/constellationLayout';
+import { probeGpu } from '../lib/gpuSupport';
+import type { GpuCapability } from '../lib/gpuSupport';
 import { canUseConstellation3d } from '../lib/webglSupport';
-import soundSystem from '../lib/SoundSystem';
-import type { EnhancedProject, ThemeId } from '../types';
 
-const SystemMapFallback = lazy(() => import('./SystemMap'));
-// Orbital Ops overlay (pass table / look angles / footprint) is its own lazy
-// chunk so the ground propagator only loads once the constellation view does.
-const ConstellationOrbitalOverlay = lazy(() => import('./OrbitalOps/ConstellationOrbitalOverlay'));
+const WebGPU = lazy(() => import('./SystemConstellationGpu'));
+const WebGL = lazy(() => import('./SystemConstellationWebGL'));
+const Map = lazy(() => import('./SystemMap'));
+const OrbitalOverlay = lazy(() => import('./OrbitalOps/ConstellationOrbitalOverlay'));
 
-const THEME_COLORS: Record<ThemeId, string> = {
-  cyan: '#2dd4bf',
-  purple: '#c084fc',
-  emerald: '#34d399',
-  gold: '#fbbf24',
-};
+type View = 'webgpu' | 'webgl' | 'map';
 
-const FLY_DURATION_MS = 650;
-const FLY_DISTANCE = 10;
+class RendererBoundary extends Component<{ onFailure: () => void; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
 
-function themeAccent(theme: ThemeId) {
-  return THEME_COLORS[theme] ?? THEME_COLORS.cyan;
-}
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
 
-interface ConstellationLinksProps {
-  nodes: ConstellationNode[];
-  links: ConstellationLink[];
-  accent: string;
-}
+  componentDidCatch(_error: Error, _info: ErrorInfo) {
+    this.props.onFailure();
+  }
 
-function ConstellationLinks({ nodes, links, accent }: ConstellationLinksProps) {
-  const positions = useMemo(() => {
-    const map = nodeMap(nodes);
-    return links.map((link) => {
-      const a = map.get(link.source);
-      const b = map.get(link.target);
-      if (!a || !b) return null;
-      return {
-        key: `${link.source}-${link.target}`,
-        points: [a.position, b.position] as [[number, number, number], [number, number, number]],
-        opacity: Math.min(0.45, link.strength * 0.35),
-      };
-    }).filter((line): line is NonNullable<typeof line> => line !== null);
-  }, [nodes, links]);
-
-  return (
-    <>
-      {positions.map((line) => (
-        <Line
-          key={line.key}
-          points={line.points}
-          color={accent}
-          lineWidth={1}
-          transparent
-          opacity={line.opacity}
-        />
-      ))}
-    </>
-  );
-}
-
-interface StarNodeProps {
-  node: ConstellationNode;
-  isHovered: boolean;
-  isSelected: boolean;
-  onHover: (id: number | null) => void;
-  onSelect: (node: ConstellationNode) => void;
-}
-
-function StarNode({ node, isHovered, isSelected, onHover, onSelect }: StarNodeProps) {
-  const meshRef = useRef<THREE.Mesh | null>(null);
-  const scale = isSelected ? 1.6 : isHovered ? 1.35 : 1;
-
-  useFrame(({ clock }) => {
-    if (!meshRef.current) return;
-    const pulse = 1 + Math.sin(clock.elapsedTime * 2.5 + node.id) * 0.06;
-    meshRef.current.scale.setScalar(scale * pulse);
-  });
-
-  return (
-    <group position={node.position}>
-      <mesh
-        ref={meshRef}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          onHover(node.id);
-          document.body.style.cursor = 'pointer';
-        }}
-        onPointerOut={() => {
-          onHover(null);
-          document.body.style.cursor = '';
-        }}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(node);
-        }}
-      >
-        <sphereGeometry args={[0.22, 14, 14]} />
-        <meshStandardMaterial
-          color={node.color}
-          emissive={node.color}
-          emissiveIntensity={isSelected ? 1.4 : isHovered ? 1.1 : 0.65}
-          toneMapped={false}
-        />
-      </mesh>
-      {(isHovered || isSelected) && (
-        <Html distanceFactor={14} center className="pointer-events-none select-none">
-          <div className="px-2 py-1 rounded-md bg-black/80 border border-accent-500/40 font-mono text-[10px] text-accent-200 whitespace-nowrap shadow-[0_0_12px_rgba(var(--rgb-accent-400),0.35)]">
-            {node.project.icon} {node.project.title}
-          </div>
-        </Html>
-      )}
-    </group>
-  );
-}
-
-interface CameraRigProps {
-  flyTarget: ConstellationNode | null;
-  onFlyComplete: (project: EnhancedProject) => void;
-  controlsRef: RefObject<ElementRef<typeof OrbitControls> | null>;
-}
-
-function CameraRig({ flyTarget, onFlyComplete, controlsRef }: CameraRigProps) {
-  const { camera } = useThree();
-  const flyStart = useRef<number | null>(null);
-  const startPos = useRef(new THREE.Vector3());
-
-  useEffect(() => {
-    if (!flyTarget) {
-      flyStart.current = null;
-      if (controlsRef.current) controlsRef.current.enabled = true;
-      return;
-    }
-
-    flyStart.current = performance.now();
-    startPos.current.copy(camera.position);
-    if (controlsRef.current) controlsRef.current.enabled = false;
-  }, [flyTarget, camera, controlsRef]);
-
-  useFrame(() => {
-    if (!flyTarget || flyStart.current == null) return;
-
-    const t = Math.min(1, (performance.now() - flyStart.current) / FLY_DURATION_MS);
-    const eased = 1 - Math.pow(1 - t, 3);
-
-    const targetPos = new THREE.Vector3(...flyTarget.position);
-    const camDest = targetPos.clone().add(new THREE.Vector3(0, 1.5, FLY_DISTANCE));
-
-    camera.position.lerpVectors(startPos.current, camDest, eased);
-    camera.lookAt(targetPos);
-
-    if (t >= 1) {
-      flyStart.current = null;
-      onFlyComplete(flyTarget.project);
-    }
-  });
-
-  return null;
-}
-
-interface ConstellationSceneProps {
-  projects: EnhancedProject[];
-  theme: ThemeId;
-  onSelectProject: (project: EnhancedProject) => void;
-}
-
-function ConstellationScene({ projects, theme, onSelectProject }: ConstellationSceneProps) {
-  const nodes = useMemo(() => buildConstellationLayout(projects), [projects]);
-  const links = useMemo(() => buildConstellationLinks(nodes), [nodes]);
-  const accent = themeAccent(theme);
-  const controlsRef = useRef<ElementRef<typeof OrbitControls> | null>(null);
-  const [hoverId, setHoverId] = useState<number | null>(null);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [flyTarget, setFlyTarget] = useState<ConstellationNode | null>(null);
-
-  const handleSelect = useCallback((node: ConstellationNode) => {
-    soundSystem.playClick();
-    setSelectedId(node.id);
-    setFlyTarget(node);
-  }, []);
-
-  const handleFlyComplete = useCallback((project: EnhancedProject) => {
-    setFlyTarget(null);
-    setSelectedId(null);
-    onSelectProject(project);
-  }, [onSelectProject]);
-
-  return (
-    <>
-      <color attach="background" args={['#020617']} />
-      <fog attach="fog" args={['#020617', 35, 120]} />
-      <ambientLight intensity={0.35} />
-      <pointLight position={[10, 20, 10]} intensity={1.2} color={accent} />
-      <pointLight position={[-15, -10, -8]} intensity={0.5} color="#6366f1" />
-      <Stars radius={80} depth={40} count={1200} factor={3} saturation={0} fade speed={0.6} />
-
-      <ConstellationLinks nodes={nodes} links={links} accent={accent} />
-
-      {nodes.map((node) => (
-        <StarNode
-          key={node.id}
-          node={node}
-          isHovered={hoverId === node.id}
-          isSelected={selectedId === node.id}
-          onHover={setHoverId}
-          onSelect={handleSelect}
-        />
-      ))}
-
-      <OrbitControls
-        ref={controlsRef}
-        enablePan
-        enableZoom
-        minDistance={8}
-        maxDistance={70}
-        maxPolarAngle={Math.PI * 0.85}
-      />
-
-      <CameraRig
-        flyTarget={flyTarget}
-        onFlyComplete={handleFlyComplete}
-        controlsRef={controlsRef}
-      />
-    </>
-  );
-}
-
-function ConstellationCanvas({ projects, theme, onSelectProject }: ConstellationSceneProps) {
-  const { flags } = useEffectsContext();
-
-  return (
-    <Canvas
-      camera={{ position: [0, 8, 42], fov: 55, near: 0.1, far: 200 }}
-      dpr={[1, flags.constellation3d ? 1.75 : 1.25]}
-      gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
-      className="w-full h-full"
-    >
-      <Suspense fallback={null}>
-        <ConstellationScene
-          projects={projects}
-          theme={theme}
-          onSelectProject={onSelectProject}
-        />
-      </Suspense>
-    </Canvas>
-  );
-}
-
-interface FallbackBannerProps {
-  reason: string;
-  onOpenMap: () => void;
-}
-
-function FallbackBanner({ reason, onOpenMap }: FallbackBannerProps) {
-  return (
-    <div className="absolute top-3 left-3 right-3 z-20 flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-lg bg-black/70 border border-amber-500/40 backdrop-blur-md">
-      <p className="text-[11px] font-mono text-amber-200/90 tracking-wide">
-        <span className="text-amber-400 font-bold">3D FALLBACK:</span> {reason} — showing 2D neural map.
-      </p>
-      <button
-        type="button"
-        onClick={onOpenMap}
-        className="text-[10px] font-mono uppercase tracking-wider px-2 py-1 rounded border border-white/20 text-gray-300 hover:text-white hover:border-white/40 transition-colors"
-      >
-        Pin map view
-      </button>
-    </div>
-  );
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
 }
 
 export default function SystemConstellation() {
-  const { filteredProjects } = useBrowserContext();
-  const { handleProjectSelect } = useOverlayModalContext();
-  const { theme, handleDisplayModeChange } = useSettingsContext();
   const { flags } = useEffectsContext();
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [capability, setCapability] = useState<GpuCapability | null>(null);
+  const [choice, setChoice] = useState<View | null>(null);
+  const [gpuFailed, setGpuFailed] = useState(false);
+  const [glFailed, setGlFailed] = useState(false);
+  const glSupported = useMemo(() => {
+    if (!flags.constellation3d) return false;
+    if (capability === 'webgl') return true;
+    return capability === 'webgpu' && canUseConstellation3d(true);
+  }, [capability, flags.constellation3d]);
 
-  // Derive the capability decision instead of syncing it into state from an
-  // effect (which triggers an extra render / cascading update). The WebGL
-  // probe is synchronous, so there is no async phase to wait on.
-  const { use3d, fallbackReason } = useMemo(() => {
-    const ok = canUseConstellation3d(flags.constellation3d);
-    let reason = '';
-    if (!ok) {
-      reason = flags.constellation3d
-        ? 'WebGL unavailable or software renderer detected'
-        : 'Performance mode is set to Lite';
-    }
-    return { use3d: ok, fallbackReason: reason };
+  useEffect(() => {
+    if (!flags.constellation3d) return;
+    let active = true;
+    void probeGpu().then((result) => {
+      if (active) setCapability(result);
+    });
+    return () => { active = false; };
   }, [flags.constellation3d]);
 
-  const handleSelect = useCallback((project: EnhancedProject) => {
-    handleProjectSelect(project);
-  }, [handleProjectSelect]);
-
-  const openMap = useCallback(() => {
-    handleDisplayModeChange('map');
-  }, [handleDisplayModeChange]);
-
-  if (!use3d) {
-    return (
-      <div className="relative min-h-[480px] rounded-xl border border-accent-500/20 overflow-hidden tinted-glass">
-        <FallbackBanner reason={fallbackReason} onOpenMap={openMap} />
-        <Suspense fallback={
-          <div className="flex items-center justify-center min-h-[400px]">
-            <span className="font-mono text-accent-400 text-xs tracking-widest uppercase animate-pulse">Loading neural map...</span>
-          </div>
-        }>
-          <SystemMapFallback />
-        </Suspense>
-        <Suspense fallback={null}>
-          <ConstellationOrbitalOverlay variant="table" />
-        </Suspense>
-      </div>
-    );
+  if (flags.constellation3d && capability === null) {
+    return <div className="min-h-[480px] tinted-glass">Detecting graphics capabilities...</div>;
   }
 
+  const gpuAvailable = flags.constellation3d && capability === 'webgpu' && !gpuFailed;
+  const glAvailable = glSupported && !glFailed;
+  const preferred = gpuAvailable ? 'webgpu' : glAvailable ? 'webgl' : 'map';
+  const view = choice === 'map' ? 'map'
+    : choice === 'webgl' && glAvailable ? 'webgl'
+      : choice === 'webgpu' && gpuAvailable ? 'webgpu' : preferred;
+
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full min-h-[480px] h-[min(72vh,720px)] rounded-xl border border-accent-500/30 overflow-hidden tinted-glass shadow-[0_0_30px_rgba(var(--rgb-accent-400),0.12)]"
-    >
-      <div className="absolute top-3 left-3 z-10 px-2 py-1 rounded-md bg-black/50 border border-accent-500/30 font-mono text-[10px] text-accent-400 uppercase tracking-[0.2em] pointer-events-none">
-        Constellation · {filteredProjects.length} nodes
+    <div className="relative">
+      <div role="group" aria-label="Constellation renderer" className="flex flex-wrap gap-2 mb-2 font-mono text-xs">
+        <button type="button" disabled={!gpuAvailable} aria-pressed={view === 'webgpu'} onClick={() => setChoice('webgpu')} className="px-2 py-1 border rounded border-accent-500/40 disabled:opacity-40">WebGPU</button>
+        <button type="button" disabled={!glAvailable} aria-pressed={view === 'webgl'} onClick={() => setChoice('webgl')} className="px-2 py-1 border rounded border-accent-500/40 disabled:opacity-40">WebGL</button>
+        <button type="button" aria-pressed={view === 'map'} onClick={() => setChoice('map')} className="px-2 py-1 border rounded border-accent-500/40">2D map</button>
       </div>
-      <p className="sr-only">
-        Three-dimensional constellation view. Click a star to fly in and open the project briefing.
-      </p>
-      <ConstellationCanvas
-        projects={filteredProjects}
-        theme={theme}
-        onSelectProject={handleSelect}
-      />
-      <Suspense fallback={null}>
-        <ConstellationOrbitalOverlay variant="hud" />
+      <Suspense fallback={<div className="min-h-[480px] tinted-glass">Loading constellation...</div>}>
+        {view === 'map' ? (
+          <div className="relative min-h-[480px] rounded-xl border border-accent-500/20 overflow-hidden tinted-glass">
+            <Map />
+            <Suspense fallback={null}><OrbitalOverlay variant="table" /></Suspense>
+          </div>
+        ) : (
+          <RendererBoundary key={view} onFailure={() => view === 'webgpu' ? setGpuFailed(true) : setGlFailed(true)}>
+            {view === 'webgpu'
+              ? <WebGPU onFailure={() => setGpuFailed(true)} />
+              : <WebGL onFailure={() => setGlFailed(true)} />}
+          </RendererBoundary>
+        )}
       </Suspense>
-      <div className="absolute bottom-3 right-3 z-10 font-mono text-[9px] text-gray-500 tracking-widest uppercase pointer-events-none">
-        Drag to orbit · Scroll to zoom · Click to warp
-      </div>
     </div>
   );
 }
